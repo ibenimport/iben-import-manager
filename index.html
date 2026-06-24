@@ -3028,13 +3028,12 @@ function renderFournisseurs() {
     const typeBadge = f.type === 'local'
       ? '<span class="badge" style="background:var(--red-bg);color:var(--red);font-weight:600">🇲🇦 Local</span>'
       : '<span class="badge" style="background:var(--accent-light);color:var(--accent);font-weight:600">🌍 Import</span>';
-    const origine = f.type === 'local' ? (f.ice || '—') : (f.pays || '—');
-    const labelOrigine = f.type === 'local' ? 'ICE' : 'Pays';
+    const paysAffiche = f.type === 'local' ? '🇲🇦 Maroc' : (f.pays || '—');
     const contact = [f.contact, f.tel].filter(Boolean).join(' · ');
     return `<tr>
       <td>${typeBadge}</td>
       <td class="td-bold">${f.nom}${f.devise ? ' <span style="font-size:11px;color:var(--text3)">(' + f.devise + ')</span>' : ''}</td>
-      <td>${f.type === 'local' ? (f.ice ? labelOrigine + ': ' + origine : '—') : origine}</td>
+      <td>${paysAffiche}</td>
       <td style="font-family:'JetBrains Mono',monospace;font-size:11.5px">${f.ice || '—'}</td>
       <td style="font-size:12px">${contact || '—'}</td>
       <td style="font-weight:600">${achatsF.length}</td>
