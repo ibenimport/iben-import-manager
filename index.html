@@ -3556,13 +3556,12 @@ function addLine(data) {
   div.className = 'line-row';
   div.id = id;
 
-  // Datalist des références (avec nom du produit comme label visible)
+  // Datalist des références (uniquement le code RÉF., sans la désignation)
   const dlRefId = 'dl-ref-' + id;
   const dlNomId = 'dl-nom-' + id;
   const dlRefHtml = state.produits.length
     ? `<datalist id="${dlRefId}">${state.produits.map(p => {
-        const label = (p.nom || '') + (p.couleur ? ' — ' + p.couleur : '');
-        return `<option value="${p.ref}">${label}</option>`;
+        return `<option value="${p.ref}"></option>`;
       }).join('')}</datalist>`
     : '';
   const dlNomHtml = state.produits.length
@@ -6630,8 +6629,7 @@ function addImpLine(data) {
   const dlRefId = 'dl-imp-ref-' + id;
   const dlRefHtml = state.produits.length
     ? `<datalist id="${dlRefId}">${state.produits.map(p => {
-        const label = (p.nom || '') + (p.couleur ? ' — ' + p.couleur : '');
-        return `<option value="${p.ref}">${label}</option>`;
+        return `<option value="${p.ref}"></option>`;
       }).join('')}</datalist>`
     : '';
 
