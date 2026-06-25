@@ -4522,10 +4522,8 @@ function exportPDF() {
     y += 10;
   }
 
-  // Notes / contact
-  const note = doc.notes || (s.tel||s.email
-    ? 'Pour toute question, contactez-nous : '+(s.tel||'')+(s.email?' \u2014 '+s.email:'')+'.'
-    : '');
+  // Notes (uniquement si l'utilisateur en a saisi)
+  const note = doc.notes || '';
   if (note) {
     pdf.setFontSize(8); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C_MUTED);
     pdf.text(note.substring(0,200), ML, y, {maxWidth:CW}); y += 9;
