@@ -4514,8 +4514,13 @@ function exportPDF() {
   if (!isBL) {
     y += 4;
     const lettres = nombreEnLettres(doc.ttc||0);
+    // Devis = masculin \u2192 "Arr\u00eat\u00e9 le pr\u00e9sent devis"
+    // Facture = f\u00e9minin \u2192 "Arr\u00eat\u00e9e la pr\u00e9sente facture"
+    const phraseArrete = previewDocCat === 'devis'
+      ? 'Arr\u00eat\u00e9 le pr\u00e9sent devis \u00e0 la somme de :'
+      : 'Arr\u00eat\u00e9e la pr\u00e9sente facture \u00e0 la somme de :';
     pdf.setFontSize(7.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C_MUTED);
-    pdf.text('Arr\u00eat\u00e9 la pr\u00e9sente '+labels[previewDocCat].toLowerCase()+' \u00e0 la somme de :', ML, y);
+    pdf.text(phraseArrete, ML, y);
     y += 5;
     pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C_TEXT);
     pdf.text(lettres+'.', ML, y, {maxWidth: CW});
