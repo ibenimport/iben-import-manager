@@ -1929,7 +1929,7 @@
       </div>
 
       <div class="sep"></div>
-      <div class="section-title">Articles importés</div>
+      <div class="section-title" id="imp-articles-label">Articles importés</div>
       <div style="font-size:11.5px;color:var(--text2);background:var(--accent-light);padding:8px 12px;border-radius:var(--radius-sm);margin-bottom:10px;line-height:1.6">
         💡 Tapez la <strong>référence</strong> du produit pour auto-remplir la désignation. Le <strong>PMP est recalculé</strong> automatiquement à la validation. Le <strong>prix de vente</strong> reste géré uniquement dans la fiche produit (catalogue).
       </div>
@@ -1946,12 +1946,12 @@
       <div class="totaux-block" style="margin-top:14px">
         <div class="total-row"><span>Articles</span><span id="imp-nb-articles">0</span></div>
         <div class="total-row"><span>Quantité totale</span><span id="imp-nb-qty">0</span></div>
-        <div class="total-row big"><span>Total importation HT (Achat)</span><span id="imp-total-ht">0,00 MAD</span></div>
+        <div class="total-row big"><span id="imp-total-label">Total importation HT (Achat)</span><span id="imp-total-ht">0,00 MAD</span></div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-importation')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveImportation()">Valider l'importation (entrée stock auto)</button>
+      <button class="btn btn-primary" id="imp-save-btn" onclick="saveImportation()">Valider l'importation (entrée stock auto)</button>
     </div>
   </div>
 </div>
@@ -6562,6 +6562,11 @@ function setImpType(type) {
   const grpDevise = document.getElementById('imp-devise-group');
   const isNew = !document.getElementById('imp-id').value;
 
+  // Éléments dont le texte doit s'adapter au type (import vs local)
+  const articlesLabel = document.getElementById('imp-articles-label');
+  const totalLabel = document.getElementById('imp-total-label');
+  const saveBtn = document.getElementById('imp-save-btn');
+
   if (type === 'local') {
     // 🇲🇦 Achat local Maroc
     if (badge) {
@@ -6577,6 +6582,10 @@ function setImpType(type) {
     document.getElementById('imp-devise').value = 'MAD';
     document.getElementById('imp-notes-label').textContent = 'Notes (livraison, frais, etc.)';
     document.getElementById('imp-notes').placeholder = 'Ex: Livraison incluse, modalités de paiement...';
+    // Textes adaptés à un achat local Maroc
+    if (articlesLabel) articlesLabel.textContent = 'Articles achetés';
+    if (totalLabel)    totalLabel.textContent = 'Total achat HT';
+    if (saveBtn)       saveBtn.textContent = "Valider l'achat (entrée stock auto)";
   } else {
     // 🌍 Importation étranger
     if (badge) {
@@ -6591,6 +6600,10 @@ function setImpType(type) {
     if (grpDevise) grpDevise.style.display = '';
     document.getElementById('imp-notes-label').textContent = 'Notes / Transitaire / Frais';
     document.getElementById('imp-notes').placeholder = 'Ex: Transitaire MAERSK, dédouanement, transport...';
+    // Textes adaptés à une importation
+    if (articlesLabel) articlesLabel.textContent = 'Articles importés';
+    if (totalLabel)    totalLabel.textContent = 'Total importation HT (Achat)';
+    if (saveBtn)       saveBtn.textContent = "Valider l'importation (entrée stock auto)";
   }
 
   // Mettre à jour le titre principal de la modale
