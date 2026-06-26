@@ -1042,6 +1042,13 @@
               </div>
               <button class="btn btn-sm btn-danger" onclick="resetStocksEtMouvements()">Remettre à zéro</button>
             </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2)">
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:13px;margin-bottom:3px">Réinitialiser tous les achats à zéro</div>
+                <div style="font-size:11.5px;color:var(--text3)">Supprime <strong>toutes les importations et achats locaux</strong>, ainsi que les règlements fournisseurs et calculs de coût de revient associés. La numérotation repart à 1. <strong>Les produits, stocks, clients, fournisseurs, devis et factures sont conservés.</strong></div>
+              </div>
+              <button class="btn btn-sm btn-danger" onclick="resetAchats()">Remettre à zéro</button>
+            </div>
           </div>
 
           <div class="sep"></div>
@@ -4916,6 +4923,31 @@ function resetStocksEtMouvements() {
   if (typeof renderEntrepots === 'function') renderEntrepots();
   if (typeof renderDashboard === 'function') renderDashboard();
   notify('Stocks et mouvements réinitialisés', 'green');
+}
+
+function resetAchats() {
+  const nbImp = (state.importations || []).length;
+  const nbRegl = (state.reglementsAchats || []).length;
+  const nbCalc = (state.calculsRevient || []).length;
+  if (nbImp === 0 && nbRegl === 0 && nbCalc === 0) {
+    notify('Aucun achat à réinitialiser', 'amber');
+    return;
+  }
+  if (!confirm('Réinitialiser TOUS les achats à zéro ?\n\n• ' + nbImp + ' achat(s) supprimé(s) (importations + achats locaux)\n• ' + nbRegl + ' règlement(s) fournisseur(s) supprimé(s)\n• ' + nbCalc + ' calcul(s) de coût de revient supprimé(s)\n• Numérotation des achats réinitialisée à 1\n\n⚠️ Les produits, stocks, clients, fournisseurs, devis et factures sont CONSERVÉS.\n\nCette action est IRRÉVERSIBLE.')) return;
+  if (!askSecurityCode('Réinitialiser tous les achats à zéro')) return;
+  state.importations = [];
+  state.reglementsAchats = [];
+  state.calculsRevient = [];
+  if (state.settings) {
+    state.settings.numImportation = 1;
+    state.settings.numAchatLocal = 1;
+  }
+  save();
+  if (typeof renderImportations === 'function') renderImportations();
+  if (typeof renderFournisseurs === 'function') renderFournisseurs();
+  if (typeof renderTresorerie === 'function') renderTresorerie();
+  if (typeof renderDashboard === 'function') renderDashboard();
+  notify('Tous les achats ont été réinitialisés ✓', 'green');
 }
 
 function saveSettings() {
