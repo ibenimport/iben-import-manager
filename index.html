@@ -1673,6 +1673,11 @@
             <button type="button" class="btn btn-sm" onclick="ajouterTaille()" title="Ajouter une nouvelle taille au système" style="padding:6px 10px;border-color:var(--accent);color:var(--accent)">+</button>
           </div>
         </div>
+        <!-- Taille libre (visible pour Métal - saisie manuelle) -->
+        <div class="form-group" id="pr-taille-libre-group" style="display:none">
+          <label class="form-label">Taille</label>
+          <input class="form-input" id="pr-taille-libre" type="text" placeholder="Ex: 32 cm, 30x40 cm, Ø 25 cm...">
+        </div>
         <!-- Longueur par rouleau (visible pour Ruban, Mercerie/Textile) -->
         <div class="form-group" id="pr-longueur-group" style="display:none">
           <label class="form-label">Longueur par rouleau (m)</label>
@@ -2158,6 +2163,8 @@ const DEFAULT_TAILLES  = ['25 mm', '38 mm'];
 const DEFAULT_COULEURS = ['Blanc', 'Noir', 'Rouge', 'Bleu', 'Vert', 'Jaune', 'Doré', 'Argent'];
 // Familles qui utilisent la sélection de taille (ex: Ruban)
 const FAMILLES_AVEC_TAILLE   = ['Ruban', 'Mercerie/Textile'];
+// Familles avec une taille SAISIE MANUELLEMENT (texte libre, pas de dropdown)
+const FAMILLES_AVEC_TAILLE_LIBRE = ['Métal'];
 // Familles qui utilisent une longueur par rouleau (m/rouleau)
 const FAMILLES_AVEC_LONGUEUR = ['Ruban', 'Mercerie/Textile'];
 
@@ -5215,17 +5222,19 @@ function onFamilleChange() {
   toggleTailleCouleurUI(famille);
 }
 
-// Décide si la famille choisie utilise des dropdowns Taille/Couleur (ex: Ruban) ou un texte libre
+// Décide si la famille choisie utilise des dropdowns Taille/Couleur (ex: Ruban), un texte libre (Métal), ou aucun champ taille
 function toggleTailleCouleurUI(famille) {
   const avecTaille = FAMILLES_AVEC_TAILLE.includes(famille);
+  const avecTailleLibre = FAMILLES_AVEC_TAILLE_LIBRE.includes(famille);
   const avecLongueur = FAMILLES_AVEC_LONGUEUR.includes(famille);
   const grpTaille = document.getElementById('pr-taille-group');
+  const grpTailleLibre = document.getElementById('pr-taille-libre-group');
   const grpColText = document.getElementById('pr-couleur-text-group');
   const grpColSel = document.getElementById('pr-couleur-select-group');
   const grpLongueur = document.getElementById('pr-longueur-group');
   const labelTaille = document.getElementById('pr-taille-label');
 
-  // Taille / Largeur
+  // Taille avec dropdown (Ruban, Mercerie/Textile)
   if (grpTaille) grpTaille.style.display = avecTaille ? '' : 'none';
   if (avecTaille) {
     // Adapter le libellé selon la famille
@@ -5241,6 +5250,9 @@ function toggleTailleCouleurUI(famille) {
     if (grpColText) grpColText.style.display = '';
     if (grpColSel) grpColSel.style.display = 'none';
   }
+
+  // Taille libre (texte manuel, ex: Métal)
+  if (grpTailleLibre) grpTailleLibre.style.display = avecTailleLibre ? '' : 'none';
 
   // Longueur par rouleau
   if (grpLongueur) grpLongueur.style.display = avecLongueur ? '' : 'none';
@@ -5720,6 +5732,7 @@ function showProduitModal(id) {
   document.getElementById('pr-sousfamille').value = '';
   if (document.getElementById('pr-couleur-select')) document.getElementById('pr-couleur-select').value = '';
   if (document.getElementById('pr-taille-select'))  document.getElementById('pr-taille-select').value = '';
+  if (document.getElementById('pr-taille-libre'))   document.getElementById('pr-taille-libre').value = '';
   if (document.getElementById('pr-longueur'))       document.getElementById('pr-longueur').value = '';
   document.getElementById('pr-prix-achat').value = 0;
   document.getElementById('pr-prix-vente').value = 0;
@@ -5764,6 +5777,10 @@ function editProduit(id) {
     if (document.getElementById('pr-couleur-select')) document.getElementById('pr-couleur-select').value = p.couleur || '';
     if (document.getElementById('pr-taille-select'))  document.getElementById('pr-taille-select').value = p.taille || '';
   }
+  // Taille libre (Métal) : remplir le champ texte
+  if (FAMILLES_AVEC_TAILLE_LIBRE.includes(famille)) {
+    if (document.getElementById('pr-taille-libre')) document.getElementById('pr-taille-libre').value = p.taille || '';
+  }
   // Longueur par rouleau (Ruban, Mercerie/Textile)
   if (document.getElementById('pr-longueur')) document.getElementById('pr-longueur').value = p.longueurRouleau || '';
   openModal('modal-produit');
@@ -5783,8 +5800,13 @@ function saveProduit() {
   let couleur = '';
   let taille = '';
   if (FAMILLES_AVEC_TAILLE.includes(famille)) {
+    // Ruban, Mercerie : dropdowns
     couleur = (document.getElementById('pr-couleur-select')?.value || '').trim();
     taille  = (document.getElementById('pr-taille-select')?.value  || '').trim();
+  } else if (FAMILLES_AVEC_TAILLE_LIBRE.includes(famille)) {
+    // Métal : taille saisie manuellement
+    couleur = document.getElementById('pr-couleur').value.trim();
+    taille  = (document.getElementById('pr-taille-libre')?.value || '').trim();
   } else {
     couleur = document.getElementById('pr-couleur').value.trim();
   }
