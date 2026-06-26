@@ -971,49 +971,6 @@
             </div>
           </div>
           <div class="sep"></div>
-          <div class="section-title">🛡️ Sauvegarde & Restauration</div>
-          <div style="font-size:12.5px;color:var(--text2);margin-bottom:14px;line-height:1.7">
-            <strong style="color:var(--accent)">Très important :</strong> vos données (produits, clients, factures, stock, importations...) sont stockées <strong>uniquement dans ce navigateur</strong>. Si vous videz le cache ou changez de PC, tout est perdu.<br>
-            ✅ Pensez à <strong>sauvegarder régulièrement</strong> votre fichier de sauvegarde sur Google Drive, clé USB ou disque externe.
-          </div>
-
-          <!-- Statut dernière sauvegarde -->
-          <div id="backup-status-banner" style="display:none;margin-bottom:14px"></div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px">
-            <!-- Bouton Sauvegarder -->
-            <div style="padding:18px 18px;border:2px solid var(--accent-light);border-radius:var(--radius);background:linear-gradient(135deg,var(--accent-lighter) 0%, var(--surface) 100%);display:flex;flex-direction:column;gap:10px">
-              <div style="display:flex;align-items:center;gap:10px">
-                <div style="font-size:24px">💾</div>
-                <div>
-                  <div style="font-weight:700;font-size:14px;color:var(--text)">Sauvegarder mes données</div>
-                  <div style="font-size:11.5px;color:var(--text3);margin-top:2px">Télécharge un fichier .json</div>
-                </div>
-              </div>
-              <div style="font-size:11.5px;color:var(--text2);line-height:1.6">
-                Crée un fichier contenant <strong>tout</strong> : produits, clients, factures, devis, BL, stock, achats, mouvements, paramètres et logo.
-              </div>
-              <button class="btn btn-primary" onclick="sauvegarderDonnees()" style="width:100%">💾 Télécharger ma sauvegarde</button>
-              <div id="backup-last-date" style="font-size:11px;color:var(--text3);text-align:center;font-style:italic"></div>
-            </div>
-
-            <!-- Bouton Restaurer -->
-            <div style="padding:18px 18px;border:2px solid #FDE68A;border-radius:var(--radius);background:linear-gradient(135deg,#FFFBEB 0%, var(--surface) 100%);display:flex;flex-direction:column;gap:10px">
-              <div style="display:flex;align-items:center;gap:10px">
-                <div style="font-size:24px">📥</div>
-                <div>
-                  <div style="font-weight:700;font-size:14px;color:var(--text)">Restaurer une sauvegarde</div>
-                  <div style="font-size:11.5px;color:var(--text3);margin-top:2px">Importer un fichier .json</div>
-                </div>
-              </div>
-              <div style="font-size:11.5px;color:var(--text2);line-height:1.6">
-                <strong style="color:var(--amber)">⚠ Attention :</strong> ceci remplacera <strong>toutes</strong> vos données actuelles par celles du fichier choisi.
-              </div>
-              <button class="btn" onclick="restaurerDonnees()" style="width:100%;border-color:#FDE68A;color:var(--amber);background:#FFFBEB">📥 Choisir un fichier de sauvegarde</button>
-            </div>
-          </div>
-
-          <div class="sep"></div>
           <div class="section-title">🔒 Code de sécurité</div>
           <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.7">
             Ce code protège les opérations destructives (réinitialisation stocks/mouvements). Par défaut : <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace">06121984</code>.
@@ -4676,7 +4633,6 @@ function loadSettingsForm() {
   document.getElementById('p-num-bl').value = s.numBL || 1;
   applyLogoPreview(state.logo || null);
   renderFamillesSettings();
-  rafraichirStatutSauvegarde();
 }
 
 // ============================================================
@@ -4818,116 +4774,8 @@ function changerCodeSecurite() {
   notify('✅ Code de sécurité mis à jour. Notez-le bien.', 'green');
 }
 
-// ============================================================
-//  SAUVEGARDE / RESTAURATION
-// ============================================================
-function sauvegarderDonnees() {
-  try {
-    const payload = {
-      app: 'IBEN IMPORT manager',
-      version: APP_VERSION,
-      versionDate: APP_VERSION_DATE,
-      exportedAt: new Date().toISOString(),
-      state: state
-    };
-    const json = JSON.stringify(payload, null, 2);
-    const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const dateStr = new Date().toISOString().substring(0, 10);
-    a.href = url;
-    a.download = 'iben-import-backup-' + dateStr + '.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    // Enregistrer la date de la sauvegarde
-    state.settings.lastBackupAt = new Date().toISOString();
-    save();
-    rafraichirStatutSauvegarde();
-    notify('✅ Sauvegarde téléchargée ! Gardez le fichier sur Drive ou USB.', 'green');
-  } catch(e) {
-    notify('Erreur sauvegarde : ' + e.message, 'red');
-  }
-}
-
-function restaurerDonnees() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json,application/json';
-  input.onchange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      try {
-        const payload = JSON.parse(evt.target.result);
-        // Détection : nouveau format avec wrapper { state: ... } ou ancien format direct
-        const restored = payload.state ? payload.state : payload;
-        if (!restored || typeof restored !== 'object') {
-          throw new Error('Fichier invalide');
-        }
-        // Vérification minimale : doit contenir au moins quelques clés attendues
-        const expectedKeys = ['produits', 'clients', 'factures', 'devis', 'livraisons'];
-        const hasKeys = expectedKeys.some(k => Array.isArray(restored[k]));
-        if (!hasKeys) {
-          throw new Error('Le fichier ne semble pas être une sauvegarde IBEN IMPORT.');
-        }
-        const dateExport = payload.exportedAt
-          ? new Date(payload.exportedAt).toLocaleString('fr-MA')
-          : 'inconnue';
-        const counts = (label, arr) => label + ' : ' + (Array.isArray(arr) ? arr.length : 0);
-        const apercu = [
-          counts('Produits', restored.produits),
-          counts('Clients', restored.clients),
-          counts('Factures', restored.factures),
-          counts('Devis', restored.devis),
-          counts('BL', restored.livraisons),
-          counts('Importations/Achats', restored.importations),
-          counts('Mouvements', restored.mouvements)
-        ].join('\n  • ');
-        if (!confirm('⚠️ REMPLACER toutes vos données actuelles ?\n\nFichier exporté le : ' + dateExport + '\n\nContenu de la sauvegarde :\n  • ' + apercu + '\n\nCette action est IRRÉVERSIBLE. Vos données actuelles seront définitivement perdues.\n\nContinuer ?')) return;
-        if (!confirm('Dernière confirmation : restaurer cette sauvegarde maintenant ?')) return;
-        // Remplacer le state
-        state = { ...state, ...restored };
-        save();
-        notify('✅ Données restaurées avec succès. Rechargement de l\'application...', 'green');
-        setTimeout(() => location.reload(), 1800);
-      } catch(err) {
-        notify('Erreur restauration : ' + err.message, 'red');
-        alert('❌ Impossible de restaurer la sauvegarde.\n\nRaison : ' + err.message);
-      }
-    };
-    reader.readAsText(file);
-  };
-  input.click();
-}
-
-// Affiche un bandeau d'alerte selon l'ancienneté de la dernière sauvegarde
-function rafraichirStatutSauvegarde() {
-  const banner = document.getElementById('backup-status-banner');
-  const dateEl = document.getElementById('backup-last-date');
-  if (!banner || !dateEl) return;
-  const lastIso = state.settings.lastBackupAt;
-  if (!lastIso) {
-    banner.style.display = '';
-    banner.innerHTML = '<div style="padding:12px 16px;background:var(--red-bg);border:1px solid #FCA5A5;color:var(--red);border-radius:var(--radius-sm);font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px">🚨 <strong>Aucune sauvegarde réalisée.</strong> Cliquez sur « Sauvegarder mes données » dès maintenant pour protéger votre travail.</div>';
-    dateEl.textContent = 'Aucune sauvegarde précédente';
-    return;
-  }
-  const lastDate = new Date(lastIso);
-  const now = new Date();
-  const days = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24));
-  const dateStr = lastDate.toLocaleDateString('fr-MA', { day: '2-digit', month: 'long', year: 'numeric' });
-  dateEl.textContent = 'Dernière sauvegarde : ' + dateStr + ' (il y a ' + days + ' jour' + (days > 1 ? 's' : '') + ')';
-  if (days >= 7) {
-    banner.style.display = '';
-    banner.innerHTML = '<div style="padding:12px 16px;background:var(--amber-bg);border:1px solid #FDE68A;color:var(--amber);border-radius:var(--radius-sm);font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px">⏰ <strong>Sauvegarde ancienne (' + days + ' jours).</strong> Pensez à refaire une sauvegarde maintenant pour éviter de perdre vos saisies récentes.</div>';
-  } else {
-    banner.style.display = '';
-    banner.innerHTML = '<div style="padding:10px 16px;background:var(--green-bg);border:1px solid #86EFAC;color:var(--green);border-radius:var(--radius-sm);font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px">✅ <strong>Sauvegarde à jour.</strong> Dernière sauvegarde il y a ' + days + ' jour' + (days > 1 ? 's' : '') + '.</div>';
-  }
-}
+// ☁️ Mode cloud uniquement — les sauvegardes manuelles locales (.json) ont été retirées
+// Les données sont automatiquement synchronisées avec Supabase à chaque modification
 
 function resetMouvements() {
   const nb = state.mouvements.length;
@@ -7545,13 +7393,6 @@ document.addEventListener('keydown', function(e) {
       const id = ouverte.id;
       if (id) { e.preventDefault(); closeModal(id); }
     }
-    return;
-  }
-
-  // Ctrl+S : sauvegarder données complètes (export JSON)
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-    e.preventDefault();
-    if (typeof sauvegarderDonnees === 'function') sauvegarderDonnees();
     return;
   }
 
