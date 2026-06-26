@@ -2471,9 +2471,9 @@ function badgeForStatut(s) {
 function refreshDashCheckDatalist() {
   const dl = document.getElementById('dash-check-datalist');
   if (!dl) return;
+  // Affiche uniquement le code RÉF. dans le dropdown (pas la désignation)
   dl.innerHTML = state.produits.map(p => {
-    const label = (p.nom || '') + (p.couleur ? ' — ' + p.couleur : '');
-    return `<option value="${p.ref}">${label}</option>`;
+    return `<option value="${p.ref}"></option>`;
   }).join('');
 }
 
