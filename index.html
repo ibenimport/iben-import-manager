@@ -367,12 +367,12 @@
     </div>
 
     <!-- Onglets login/signup -->
-    <div style="display:flex;gap:6px;background:var(--surface2);padding:5px;border-radius:10px;margin-bottom:22px">
+    <div id="auth-tabs-container" style="display:flex;gap:6px;background:var(--surface2);padding:5px;border-radius:10px;margin-bottom:22px">
       <button type="button" class="btn btn-sm btn-primary" id="auth-tab-login"  onclick="basculerAuthTab('login')"  style="flex:1">🔐 Se connecter</button>
       <button type="button" class="btn btn-sm" id="auth-tab-signup" onclick="basculerAuthTab('signup')" style="flex:1">✨ Créer un compte</button>
     </div>
 
-    <!-- Formulaire -->
+    <!-- Formulaire de connexion / inscription -->
     <form id="auth-form" onsubmit="event.preventDefault(); soumettreAuth();">
       <div class="form-group" style="margin-bottom:14px">
         <label class="form-label">📧 Email</label>
@@ -391,6 +391,32 @@
 
       <div style="text-align:center;margin-top:16px">
         <a id="auth-forgot-link" href="#" onclick="event.preventDefault(); motDePasseOublie()" style="font-size:12px;color:var(--accent);text-decoration:none">Mot de passe oublié ?</a>
+      </div>
+    </form>
+
+    <!-- Formulaire : Définir un nouveau mot de passe (mode récupération) -->
+    <form id="auth-reset-form" style="display:none" onsubmit="event.preventDefault(); definirNouveauMotDePasse();">
+      <div style="background:var(--accent-light);color:var(--accent);padding:12px 14px;border-radius:8px;font-size:12.5px;margin-bottom:18px;line-height:1.6">
+        🔑 <strong>Réinitialisation du mot de passe</strong><br>
+        Choisissez un nouveau mot de passe sécurisé pour votre compte.
+      </div>
+      <div class="form-group" style="margin-bottom:14px">
+        <label class="form-label">🔒 Nouveau mot de passe</label>
+        <input class="form-input" id="reset-pwd-1" type="password" required autocomplete="new-password" placeholder="••••••••" minlength="6" style="width:100%">
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">Minimum 6 caractères. Choisissez un mot de passe FORT (lettres, chiffres, symboles).</div>
+      </div>
+      <div class="form-group" style="margin-bottom:18px">
+        <label class="form-label">🔒 Confirmer le nouveau mot de passe</label>
+        <input class="form-input" id="reset-pwd-2" type="password" required autocomplete="new-password" placeholder="••••••••" minlength="6" style="width:100%">
+      </div>
+
+      <div id="reset-error" style="display:none;background:var(--red-bg);color:var(--red);padding:10px 14px;border-radius:8px;font-size:12.5px;margin-bottom:14px;border-left:3px solid var(--red)"></div>
+      <div id="reset-success" style="display:none;background:var(--green-bg);color:var(--green);padding:10px 14px;border-radius:8px;font-size:12.5px;margin-bottom:14px;border-left:3px solid var(--green)"></div>
+
+      <button type="submit" id="reset-submit-btn" class="btn btn-primary" style="width:100%;padding:12px;font-size:14px;font-weight:600">✅ Définir mon nouveau mot de passe</button>
+
+      <div style="text-align:center;margin-top:16px">
+        <a href="#" onclick="event.preventDefault(); annulerReset()" style="font-size:12px;color:var(--text3);text-decoration:none">← Retour à la connexion</a>
       </div>
     </form>
 
@@ -7438,7 +7464,32 @@ async function demarrerApp() {
     return;
   }
 
-  // 3. Vérifier s'il y a une session active (utilisateur déjà connecté)
+  // 3. Détecter si on arrive depuis un lien de réinitialisation de mot de passe
+  //    (l'URL contient #access_token=...&type=recovery ou ?code=...)
+  const hash = window.location.hash || '';
+  const search = window.location.search || '';
+  const isRecoveryLink = hash.includes('type=recovery') || (hash.includes('access_token') && hash.includes('recovery'));
+
+  // 4. Écouter les changements d'auth (recovery, logout, etc.) — DOIT être avant getSession
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      // L'utilisateur a cliqué sur le lien de reset → afficher le formulaire de nouveau mot de passe
+      afficherFormulaireResetPassword();
+      return;
+    }
+    if (event === 'SIGNED_OUT') {
+      currentUser = null;
+      location.reload();
+    }
+  });
+
+  // 5. Si c'est un lien de recovery, afficher directement le formulaire de nouveau mot de passe
+  if (isRecoveryLink) {
+    afficherFormulaireResetPassword();
+    return;
+  }
+
+  // 6. Vérifier s'il y a une session active (utilisateur déjà connecté)
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (session && session.user) {
@@ -7452,14 +7503,6 @@ async function demarrerApp() {
     console.error('Erreur vérification session:', e);
     montrerAuthOverlay();
   }
-
-  // 4. Écouter les changements d'auth (logout depuis un autre onglet, etc.)
-  sb.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_OUT') {
-      currentUser = null;
-      location.reload();
-    }
-  });
 }
 
 demarrerApp();
@@ -7568,11 +7611,94 @@ async function motDePasseOublie() {
   if (!email) { afficherAuthError('Saisissez d\'abord votre email dans le champ ci-dessus'); return; }
   if (!sb) return;
   try {
-    const { error } = await sb.auth.resetPasswordForEmail(email);
+    // Indique à Supabase où rediriger après le clic sur le lien de l'email
+    const redirectTo = window.location.origin + window.location.pathname;
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
     if (error) throw error;
-    afficherAuthSuccess('Email envoyé ! Vérifiez votre boîte pour réinitialiser votre mot de passe.');
+    afficherAuthSuccess('✉️ Email envoyé ! Vérifiez votre boîte (et les spams) pour réinitialiser votre mot de passe.');
   } catch (e) {
     afficherAuthError(e.message || 'Erreur');
+  }
+}
+
+// ============================================================
+//  RÉCUPÉRATION DE MOT DE PASSE — Flux après clic sur lien email
+// ============================================================
+function afficherFormulaireResetPassword() {
+  // Masque le formulaire login/signup et les onglets, affiche le formulaire de reset
+  const loginForm = document.getElementById('auth-form');
+  const resetForm = document.getElementById('auth-reset-form');
+  const tabsCnt   = document.getElementById('auth-tabs-container');
+  if (loginForm) loginForm.style.display = 'none';
+  if (resetForm) resetForm.style.display = '';
+  if (tabsCnt)   tabsCnt.style.display   = 'none';
+  montrerAuthOverlay();
+  // Focus sur le premier champ
+  setTimeout(() => { const f = document.getElementById('reset-pwd-1'); if (f) f.focus(); }, 100);
+}
+
+function annulerReset() {
+  // Annule le mode reset et revient à l'écran de login
+  const loginForm = document.getElementById('auth-form');
+  const resetForm = document.getElementById('auth-reset-form');
+  const tabsCnt   = document.getElementById('auth-tabs-container');
+  if (loginForm) loginForm.style.display = '';
+  if (resetForm) resetForm.style.display = 'none';
+  if (tabsCnt)   tabsCnt.style.display   = '';
+  // Nettoyer l'URL pour retirer le token de recovery
+  if (window.location.hash.includes('access_token') || window.location.search.includes('code=') || window.location.hash.includes('type=recovery')) {
+    history.replaceState(null, '', window.location.pathname);
+  }
+}
+
+async function definirNouveauMotDePasse() {
+  const pwd1 = (document.getElementById('reset-pwd-1').value || '').trim();
+  const pwd2 = (document.getElementById('reset-pwd-2').value || '').trim();
+  const errEl = document.getElementById('reset-error');
+  const okEl  = document.getElementById('reset-success');
+  const btn   = document.getElementById('reset-submit-btn');
+  if (errEl) errEl.style.display = 'none';
+  if (okEl)  okEl.style.display  = 'none';
+
+  if (pwd1.length < 6) {
+    if (errEl) { errEl.textContent = 'Le mot de passe doit contenir au moins 6 caractères.'; errEl.style.display = ''; }
+    return;
+  }
+  if (pwd1 !== pwd2) {
+    if (errEl) { errEl.textContent = '❌ Les deux mots de passe ne correspondent pas.'; errEl.style.display = ''; }
+    return;
+  }
+  if (!sb) {
+    if (errEl) { errEl.textContent = 'Connexion au serveur impossible. Réessayez plus tard.'; errEl.style.display = ''; }
+    return;
+  }
+
+  const ancienText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '⏳ Mise à jour en cours...';
+  try {
+    const { error } = await sb.auth.updateUser({ password: pwd1 });
+    if (error) throw error;
+    if (okEl) {
+      okEl.textContent = '✅ Mot de passe modifié avec succès ! Vous allez être redirigé vers la connexion...';
+      okEl.style.display = '';
+    }
+    // Vider les champs
+    document.getElementById('reset-pwd-1').value = '';
+    document.getElementById('reset-pwd-2').value = '';
+    // Déconnecter pour forcer la reconnexion avec le nouveau mot de passe
+    setTimeout(async () => {
+      try { await sb.auth.signOut(); } catch (e) {}
+      annulerReset();
+      // Nettoyer complètement l'URL
+      history.replaceState(null, '', window.location.pathname);
+      window.location.reload();
+    }, 1800);
+  } catch (e) {
+    if (errEl) { errEl.textContent = e.message || 'Erreur lors de la mise à jour du mot de passe.'; errEl.style.display = ''; }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = ancienText;
   }
 }
 
