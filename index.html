@@ -4492,7 +4492,15 @@ function exportPDF() {
       3: {halign:'center', cellWidth:30},
     };
   } else {
-    tHead = [['R\u00e9f.', 'D\u00e9signation', 'Quantit\u00e9', 'P.U. HT', 'Remise', 'Total HT']];
+    // En-t\u00eates avec alignement explicite par colonne
+    tHead = [[
+      {content: 'R\u00e9f.',       styles: {halign: 'left'}},
+      {content: 'D\u00e9signation', styles: {halign: 'left'}},
+      {content: 'Quantit\u00e9',    styles: {halign: 'center'}},
+      {content: 'P.U. HT',          styles: {halign: 'center'}},
+      {content: 'Remise',           styles: {halign: 'center'}},
+      {content: 'Total HT',         styles: {halign: 'center'}}
+    ]];
     tRows = (doc.lines||[]).map(l => [
       l.ref  || '',
       l.desc || '',
@@ -4505,9 +4513,9 @@ function exportPDF() {
       0: {halign:'left',   cellWidth:20},
       1: {halign:'left',   cellWidth:'auto', fontStyle:'bold'},
       2: {halign:'center', cellWidth:20},
-      3: {halign:'center', cellWidth:28},
+      3: {halign:'center', cellWidth:28},   // P.U. HT : valeurs centrées
       4: {halign:'center', cellWidth:18},
-      5: {halign:'center', cellWidth:32},
+      5: {halign:'right',  cellWidth:32},   // Total HT : valeurs alignées à DROITE
     };
   }
 
