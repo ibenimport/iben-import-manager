@@ -1750,7 +1750,7 @@
         <summary style="cursor:pointer;font-weight:600;color:var(--text)">💡 Aide — Format du fichier CSV</summary>
         <div style="margin-top:10px;line-height:1.8">
           <strong>Colonnes obligatoires :</strong> Référence, Désignation, Famille<br>
-          <strong>Colonnes optionnelles :</strong> Sous-famille, Couleur, Taille, Longueur rouleau, Prix achat HT, Prix vente HT, Unité, TVA, Alerte stock, Description<br><br>
+          <strong>Colonnes optionnelles :</strong> Sous-famille, Couleur, Taille, Longueur rouleau, Prix achat HT, Prix vente HT, Unité, TVA, Alerte stock<br><br>
           <strong>Familles disponibles :</strong> Verre, Céramique, Métal, Emballage, Ruban, Mercerie/Textile<br>
           <strong>Unités :</strong> Pièce, Kg, Mètre, Rouleau<br>
           <strong>TVA :</strong> 0, 7, 10, 20<br><br>
@@ -5158,10 +5158,12 @@ function onFamilleChange() {
   toggleTailleCouleurUI(famille);
 }
 
-// Décide si la famille choisie utilise des dropdowns Taille/Couleur (ex: Ruban), un texte libre (Métal), ou aucun champ taille
+// Décide si la famille choisie utilise des dropdowns Taille/Couleur (ex: Ruban), un texte libre, ou aucun champ taille
 function toggleTailleCouleurUI(famille) {
   const avecTaille = FAMILLES_AVEC_TAILLE.includes(famille);
-  const avecTailleLibre = FAMILLES_AVEC_TAILLE_LIBRE.includes(famille);
+  // Taille libre (texte manuel) pour TOUTES les familles sauf celles avec dropdown (Ruban, Mercerie)
+  // et seulement si une famille est sélectionnée
+  const avecTailleLibre = !!famille && !avecTaille;
   const avecLongueur = FAMILLES_AVEC_LONGUEUR.includes(famille);
   const grpTaille = document.getElementById('pr-taille-group');
   const grpTailleLibre = document.getElementById('pr-taille-libre-group');
@@ -5713,8 +5715,8 @@ function editProduit(id) {
     if (document.getElementById('pr-couleur-select')) document.getElementById('pr-couleur-select').value = p.couleur || '';
     if (document.getElementById('pr-taille-select'))  document.getElementById('pr-taille-select').value = p.taille || '';
   }
-  // Taille libre (Métal) : remplir le champ texte
-  if (FAMILLES_AVEC_TAILLE_LIBRE.includes(famille)) {
+  // Taille libre (toutes familles sauf Ruban/Mercerie) : remplir le champ texte
+  if (famille && !FAMILLES_AVEC_TAILLE.includes(famille)) {
     if (document.getElementById('pr-taille-libre')) document.getElementById('pr-taille-libre').value = p.taille || '';
   }
   // Longueur par rouleau (Ruban, Mercerie/Textile)
@@ -5739,12 +5741,10 @@ function saveProduit() {
     // Ruban, Mercerie : dropdowns
     couleur = (document.getElementById('pr-couleur-select')?.value || '').trim();
     taille  = (document.getElementById('pr-taille-select')?.value  || '').trim();
-  } else if (FAMILLES_AVEC_TAILLE_LIBRE.includes(famille)) {
-    // Métal : taille saisie manuellement
+  } else {
+    // Toutes les autres familles : couleur texte + taille texte libre
     couleur = document.getElementById('pr-couleur').value.trim();
     taille  = (document.getElementById('pr-taille-libre')?.value || '').trim();
-  } else {
-    couleur = document.getElementById('pr-couleur').value.trim();
   }
 
   // Longueur par rouleau (Ruban / Mercerie)
@@ -5812,14 +5812,14 @@ function showImportProduitsModal() {
 function telechargerModeleCSV() {
   const headers = [
     'Référence','Désignation','Famille','Sous-famille','Couleur','Taille',
-    'Longueur rouleau (m)','Prix achat HT','Prix vente HT','Unité','TVA','Alerte stock','Description'
+    'Longueur rouleau (m)','Prix achat HT','Prix vente HT','Unité','TVA','Alerte stock'
   ];
   // Quelques lignes d'exemple
   const exemples = [
-    ['S-001','Plateau inox rectangulaire','Métal','Plateaux','Silver','32 cm','','50','80','Pièce','20','5','Plateau argent'],
-    ['S-002','Plateau inox rectangulaire','Métal','Plateaux','Or','32 cm','','50','80','Pièce','20','5','Plateau or'],
-    ['V-001','Coupe à champagne','Verre','Coupes','Transparent','','','15','30','Pièce','20','10','Coupe verre'],
-    ['C-001','Assiette plate céramique','Céramique','Assiettes plates','Blanc','27 cm','','25','50','Pièce','20','20','Céramique blanche']
+    ['S-001','Plateau inox rectangulaire','Métal','Plateaux','Silver','32 cm','','50','80','Pièce','20','5'],
+    ['S-002','Plateau inox rectangulaire','Métal','Plateaux','Or','32 cm','','50','80','Pièce','20','5'],
+    ['V-001','Coupe à champagne','Verre','Coupes','Transparent','','','15','30','Pièce','20','10'],
+    ['C-001','Assiette plate céramique','Céramique','Assiettes plates','Blanc','27 cm','','25','50','Pièce','20','20']
   ];
   // BOM UTF-8 pour Excel (gère bien les accents)
   let csv = '﻿';
