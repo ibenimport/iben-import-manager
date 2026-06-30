@@ -363,7 +363,7 @@
     <!-- Logo / titre -->
     <div style="text-align:center;margin-bottom:28px">
       <div style="font-size:28px;font-weight:800;color:var(--text);letter-spacing:-0.5px">IBEN IMPORT <span style="color:var(--accent)">manager</span></div>
-      <div style="font-size:11.5px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:4px">v2.1 · Cloud Edition</div>
+      <div style="font-size:11.5px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:4px">v2.2 · Polish Edition</div>
     </div>
 
     <!-- Onglets login/signup -->
@@ -2188,10 +2188,10 @@ function initSupabaseClient() {
   return sb;
 }
 
-const APP_VERSION       = '2.1';
-const APP_VERSION_DATE  = '16/06/2026';
+const APP_VERSION       = '2.2';
+const APP_VERSION_DATE  = '29/07/2026';
 // Notes : qui peut être affichée en survol de la version
-const APP_VERSION_NOTES = 'v2.1 · ☁️ Cloud Supabase · Login · Sync auto · Fournisseurs · Trésorerie · Paiements · Graphiques';
+const APP_VERSION_NOTES = 'v2.2 · 🎨 Polish Edition · Import CSV produits · Taille libre toutes familles · Reset password complet · Création client depuis devis · Achats local repensés · PDF aligné centré · Sécurité renforcée';
 
 // ── FAMILLES par défaut (modifiables dans Paramètres) ──
 const DEFAULT_FAMILLES = {
@@ -4505,9 +4505,9 @@ function exportPDF() {
       0: {halign:'left',   cellWidth:20},
       1: {halign:'left',   cellWidth:'auto', fontStyle:'bold'},
       2: {halign:'center', cellWidth:20},
-      3: {halign:'right',  cellWidth:28},
+      3: {halign:'center', cellWidth:28},
       4: {halign:'center', cellWidth:18},
-      5: {halign:'right',  cellWidth:32},
+      5: {halign:'center', cellWidth:32},
     };
   }
 
