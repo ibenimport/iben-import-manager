@@ -1049,6 +1049,7 @@
           <select class="filter-select" id="filter-produit-cat" onchange="renderProduits()">
             <option value="">Toutes les familles</option>
           </select>
+          <button class="btn btn-sm" onclick="showImportProduitsModal()" style="border-color:var(--accent);color:var(--accent)" title="Importer plusieurs produits depuis un fichier CSV/Excel">📥 Importer CSV</button>
           <button class="btn btn-primary btn-sm" onclick="showProduitModal()">+ Nouveau produit</button>
         </div>
         <div class="table-card">
@@ -1706,6 +1707,67 @@
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-produit')">Annuler</button>
       <button class="btn btn-primary" onclick="saveProduit()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL IMPORT CSV PRODUITS ===== -->
+<div class="modal-overlay" id="modal-import-produits" style="display:none" onclick="if(event.target===this)closeModal('modal-import-produits')">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">📥 Importer des produits depuis CSV</span>
+      <button class="modal-close" onclick="closeModal('modal-import-produits')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Étape 1 : Téléchargement modèle -->
+      <div style="background:var(--accent-light);padding:14px 16px;border-radius:var(--radius-sm);margin-bottom:18px;border-left:3px solid var(--accent)">
+        <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:6px">📄 Étape 1 — Téléchargez le modèle CSV</div>
+        <div style="font-size:12.5px;color:var(--text2);line-height:1.6;margin-bottom:10px">
+          Téléchargez le fichier modèle, ouvrez-le dans <strong>Excel</strong> ou <strong>Google Sheets</strong>, et remplissez une ligne par produit.
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="telechargerModeleCSV()">📥 Télécharger le modèle CSV</button>
+      </div>
+
+      <!-- Étape 2 : Sélection fichier -->
+      <div style="background:var(--surface2);padding:14px 16px;border-radius:var(--radius-sm);margin-bottom:18px">
+        <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:6px">📤 Étape 2 — Sélectionnez votre fichier CSV rempli</div>
+        <div style="font-size:12.5px;color:var(--text2);line-height:1.6;margin-bottom:10px">
+          Choisissez le fichier <code>.csv</code> que vous avez rempli. Un aperçu vous sera montré avant l'import définitif.
+        </div>
+        <input type="file" id="import-csv-file" accept=".csv,text/csv" onchange="previewImportCSV(this.files[0])" style="font-size:13px">
+      </div>
+
+      <!-- Étape 3 : Aperçu -->
+      <div id="import-preview-zone" style="display:none;background:var(--surface);padding:16px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:14px">
+        <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:10px">🔍 Aperçu de l'import</div>
+        <div id="import-stats" style="font-size:13px;line-height:1.8;margin-bottom:14px"></div>
+        <div id="import-errors" style="font-size:12px;color:var(--red);background:var(--red-bg);padding:10px 12px;border-radius:6px;display:none;margin-bottom:14px;max-height:160px;overflow-y:auto"></div>
+        <div id="import-sample-table" style="max-height:240px;overflow:auto;border:1px solid var(--border);border-radius:6px"></div>
+      </div>
+
+      <!-- Aide -->
+      <details style="font-size:12px;color:var(--text2);background:var(--surface2);padding:10px 14px;border-radius:6px">
+        <summary style="cursor:pointer;font-weight:600;color:var(--text)">💡 Aide — Format du fichier CSV</summary>
+        <div style="margin-top:10px;line-height:1.8">
+          <strong>Colonnes obligatoires :</strong> Référence, Désignation, Famille<br>
+          <strong>Colonnes optionnelles :</strong> Sous-famille, Couleur, Taille, Longueur rouleau, Prix achat HT, Prix vente HT, Unité, TVA, Alerte stock, Description<br><br>
+          <strong>Familles disponibles :</strong> Verre, Céramique, Métal, Emballage, Ruban, Mercerie/Textile<br>
+          <strong>Unités :</strong> Pièce, Kg, Mètre, Rouleau<br>
+          <strong>TVA :</strong> 0, 7, 10, 20<br><br>
+          <strong>Règles :</strong>
+          <ul style="margin:6px 0 0 18px;padding:0">
+            <li>Si une <strong>référence existe déjà</strong> dans votre catalogue, le produit est <strong>ignoré</strong> (pas de doublon).</li>
+            <li>Si une <strong>sous-famille n'existe pas</strong>, elle est <strong>créée automatiquement</strong>.</li>
+            <li>Les <strong>valeurs vides</strong> (prix, alerte...) sont mises à <strong>0</strong> par défaut.</li>
+            <li>Les <strong>décimales</strong> acceptent les <code>,</code> ou les <code>.</code> (ex: <code>15,50</code> ou <code>15.50</code>).</li>
+            <li>Le <strong>séparateur</strong> peut être <code>;</code> (Excel français) ou <code>,</code> (Excel anglais).</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-import-produits')">Annuler</button>
+      <button class="btn btn-primary" id="import-confirm-btn" onclick="confirmImportProduits()" disabled style="opacity:0.5;cursor:not-allowed">✅ Importer les produits</button>
     </div>
   </div>
 </div>
@@ -5725,6 +5787,353 @@ function saveProduit() {
     return;
   }
   notify('Produit enregistré · Passez par Achats pour entrer du stock', 'green');
+}
+
+// ============================================================
+//  IMPORT CSV — Import en masse de produits depuis un fichier CSV
+// ============================================================
+let _importCSVRows = null; // données parsées du fichier en attente d'import
+
+function showImportProduitsModal() {
+  // Reset
+  _importCSVRows = null;
+  document.getElementById('import-csv-file').value = '';
+  document.getElementById('import-preview-zone').style.display = 'none';
+  document.getElementById('import-errors').style.display = 'none';
+  document.getElementById('import-errors').textContent = '';
+  const btn = document.getElementById('import-confirm-btn');
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  btn.style.cursor = 'not-allowed';
+  openModal('modal-import-produits');
+}
+
+// Génère et télécharge un fichier modèle CSV
+function telechargerModeleCSV() {
+  const headers = [
+    'Référence','Désignation','Famille','Sous-famille','Couleur','Taille',
+    'Longueur rouleau (m)','Prix achat HT','Prix vente HT','Unité','TVA','Alerte stock','Description'
+  ];
+  // Quelques lignes d'exemple
+  const exemples = [
+    ['S-001','Plateau inox rectangulaire','Métal','Plateaux','Silver','32 cm','','50','80','Pièce','20','5','Plateau argent'],
+    ['S-002','Plateau inox rectangulaire','Métal','Plateaux','Or','32 cm','','50','80','Pièce','20','5','Plateau or'],
+    ['V-001','Coupe à champagne','Verre','Coupes','Transparent','','','15','30','Pièce','20','10','Coupe verre'],
+    ['C-001','Assiette plate céramique','Céramique','Assiettes plates','Blanc','27 cm','','25','50','Pièce','20','20','Céramique blanche']
+  ];
+  // BOM UTF-8 pour Excel (gère bien les accents)
+  let csv = '﻿';
+  csv += headers.join(';') + '\n';
+  exemples.forEach(row => {
+    csv += row.map(v => {
+      // Si la valeur contient ; , " ou retour ligne, on l'entoure de guillemets
+      if (/[";\n,]/.test(v)) return '"' + v.replace(/"/g, '""') + '"';
+      return v;
+    }).join(';') + '\n';
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'modele-produits-iben-import.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  notify('✅ Modèle CSV téléchargé — remplissez-le dans Excel puis revenez !', 'green');
+}
+
+// Parse un fichier CSV (gère ; et , comme séparateurs, et les guillemets)
+function parseCSV(text) {
+  // Retirer le BOM s'il existe
+  if (text.charCodeAt(0) === 0xFEFF) text = text.substring(1);
+  // Détecter le séparateur (cherche dans la 1ère ligne)
+  const firstLine = text.split(/\r?\n/)[0] || '';
+  const sep = (firstLine.match(/;/g) || []).length > (firstLine.match(/,/g) || []).length ? ';' : ',';
+  // Parser ligne par ligne (en respectant les guillemets)
+  const lines = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === '"') {
+      if (inQuotes && text[i+1] === '"') { cur += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if (c === '\n' && !inQuotes) {
+      lines.push(cur); cur = '';
+    } else if (c === '\r') {
+      // ignore
+    } else {
+      cur += c;
+    }
+  }
+  if (cur) lines.push(cur);
+
+  // Parser chaque ligne en cellules
+  const rows = lines.filter(l => l.trim()).map(line => {
+    const cells = [];
+    let cell = '';
+    let inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') {
+        if (inQ && line[i+1] === '"') { cell += '"'; i++; }
+        else inQ = !inQ;
+      } else if (c === sep && !inQ) {
+        cells.push(cell); cell = '';
+      } else {
+        cell += c;
+      }
+    }
+    cells.push(cell);
+    return cells.map(c => c.trim());
+  });
+  return rows;
+}
+
+// Lit le fichier sélectionné et affiche un aperçu
+function previewImportCSV(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const text = e.target.result;
+      const rows = parseCSV(text);
+      if (rows.length < 2) {
+        afficherErreurImport('Le fichier semble vide ou ne contient que des en-têtes. Ajoutez au moins une ligne de produit.');
+        return;
+      }
+      // Identifier les colonnes (insensible à la casse et aux accents)
+      const headers = rows[0].map(h => normaliserTexte(h));
+      const colIdx = {
+        ref:       trouverColonne(headers, ['reference','ref']),
+        nom:       trouverColonne(headers, ['designation','nom','produit']),
+        famille:   trouverColonne(headers, ['famille']),
+        sousfam:   trouverColonne(headers, ['sousfamille','sous-famille','sousfam']),
+        couleur:   trouverColonne(headers, ['couleur']),
+        taille:    trouverColonne(headers, ['taille','largeur']),
+        longueur:  trouverColonne(headers, ['longueurrouleau','longueur']),
+        prixAchat: trouverColonne(headers, ['prixachatht','prixachat','pa']),
+        prixVente: trouverColonne(headers, ['prixventeht','prixvente','pv']),
+        unite:     trouverColonne(headers, ['unite']),
+        tva:       trouverColonne(headers, ['tva']),
+        alerte:    trouverColonne(headers, ['alertestock','alerte','seuil']),
+        desc:      trouverColonne(headers, ['description','desc','notes'])
+      };
+
+      if (colIdx.ref < 0 || colIdx.nom < 0 || colIdx.famille < 0) {
+        afficherErreurImport('Colonnes obligatoires manquantes : <strong>Référence, Désignation, Famille</strong>. Téléchargez et utilisez le modèle fourni.');
+        return;
+      }
+
+      const dataRows = rows.slice(1);
+      const famillesDispo = Object.keys(state.familles || {});
+      const refsExistantes = new Set((state.produits || []).map(p => (p.ref || '').toLowerCase()));
+      const refsImport = new Set();
+
+      const valides = [];
+      const ignores = [];   // doublons
+      const erreurs = [];   // erreurs bloquantes
+
+      dataRows.forEach((row, i) => {
+        const ligne = i + 2; // ligne dans le fichier (1=header)
+        const ref = (row[colIdx.ref] || '').trim();
+        const nom = (row[colIdx.nom] || '').trim();
+        const famille = (row[colIdx.famille] || '').trim();
+
+        if (!ref) { erreurs.push('Ligne ' + ligne + ' : Référence vide'); return; }
+        if (!nom) { erreurs.push('Ligne ' + ligne + ' : Désignation vide (réf ' + ref + ')'); return; }
+        if (!famille) { erreurs.push('Ligne ' + ligne + ' : Famille vide (réf ' + ref + ')'); return; }
+        // Vérifier famille
+        const familleMatch = famillesDispo.find(f => normaliserTexte(f) === normaliserTexte(famille));
+        if (!familleMatch) {
+          erreurs.push('Ligne ' + ligne + ' : Famille "' + famille + '" inconnue (réf ' + ref + '). Familles valides : ' + famillesDispo.join(', '));
+          return;
+        }
+        // Vérifier doublons (catalogue actuel)
+        if (refsExistantes.has(ref.toLowerCase())) {
+          ignores.push({ ref, raison: 'Existe déjà dans le catalogue' });
+          return;
+        }
+        // Vérifier doublons (dans le fichier lui-même)
+        if (refsImport.has(ref.toLowerCase())) {
+          ignores.push({ ref, raison: 'Doublon dans le fichier' });
+          return;
+        }
+        refsImport.add(ref.toLowerCase());
+
+        valides.push({
+          ref,
+          nom,
+          famille: familleMatch,
+          sousFamille: (row[colIdx.sousfam] || '').trim(),
+          couleur:    (row[colIdx.couleur] || '').trim(),
+          taille:     (row[colIdx.taille] || '').trim(),
+          longueurRouleau: parseNombreFR(row[colIdx.longueur]) || 0,
+          prixAchat:  parseNombreFR(row[colIdx.prixAchat]) || 0,
+          prixVente:  parseNombreFR(row[colIdx.prixVente]) || 0,
+          unite:      (row[colIdx.unite] || 'Pièce').trim(),
+          tva:        parseNombreFR(row[colIdx.tva]),
+          alerte:     parseInt(row[colIdx.alerte]) || 0,
+          desc:       (row[colIdx.desc] || '').trim()
+        });
+      });
+
+      _importCSVRows = valides;
+      afficherApercuImport(valides, ignores, erreurs);
+
+    } catch (err) {
+      afficherErreurImport('Erreur lors de la lecture du fichier : ' + err.message);
+    }
+  };
+  reader.onerror = () => afficherErreurImport('Impossible de lire le fichier.');
+  reader.readAsText(file, 'UTF-8');
+}
+
+// Outils
+function normaliserTexte(s) {
+  return (s || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[\s\-_()]/g, '');
+}
+function trouverColonne(headers, candidats) {
+  for (let i = 0; i < headers.length; i++) {
+    if (candidats.includes(headers[i])) return i;
+  }
+  return -1;
+}
+function parseNombreFR(s) {
+  if (s == null || s === '') return 0;
+  // Accepter virgule comme séparateur décimal
+  const n = parseFloat(String(s).replace(/\s/g, '').replace(',', '.'));
+  return isNaN(n) ? 0 : n;
+}
+
+function afficherErreurImport(msg) {
+  document.getElementById('import-preview-zone').style.display = '';
+  document.getElementById('import-stats').innerHTML = '';
+  document.getElementById('import-sample-table').innerHTML = '';
+  const err = document.getElementById('import-errors');
+  err.style.display = '';
+  err.innerHTML = '❌ ' + msg;
+  const btn = document.getElementById('import-confirm-btn');
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  btn.style.cursor = 'not-allowed';
+}
+
+function afficherApercuImport(valides, ignores, erreurs) {
+  document.getElementById('import-preview-zone').style.display = '';
+  // Stats
+  document.getElementById('import-stats').innerHTML =
+    '✅ <strong>' + valides.length + '</strong> produit(s) prêts à importer<br>' +
+    (ignores.length ? '⚠️ <strong>' + ignores.length + '</strong> produit(s) ignorés (référence déjà existante)<br>' : '') +
+    (erreurs.length ? '❌ <strong>' + erreurs.length + '</strong> erreur(s)' : '');
+
+  // Erreurs
+  const errBox = document.getElementById('import-errors');
+  if (erreurs.length || ignores.length) {
+    errBox.style.display = '';
+    let html = '';
+    if (erreurs.length) {
+      html += '<strong>Erreurs (lignes ignorées) :</strong><br>' + erreurs.slice(0, 20).join('<br>');
+      if (erreurs.length > 20) html += '<br>... et ' + (erreurs.length - 20) + ' autres erreurs';
+      html += '<br><br>';
+    }
+    if (ignores.length) {
+      html += '<strong>Produits déjà existants (ignorés) :</strong><br>' + ignores.slice(0, 20).map(o => '• ' + o.ref + ' — ' + o.raison).join('<br>');
+      if (ignores.length > 20) html += '<br>... et ' + (ignores.length - 20) + ' autres';
+    }
+    errBox.innerHTML = html;
+  } else {
+    errBox.style.display = 'none';
+  }
+
+  // Aperçu tableau (5 premières lignes)
+  const tbl = document.getElementById('import-sample-table');
+  if (valides.length) {
+    const preview = valides.slice(0, 5);
+    tbl.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
+      '<thead><tr style="background:var(--surface2)">' +
+        '<th style="padding:8px;text-align:left">Réf.</th>' +
+        '<th style="padding:8px;text-align:left">Désignation</th>' +
+        '<th style="padding:8px;text-align:left">Famille</th>' +
+        '<th style="padding:8px;text-align:right">P. Achat</th>' +
+        '<th style="padding:8px;text-align:right">P. Vente</th>' +
+      '</tr></thead><tbody>' +
+      preview.map(p =>
+        '<tr style="border-top:1px solid var(--border)">' +
+          '<td style="padding:6px 8px;font-family:monospace;font-weight:600">' + p.ref + '</td>' +
+          '<td style="padding:6px 8px">' + p.nom + '</td>' +
+          '<td style="padding:6px 8px">' + p.famille + (p.sousFamille ? ' › ' + p.sousFamille : '') + '</td>' +
+          '<td style="padding:6px 8px;text-align:right">' + p.prixAchat.toFixed(2) + '</td>' +
+          '<td style="padding:6px 8px;text-align:right">' + p.prixVente.toFixed(2) + '</td>' +
+        '</tr>'
+      ).join('') +
+      (valides.length > 5 ? '<tr><td colspan="5" style="padding:8px;text-align:center;color:var(--text3);font-style:italic">... et ' + (valides.length - 5) + ' autres produits</td></tr>' : '') +
+      '</tbody></table>';
+  } else {
+    tbl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3)">Aucun produit valide à importer.</div>';
+  }
+
+  // Bouton confirmation
+  const btn = document.getElementById('import-confirm-btn');
+  if (valides.length > 0) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    btn.textContent = '✅ Importer ' + valides.length + ' produit(s)';
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+    btn.textContent = '❌ Rien à importer';
+  }
+}
+
+function confirmImportProduits() {
+  if (!_importCSVRows || _importCSVRows.length === 0) {
+    notify('Aucun produit à importer', 'amber');
+    return;
+  }
+  if (!confirm('Importer ' + _importCSVRows.length + ' produit(s) dans votre catalogue ?')) return;
+
+  let creesNb = 0;
+  let sousFamillesCreees = 0;
+  _importCSVRows.forEach(p => {
+    // Auto-créer la sous-famille si elle n'existe pas
+    if (p.sousFamille && state.familles[p.famille]) {
+      if (!state.familles[p.famille].sousFamilles) state.familles[p.famille].sousFamilles = [];
+      if (!state.familles[p.famille].sousFamilles.includes(p.sousFamille)) {
+        state.familles[p.famille].sousFamilles.push(p.sousFamille);
+        sousFamillesCreees++;
+      }
+    }
+    // Créer le produit
+    state.produits.push({
+      id: uid(),
+      ref: p.ref,
+      nom: p.nom,
+      famille: p.famille,
+      sousFamille: p.sousFamille || '',
+      couleur: p.couleur || '',
+      taille: p.taille || '',
+      longueurRouleau: p.longueurRouleau || 0,
+      desc: p.desc || '',
+      prixAchat: p.prixAchat || 0,
+      prixVente: p.prixVente || 0,
+      alerte: p.alerte || 0,
+      unite: p.unite || 'Pièce',
+      tva: (p.tva != null && !isNaN(p.tva)) ? p.tva : 20,
+      entrepotId: ''
+    });
+    creesNb++;
+  });
+  save();
+  closeModal('modal-import-produits');
+  if (typeof renderProduits === 'function') renderProduits();
+  if (typeof renderFamillesSettings === 'function') renderFamillesSettings();
+  let msg = '✅ ' + creesNb + ' produit(s) importé(s) avec succès';
+  if (sousFamillesCreees > 0) msg += ' (' + sousFamillesCreees + ' sous-famille(s) créée(s) automatiquement)';
+  notify(msg, 'green');
 }
 
 function deleteProduit(id) {
