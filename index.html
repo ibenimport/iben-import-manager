@@ -3457,7 +3457,9 @@ function exportPDFFicheClient() {
   const bls = state.livraisons.filter(l => l.clientId === cl.id);
   const totalCA = factures.reduce((sum, f) => sum + (f.ttc || 0), 0);
   const totalPaye = factures.reduce((sum, f) => sum + (_calculerTotalPaye(f) || f.paye || 0), 0);
-  const soldeDu = totalCA - totalPaye;
+  // Arrondi pour éviter -0.00 lié aux flottants
+  let soldeDu = totalCA - totalPaye;
+  if (Math.abs(soldeDu) < 0.01) soldeDu = 0;
 
   const allReglements = [];
   factures.forEach(f => {
@@ -3507,9 +3509,9 @@ function exportPDFFicheClient() {
   if (cl.if_)   ligne2.push('IF: ' + cl.if_);
   pdf.text(ligne2.join('  ·  ') || '—', ML + 4, y + 17);
   let ligne3 = [];
-  if (cl.ville)   ligne3.push('📍 ' + cl.ville);
-  if (cl.tel)     ligne3.push('☎ ' + cl.tel);
-  if (cl.email)   ligne3.push('✉ ' + cl.email);
+  if (cl.ville)   ligne3.push('Ville: ' + cl.ville);
+  if (cl.tel)     ligne3.push('Tél: ' + cl.tel);
+  if (cl.email)   ligne3.push('Email: ' + cl.email);
   pdf.text(ligne3.join('  ·  ') || '—', ML + 4, y + 22);
 
   // Solde dû à droite
@@ -3659,7 +3661,9 @@ function exportPDFFicheFournisseur() {
   const achats = state.importations.filter(i => i.fournisseurId === f.id);
   const totalAchats = achats.reduce((sum, i) => sum + (i.ht || 0), 0);
   const totalPaye = achats.reduce((sum, i) => sum + _calculerTotalPaye(i), 0);
-  const soldeDu = totalAchats - totalPaye;
+  // Arrondi pour éviter -0.00 lié aux flottants
+  let soldeDu = totalAchats - totalPaye;
+  if (Math.abs(soldeDu) < 0.01) soldeDu = 0;
 
   const allReglements = [];
   achats.forEach(a => {
@@ -3714,9 +3718,9 @@ function exportPDFFicheFournisseur() {
   if (f.contact) lf2.push('Contact: ' + f.contact);
   pdf.text(lf2.join('  ·  ') || '—', ML + 4, y + 17);
   let lf3 = [];
-  if (f.tel)     lf3.push('☎ ' + f.tel);
-  if (f.email)   lf3.push('✉ ' + f.email);
-  if (f.adresse) lf3.push('📍 ' + f.adresse);
+  if (f.tel)     lf3.push('Tél: ' + f.tel);
+  if (f.email)   lf3.push('Email: ' + f.email);
+  if (f.adresse) lf3.push('Adresse: ' + f.adresse);
   pdf.text(lf3.join('  ·  ') || '—', ML + 4, y + 22);
 
   // Solde à payer à droite
