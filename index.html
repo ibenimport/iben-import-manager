@@ -4157,7 +4157,7 @@ function previewDoc(id, cat) {
     <tr>
       <td style="padding:9px 12px;font-size:13px;border-bottom:1px solid #F0F0F0">${l.desc || ''}</td>
       <td style="padding:9px 12px;font-size:13px;border-bottom:1px solid #F0F0F0;text-align:center">${l.qty}</td>
-      <td style="padding:9px 12px;font-size:13px;border-bottom:1px solid #F0F0F0;text-align:right">${fmtMAD(l.pu)}</td>
+      <td style="padding:9px 12px;font-size:13px;border-bottom:1px solid #F0F0F0;text-align:center">${fmtMAD(l.pu)}</td>
       <td style="padding:9px 12px;font-size:13px;border-bottom:1px solid #F0F0F0;text-align:right;font-weight:600">${fmtMAD(l.total)}</td>
     </tr>
   `).join('');
@@ -4253,11 +4253,11 @@ function previewDoc(id, cat) {
         <div style="background:white;border-radius:10px;overflow:hidden;border:1.5px solid #E5E7EB;margin-bottom:4px">
           <table style="width:100%;border-collapse:collapse">
             <thead>
-              <tr style="background:${T.primary}">
-                <th style="padding:11px 12px;font-size:11px;font-weight:700;color:white;text-align:left;letter-spacing:0.05em">DESCRIPTION</th>
-                <th style="padding:11px 12px;font-size:11px;font-weight:700;color:white;text-align:center;letter-spacing:0.05em;width:60px">QTÉ</th>
-                <th style="padding:11px 12px;font-size:11px;font-weight:700;color:white;text-align:right;letter-spacing:0.05em;width:130px">PRIX UNIT. HT</th>
-                <th style="padding:11px 12px;font-size:11px;font-weight:700;color:white;text-align:right;letter-spacing:0.05em;width:130px">TOTAL HT</th>
+              <tr>
+                <th style="background:${T.primary};padding:11px 12px;font-size:11px;font-weight:700;color:white;text-align:left;letter-spacing:0.05em">DESCRIPTION</th>
+                <th style="background:${T.primary};padding:11px 12px;font-size:11px;font-weight:700;color:white;text-align:center;letter-spacing:0.05em;width:60px">QTÉ</th>
+                <th style="background:${T.primary};padding:11px 12px;font-size:11px;font-weight:700;color:white;text-align:center;letter-spacing:0.05em;width:130px">PRIX UNIT. HT</th>
+                <th style="background:${T.primary};padding:11px 12px;font-size:11px;font-weight:700;color:white;text-align:center;letter-spacing:0.05em;width:130px">TOTAL HT</th>
               </tr>
             </thead>
             <tbody>${linesHTML || '<tr><td colspan="4" style="padding:20px;text-align:center;color:#9CA3AF;font-size:13px">Aucune ligne</td></tr>'}</tbody>
