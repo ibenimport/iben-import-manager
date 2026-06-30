@@ -1414,7 +1414,8 @@
       <!-- contenu dynamique injecté par afficherDetailClient() -->
     </div>
     <div class="modal-footer">
-      <button class="btn btn-primary" onclick="closeModal('modal-client-detail')">Fermer</button>
+      <button class="btn" onclick="closeModal('modal-client-detail')">Fermer</button>
+      <button class="btn btn-primary" onclick="exportPDFFicheClient()">📥 Exporter PDF</button>
     </div>
   </div>
 </div>
@@ -1430,7 +1431,8 @@
       <!-- contenu dynamique injecté par afficherDetailFournisseur() -->
     </div>
     <div class="modal-footer">
-      <button class="btn btn-primary" onclick="closeModal('modal-fournisseur-detail')">Fermer</button>
+      <button class="btn" onclick="closeModal('modal-fournisseur-detail')">Fermer</button>
+      <button class="btn btn-primary" onclick="exportPDFFicheFournisseur()">📥 Exporter PDF</button>
     </div>
   </div>
 </div>
@@ -3228,9 +3230,13 @@ function populateFournisseurSelect(selectId, currentValue, filterType) {
 //  CLIENTS
 // ============================================================
 // ── FICHE DÉTAILLÉE CLIENT (historique facturation + paiements) ──
+let _ficheClientActiveId = null;
+let _ficheFournisseurActiveId = null;
+
 function afficherDetailClient(id) {
   const cl = getClient(id);
   if (!cl || !cl.id) { notify('Client introuvable', 'red'); return; }
+  _ficheClientActiveId = id;
 
   // Documents du client
   const devis = state.devis.filter(d => d.clientId === id);
@@ -3333,6 +3339,7 @@ function afficherDetailClient(id) {
 function afficherDetailFournisseur(id) {
   const f = getFournisseur(id);
   if (!f) { notify('Fournisseur introuvable', 'red'); return; }
+  _ficheFournisseurActiveId = id;
 
   const achats = state.importations.filter(i => i.fournisseurId === id);
   const totalAchats = achats.reduce((s, i) => s + (i.ht || 0), 0);
@@ -3432,6 +3439,417 @@ function afficherDetailFournisseur(id) {
   `;
   document.getElementById('modal-fournisseur-detail-body').innerHTML = html;
   openModal('modal-fournisseur-detail');
+}
+
+// ============================================================
+//  EXPORT PDF — Fiche Client détaillée
+// ============================================================
+function exportPDFFicheClient() {
+  const { jsPDF } = window.jspdf || {};
+  if (!jsPDF) { notify('jsPDF non chargé', 'red'); return; }
+  if (!_ficheClientActiveId) { notify('Aucun client sélectionné', 'red'); return; }
+  const cl = getClient(_ficheClientActiveId);
+  if (!cl) { notify('Client introuvable', 'red'); return; }
+
+  const s = state.settings || {};
+  const devis = state.devis.filter(d => d.clientId === cl.id);
+  const factures = state.factures.filter(f => f.clientId === cl.id);
+  const bls = state.livraisons.filter(l => l.clientId === cl.id);
+  const totalCA = factures.reduce((sum, f) => sum + (f.ttc || 0), 0);
+  const totalPaye = factures.reduce((sum, f) => sum + (_calculerTotalPaye(f) || f.paye || 0), 0);
+  const soldeDu = totalCA - totalPaye;
+
+  const allReglements = [];
+  factures.forEach(f => {
+    (f.reglements || []).forEach(r => allReglements.push({ ...r, factureNum: f.num }));
+  });
+  allReglements.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+  const W = 210, ML = 14, MR = 14, CW = W - ML - MR;
+  let y = 16;
+
+  // Bandeau émetteur
+  pdf.setFillColor(0, 135, 90);
+  pdf.rect(0, 0, W, 24, 'F');
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(15); pdf.setFont('helvetica', 'bold');
+  pdf.text(s.company || 'IBEN IMPORT', ML, 11);
+  pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
+  pdf.text((s.ice ? 'ICE: ' + s.ice : '') + (s.tel ? '  ·  Tél: ' + s.tel : ''), ML, 17);
+  pdf.text((s.email || '') + (s.adresse ? '  ·  ' + s.adresse : ''), ML, 21);
+
+  // Titre principal
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(13); pdf.setFont('helvetica', 'bold');
+  pdf.text('FICHE CLIENT', W - MR, 13, { align: 'right' });
+  pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
+  pdf.text('Édité le ' + new Date().toLocaleDateString('fr-MA'), W - MR, 19, { align: 'right' });
+
+  y = 32;
+
+  // Bloc client
+  pdf.setFillColor(243, 250, 247);
+  pdf.rect(ML, y, CW, 26, 'F');
+  pdf.setDrawColor(0, 135, 90); pdf.setLineWidth(0.6);
+  pdf.line(ML, y, ML, y + 26);
+  pdf.setTextColor(60, 60, 60);
+  pdf.setFontSize(8); pdf.setFont('helvetica', 'bold');
+  pdf.text('CLIENT', ML + 4, y + 5);
+  pdf.setFontSize(13); pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(20, 20, 20);
+  pdf.text(cl.nom || '—', ML + 4, y + 11);
+  pdf.setFontSize(8.5); pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(80, 80, 80);
+  let ligne2 = [];
+  if (cl.ice)   ligne2.push('ICE: ' + cl.ice);
+  if (cl.rc)    ligne2.push('RC: ' + cl.rc);
+  if (cl.if_)   ligne2.push('IF: ' + cl.if_);
+  pdf.text(ligne2.join('  ·  ') || '—', ML + 4, y + 17);
+  let ligne3 = [];
+  if (cl.ville)   ligne3.push('📍 ' + cl.ville);
+  if (cl.tel)     ligne3.push('☎ ' + cl.tel);
+  if (cl.email)   ligne3.push('✉ ' + cl.email);
+  pdf.text(ligne3.join('  ·  ') || '—', ML + 4, y + 22);
+
+  // Solde dû à droite
+  pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(120, 120, 120);
+  pdf.text('SOLDE DÛ', W - MR - 4, y + 6, { align: 'right' });
+  pdf.setFontSize(15); pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(soldeDu > 0 ? 192 : 0, soldeDu > 0 ? 56 : 135, soldeDu > 0 ? 43 : 90);
+  pdf.text(fmtMAD(soldeDu), W - MR - 4, y + 14, { align: 'right' });
+
+  y += 32;
+
+  // Stats KPIs
+  const kpiW = (CW - 9) / 4;
+  const kpis = [
+    { label: 'Factures', value: String(factures.length) },
+    { label: 'CA total TTC', value: fmtMAD(totalCA) },
+    { label: 'Total payé', value: fmtMAD(totalPaye) },
+    { label: 'Devis / BL', value: devis.length + ' / ' + bls.length }
+  ];
+  kpis.forEach((k, i) => {
+    const x = ML + i * (kpiW + 3);
+    pdf.setFillColor(248, 248, 248);
+    pdf.rect(x, y, kpiW, 16, 'F');
+    pdf.setTextColor(120, 120, 120);
+    pdf.setFontSize(7); pdf.setFont('helvetica', 'normal');
+    pdf.text(k.label.toUpperCase(), x + 3, y + 5);
+    pdf.setTextColor(20, 20, 20);
+    pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
+    pdf.text(k.value, x + 3, y + 12);
+  });
+  y += 22;
+
+  // Tableau factures
+  pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(20, 20, 20);
+  pdf.text('Historique des factures (' + factures.length + ')', ML, y);
+  y += 4;
+
+  const facturesRows = [...factures].sort((a, b) => (b.date || '').localeCompare(a.date || '')).map(f => {
+    const paye = _calculerTotalPaye(f) || f.paye || 0;
+    const reste = (f.ttc || 0) - paye;
+    const statut = reste <= 0.01 ? 'Payée' : paye > 0 ? 'Partielle' : 'Impayée';
+    return [
+      f.num || '—',
+      fmtDate(f.date),
+      f.echeance ? fmtDate(f.echeance) : '—',
+      fmtMAD(f.ttc || 0),
+      fmtMAD(paye),
+      fmtMAD(reste),
+      statut
+    ];
+  });
+
+  pdf.autoTable({
+    head: [[
+      { content: 'N°', styles: { halign: 'left' } },
+      { content: 'Date', styles: { halign: 'center' } },
+      { content: 'Échéance', styles: { halign: 'center' } },
+      { content: 'Montant TTC', styles: { halign: 'center' } },
+      { content: 'Payé', styles: { halign: 'center' } },
+      { content: 'Reste', styles: { halign: 'center' } },
+      { content: 'Statut', styles: { halign: 'center' } }
+    ]],
+    body: facturesRows.length ? facturesRows : [['—', '—', '—', '—', '—', '—', 'Aucune facture']],
+    startY: y,
+    margin: { left: ML, right: MR },
+    styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+    columnStyles: {
+      0: { halign: 'left', cellWidth: 22 },
+      1: { halign: 'center', cellWidth: 22 },
+      2: { halign: 'center', cellWidth: 22 },
+      3: { halign: 'right',  cellWidth: 30 },
+      4: { halign: 'right',  cellWidth: 28 },
+      5: { halign: 'right',  cellWidth: 28 },
+      6: { halign: 'center' }
+    }
+  });
+  y = pdf.lastAutoTable.finalY + 8;
+
+  // Tableau règlements
+  if (y > 240) { pdf.addPage(); y = 20; }
+  pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(20, 20, 20);
+  pdf.text('Historique des règlements (' + allReglements.length + ')', ML, y);
+  y += 4;
+
+  const reglRows = allReglements.map(r => [
+    fmtDate(r.date),
+    r.factureNum || '—',
+    r.mode || '—',
+    r.reference || '—',
+    fmtMAD(r.montant || 0),
+    r.echeance ? fmtDate(r.echeance) : '—'
+  ]);
+
+  pdf.autoTable({
+    head: [[
+      { content: 'Date', styles: { halign: 'center' } },
+      { content: 'Facture', styles: { halign: 'left' } },
+      { content: 'Mode', styles: { halign: 'center' } },
+      { content: 'Référence', styles: { halign: 'left' } },
+      { content: 'Montant', styles: { halign: 'center' } },
+      { content: 'Échéance', styles: { halign: 'center' } }
+    ]],
+    body: reglRows.length ? reglRows : [['—', '—', '—', '—', '—', 'Aucun règlement']],
+    startY: y,
+    margin: { left: ML, right: MR },
+    styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 22 },
+      1: { halign: 'left',   cellWidth: 26 },
+      2: { halign: 'center', cellWidth: 24 },
+      3: { halign: 'left',   cellWidth: 'auto' },
+      4: { halign: 'right',  cellWidth: 28 },
+      5: { halign: 'center', cellWidth: 22 }
+    }
+  });
+
+  // Pied de page
+  const pageCount = pdf.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    pdf.setPage(i);
+    pdf.setFontSize(7); pdf.setFont('helvetica', 'italic');
+    pdf.setTextColor(150, 150, 150);
+    pdf.text('IBEN IMPORT manager v' + APP_VERSION + ' · Fiche client ' + (cl.nom || '') + ' · ' + new Date().toLocaleDateString('fr-MA') + ' · Page ' + i + '/' + pageCount, W / 2, 290, { align: 'center' });
+  }
+
+  const fileName = 'fiche-client-' + (cl.nom || 'client').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
+  pdf.save(fileName);
+  notify('✅ Fiche client exportée en PDF', 'green');
+}
+
+// ============================================================
+//  EXPORT PDF — Fiche Fournisseur détaillée
+// ============================================================
+function exportPDFFicheFournisseur() {
+  const { jsPDF } = window.jspdf || {};
+  if (!jsPDF) { notify('jsPDF non chargé', 'red'); return; }
+  if (!_ficheFournisseurActiveId) { notify('Aucun fournisseur sélectionné', 'red'); return; }
+  const f = getFournisseur(_ficheFournisseurActiveId);
+  if (!f) { notify('Fournisseur introuvable', 'red'); return; }
+
+  const s = state.settings || {};
+  const achats = state.importations.filter(i => i.fournisseurId === f.id);
+  const totalAchats = achats.reduce((sum, i) => sum + (i.ht || 0), 0);
+  const totalPaye = achats.reduce((sum, i) => sum + _calculerTotalPaye(i), 0);
+  const soldeDu = totalAchats - totalPaye;
+
+  const allReglements = [];
+  achats.forEach(a => {
+    (a.reglements || []).forEach(r => allReglements.push({ ...r, achatNum: a.num }));
+  });
+  allReglements.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+  const W = 210, ML = 14, MR = 14, CW = W - ML - MR;
+  let y = 16;
+
+  // Bandeau émetteur
+  pdf.setFillColor(0, 135, 90);
+  pdf.rect(0, 0, W, 24, 'F');
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(15); pdf.setFont('helvetica', 'bold');
+  pdf.text(s.company || 'IBEN IMPORT', ML, 11);
+  pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
+  pdf.text((s.ice ? 'ICE: ' + s.ice : '') + (s.tel ? '  ·  Tél: ' + s.tel : ''), ML, 17);
+  pdf.text((s.email || '') + (s.adresse ? '  ·  ' + s.adresse : ''), ML, 21);
+
+  // Titre principal
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(13); pdf.setFont('helvetica', 'bold');
+  pdf.text('FICHE FOURNISSEUR', W - MR, 13, { align: 'right' });
+  pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
+  pdf.text('Édité le ' + new Date().toLocaleDateString('fr-MA'), W - MR, 19, { align: 'right' });
+
+  y = 32;
+
+  // Bloc fournisseur
+  pdf.setFillColor(243, 250, 247);
+  pdf.rect(ML, y, CW, 28, 'F');
+  pdf.setDrawColor(0, 135, 90); pdf.setLineWidth(0.6);
+  pdf.line(ML, y, ML, y + 28);
+  pdf.setTextColor(60, 60, 60);
+  pdf.setFontSize(8); pdf.setFont('helvetica', 'bold');
+  const typeLabel = f.type === 'local' ? 'FOURNISSEUR LOCAL (MAROC)' : 'FOURNISSEUR ÉTRANGER (IMPORT)';
+  pdf.text(typeLabel, ML + 4, y + 5);
+  pdf.setFontSize(13); pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(20, 20, 20);
+  pdf.text(f.nom || '—', ML + 4, y + 11);
+  pdf.setFontSize(8.5); pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(80, 80, 80);
+  let lf2 = [];
+  if (f.type === 'local') {
+    if (f.ice) lf2.push('ICE: ' + f.ice);
+  } else {
+    if (f.pays)   lf2.push('Pays: ' + f.pays);
+    if (f.devise) lf2.push('Devise: ' + f.devise);
+  }
+  if (f.contact) lf2.push('Contact: ' + f.contact);
+  pdf.text(lf2.join('  ·  ') || '—', ML + 4, y + 17);
+  let lf3 = [];
+  if (f.tel)     lf3.push('☎ ' + f.tel);
+  if (f.email)   lf3.push('✉ ' + f.email);
+  if (f.adresse) lf3.push('📍 ' + f.adresse);
+  pdf.text(lf3.join('  ·  ') || '—', ML + 4, y + 22);
+
+  // Solde à payer à droite
+  pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(120, 120, 120);
+  pdf.text('SOLDE À PAYER', W - MR - 4, y + 6, { align: 'right' });
+  pdf.setFontSize(15); pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(soldeDu > 0 ? 192 : 0, soldeDu > 0 ? 56 : 135, soldeDu > 0 ? 43 : 90);
+  pdf.text(fmtMAD(soldeDu), W - MR - 4, y + 14, { align: 'right' });
+
+  y += 34;
+
+  // Stats KPIs
+  const kpiW = (CW - 9) / 4;
+  const kpis = [
+    { label: 'Achats', value: String(achats.length) },
+    { label: 'Total HT', value: fmtMAD(totalAchats) },
+    { label: 'Total payé', value: fmtMAD(totalPaye) },
+    { label: 'Règlements', value: String(allReglements.length) }
+  ];
+  kpis.forEach((k, i) => {
+    const x = ML + i * (kpiW + 3);
+    pdf.setFillColor(248, 248, 248);
+    pdf.rect(x, y, kpiW, 16, 'F');
+    pdf.setTextColor(120, 120, 120);
+    pdf.setFontSize(7); pdf.setFont('helvetica', 'normal');
+    pdf.text(k.label.toUpperCase(), x + 3, y + 5);
+    pdf.setTextColor(20, 20, 20);
+    pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
+    pdf.text(k.value, x + 3, y + 12);
+  });
+  y += 22;
+
+  // Tableau achats
+  pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(20, 20, 20);
+  pdf.text('Historique des achats (' + achats.length + ')', ML, y);
+  y += 4;
+
+  const achatsRows = [...achats].sort((a, b) => (b.date || '').localeCompare(a.date || '')).map(a => {
+    const paye = _calculerTotalPaye(a);
+    const reste = (a.ht || 0) - paye;
+    const statut = reste <= 0.01 ? 'Payé' : paye > 0 ? 'Partiel' : 'À payer';
+    return [
+      a.num || '—',
+      fmtDate(a.date),
+      a.refFacture || '—',
+      String((a.lines || []).length),
+      fmtMAD(a.ht || 0),
+      fmtMAD(reste),
+      statut
+    ];
+  });
+
+  pdf.autoTable({
+    head: [[
+      { content: 'N°', styles: { halign: 'left' } },
+      { content: 'Date', styles: { halign: 'center' } },
+      { content: 'Réf. facture', styles: { halign: 'left' } },
+      { content: 'Articles', styles: { halign: 'center' } },
+      { content: 'Total HT', styles: { halign: 'center' } },
+      { content: 'Reste', styles: { halign: 'center' } },
+      { content: 'Statut', styles: { halign: 'center' } }
+    ]],
+    body: achatsRows.length ? achatsRows : [['—', '—', '—', '—', '—', '—', 'Aucun achat']],
+    startY: y,
+    margin: { left: ML, right: MR },
+    styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+    columnStyles: {
+      0: { halign: 'left', cellWidth: 22 },
+      1: { halign: 'center', cellWidth: 22 },
+      2: { halign: 'left',   cellWidth: 'auto' },
+      3: { halign: 'center', cellWidth: 18 },
+      4: { halign: 'right',  cellWidth: 28 },
+      5: { halign: 'right',  cellWidth: 28 },
+      6: { halign: 'center', cellWidth: 22 }
+    }
+  });
+  y = pdf.lastAutoTable.finalY + 8;
+
+  // Tableau paiements
+  if (y > 240) { pdf.addPage(); y = 20; }
+  pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(20, 20, 20);
+  pdf.text('Historique des paiements (' + allReglements.length + ')', ML, y);
+  y += 4;
+
+  const reglRows = allReglements.map(r => [
+    fmtDate(r.date),
+    r.achatNum || '—',
+    r.mode || '—',
+    r.reference || '—',
+    fmtMAD(r.montant || 0),
+    r.echeance ? fmtDate(r.echeance) : '—'
+  ]);
+
+  pdf.autoTable({
+    head: [[
+      { content: 'Date', styles: { halign: 'center' } },
+      { content: 'Achat', styles: { halign: 'left' } },
+      { content: 'Mode', styles: { halign: 'center' } },
+      { content: 'Référence', styles: { halign: 'left' } },
+      { content: 'Montant', styles: { halign: 'center' } },
+      { content: 'Échéance', styles: { halign: 'center' } }
+    ]],
+    body: reglRows.length ? reglRows : [['—', '—', '—', '—', '—', 'Aucun paiement']],
+    startY: y,
+    margin: { left: ML, right: MR },
+    styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 22 },
+      1: { halign: 'left',   cellWidth: 26 },
+      2: { halign: 'center', cellWidth: 24 },
+      3: { halign: 'left',   cellWidth: 'auto' },
+      4: { halign: 'right',  cellWidth: 28 },
+      5: { halign: 'center', cellWidth: 22 }
+    }
+  });
+
+  // Pied de page
+  const pageCount = pdf.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    pdf.setPage(i);
+    pdf.setFontSize(7); pdf.setFont('helvetica', 'italic');
+    pdf.setTextColor(150, 150, 150);
+    pdf.text('IBEN IMPORT manager v' + APP_VERSION + ' · Fiche fournisseur ' + (f.nom || '') + ' · ' + new Date().toLocaleDateString('fr-MA') + ' · Page ' + i + '/' + pageCount, W / 2, 290, { align: 'center' });
+  }
+
+  const fileName = 'fiche-fournisseur-' + (f.nom || 'fournisseur').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
+  pdf.save(fileName);
+  notify('✅ Fiche fournisseur exportée en PDF', 'green');
 }
 
 function renderClients() {
