@@ -3205,6 +3205,7 @@ function deleteFournisseur(id) {
   const used = state.importations.some(i => i.fournisseurId === id);
   if (used && !confirm('⚠ Ce fournisseur est utilisé dans des achats. Supprimer quand même ?\n(Les achats garderont le nom du fournisseur en texte libre)')) return;
   if (!used && !confirm('Supprimer le fournisseur « ' + f.nom + ' » ?')) return;
+  if (!askSecurityCode('Supprimer le fournisseur ' + f.nom)) return;
   state.fournisseurs = state.fournisseurs.filter(x => x.id !== id);
   save(); renderFournisseurs();
   notify('Fournisseur supprimé', 'green');
@@ -3541,6 +3542,7 @@ function saveClient() {
 
 function deleteClient(id) {
   if (!confirm('Supprimer ce client ?')) return;
+  if (!askSecurityCode('Supprimer ce client')) return;
   state.clients = state.clients.filter(c => c.id !== id);
   save(); renderClients(); notify('Client supprimé');
 }
@@ -3860,7 +3862,9 @@ function editDoc(id, cat) {
 }
 
 function deleteDoc(id, cat) {
-  if (!confirm('Supprimer ce document ?\n\n' + (cat === 'facture' ? 'Les quantités déduites du stock seront restaurées.' : ''))) return;
+  const labelCat = cat === 'devis' ? 'devis' : cat === 'facture' ? 'facture' : 'bon de livraison';
+  if (!confirm('Supprimer ce ' + labelCat + ' ?\n\n' + (cat === 'facture' ? 'Les quantités déduites du stock seront restaurées.' : ''))) return;
+  if (!askSecurityCode('Supprimer ce ' + labelCat)) return;
   let stockRestaure = 0;
   if (cat === 'devis') state.devis = state.devis.filter(d => d.id !== id);
   else if (cat === 'facture') {
@@ -6145,7 +6149,8 @@ function confirmImportProduits() {
 }
 
 function deleteProduit(id) {
-  if (!confirm('Supprimer ce produit ?')) return;
+  if (!confirm('Supprimer ce produit ?\n\nLes stocks associés seront également supprimés.')) return;
+  if (!askSecurityCode('Supprimer ce produit')) return;
   state.produits = state.produits.filter(p => p.id !== id);
   state.stocks = state.stocks.filter(s => s.produitId !== id);
   save(); renderProduits(); notify('Produit supprimé');
@@ -6231,6 +6236,7 @@ function saveEntrepot() {
 
 function deleteEntrepot(id) {
   if (!confirm('Supprimer cet entrepôt ? Les stocks associés seront également supprimés.')) return;
+  if (!askSecurityCode('Supprimer cet entrepôt')) return;
   state.entrepots = state.entrepots.filter(e => e.id !== id);
   state.stocks = state.stocks.filter(s => s.entrepotId !== id);
   save(); renderEntrepots(); notify('Entrepôt supprimé');
@@ -7334,7 +7340,9 @@ function saveImportation() {
 function deleteImportation(id) {
   const imp = state.importations.find(x => x.id === id);
   if (!imp) return;
-  if (!confirm('Supprimer l\'importation ' + (imp.num || '') + ' ?\n\nLes quantités entrées en stock seront annulées et les mouvements supprimés.\n\n⚠️ Attention : le PMP ne sera PAS recalculé en arrière (les anciens prix moyens restent).')) return;
+  const labelAchat = imp.typeAchat === 'local' ? 'l\'achat local' : 'l\'importation';
+  if (!confirm('Supprimer ' + labelAchat + ' ' + (imp.num || '') + ' ?\n\nLes quantités entrées en stock seront annulées et les mouvements supprimés.\n\n⚠️ Attention : le PMP ne sera PAS recalculé en arrière (les anciens prix moyens restent).')) return;
+  if (!askSecurityCode('Supprimer ' + labelAchat + ' ' + (imp.num || ''))) return;
   const nb = annulerImportationStock(id);
   state.importations = state.importations.filter(x => x.id !== id);
   save();
