@@ -480,6 +480,10 @@
         <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.3"/><line x1="2" y1="6" x2="14" y2="6" stroke="currentColor" stroke-width="1.3"/><circle cx="5" cy="9" r="0.7" fill="currentColor"/><circle cx="8" cy="9" r="0.7" fill="currentColor"/><circle cx="11" cy="9" r="0.7" fill="currentColor"/><circle cx="5" cy="11.5" r="0.7" fill="currentColor"/><circle cx="8" cy="11.5" r="0.7" fill="currentColor"/><circle cx="11" cy="11.5" r="0.7" fill="currentColor"/></svg>
         Calculateur prix revient
       </div>
+      <div class="nav-item" onclick="ouvrirCalculatriceTVA()" title="Convertir HT ↔ TVA ↔ TTC (Ctrl+T)">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="3" y="1.5" width="10" height="13" rx="1.3" stroke="currentColor" stroke-width="1.3"/><rect x="5" y="3.5" width="6" height="2.5" rx="0.4" stroke="currentColor" stroke-width="1.1"/><circle cx="5.5" cy="8.5" r="0.6" fill="currentColor"/><circle cx="8" cy="8.5" r="0.6" fill="currentColor"/><circle cx="10.5" cy="8.5" r="0.6" fill="currentColor"/><circle cx="5.5" cy="11" r="0.6" fill="currentColor"/><circle cx="8" cy="11" r="0.6" fill="currentColor"/><circle cx="10.5" cy="11" r="0.6" fill="currentColor"/></svg>
+        Calculatrice TVA
+      </div>
 
       <div class="nav-section">Trésorerie</div>
       <div class="nav-item" onclick="goPage('tresorerie',this)">
@@ -1714,6 +1718,86 @@
 </div>
 
 <!-- ===== MODAL IMPORT CSV PRODUITS ===== -->
+<!-- ===== MODAL CALCULATRICE TVA ===== -->
+<div class="modal-overlay" id="modal-calc-tva" style="display:none" onclick="if(event.target===this)closeModal('modal-calc-tva')">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <span class="modal-title">💰 Calculatrice TVA</span>
+      <button class="modal-close" onclick="closeModal('modal-calc-tva')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Taux TVA -->
+      <div style="margin-bottom:20px">
+        <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Taux de TVA</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+          <button type="button" class="calc-tva-taux-btn" data-taux="7"  onclick="setTauxTVA(7)"  style="padding:10px;border:2px solid var(--border);background:var(--surface);border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;transition:all 0.15s">7%</button>
+          <button type="button" class="calc-tva-taux-btn" data-taux="10" onclick="setTauxTVA(10)" style="padding:10px;border:2px solid var(--border);background:var(--surface);border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;transition:all 0.15s">10%</button>
+          <button type="button" class="calc-tva-taux-btn" data-taux="14" onclick="setTauxTVA(14)" style="padding:10px;border:2px solid var(--border);background:var(--surface);border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;transition:all 0.15s">14%</button>
+          <button type="button" class="calc-tva-taux-btn" data-taux="20" onclick="setTauxTVA(20)" style="padding:10px;border:2px solid var(--accent);background:var(--accent-light);color:var(--accent);border-radius:8px;cursor:pointer;font-weight:700;font-size:14px;transition:all 0.15s">20%</button>
+        </div>
+      </div>
+
+      <!-- Sens de calcul -->
+      <div style="margin-bottom:16px">
+        <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">J'ai le montant</div>
+        <div style="display:flex;gap:6px;background:var(--surface2);padding:4px;border-radius:10px">
+          <button type="button" class="calc-tva-sens-btn" data-sens="ht"  onclick="setSensTVA('ht')"  style="flex:1;padding:8px;border:none;background:var(--accent);color:white;border-radius:7px;cursor:pointer;font-weight:600;font-size:13px;transition:all 0.15s">HT</button>
+          <button type="button" class="calc-tva-sens-btn" data-sens="ttc" onclick="setSensTVA('ttc')" style="flex:1;padding:8px;border:none;background:transparent;color:var(--text2);border-radius:7px;cursor:pointer;font-weight:600;font-size:13px;transition:all 0.15s">TTC</button>
+          <button type="button" class="calc-tva-sens-btn" data-sens="tva" onclick="setSensTVA('tva')" style="flex:1;padding:8px;border:none;background:transparent;color:var(--text2);border-radius:7px;cursor:pointer;font-weight:600;font-size:13px;transition:all 0.15s">TVA</button>
+        </div>
+      </div>
+
+      <!-- Champ de saisie -->
+      <div style="margin-bottom:20px">
+        <label class="form-label" id="calc-tva-label">Montant HT (MAD)</label>
+        <div style="position:relative">
+          <input class="form-input" id="calc-tva-input" type="number" min="0" step="0.01" placeholder="Ex: 500" oninput="calculerTVA()" style="width:100%;font-size:18px;font-weight:600;padding:12px 60px 12px 14px;text-align:right">
+          <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;font-weight:600;pointer-events:none">MAD</span>
+        </div>
+      </div>
+
+      <!-- Résultats -->
+      <div style="background:var(--surface2);padding:16px;border-radius:12px;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:12px">Résultat</div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:13px;color:var(--text2);font-weight:500">Montant HT</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span id="calc-tva-ht" style="font-size:16px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace">0,00 MAD</span>
+            <button type="button" onclick="copierMontantTVA('ht')" title="Copier" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:4px">📋</button>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:13px;color:var(--text2);font-weight:500">TVA (<span id="calc-tva-taux-txt">20</span>%)</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span id="calc-tva-tva" style="font-size:16px;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace">0,00 MAD</span>
+            <button type="button" onclick="copierMontantTVA('tva')" title="Copier" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:4px">📋</button>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 4px">
+          <span style="font-size:14px;color:var(--text);font-weight:700">Montant TTC</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span id="calc-tva-ttc" style="font-size:20px;font-weight:800;color:var(--green);font-family:'JetBrains Mono',monospace">0,00 MAD</span>
+            <button type="button" onclick="copierMontantTVA('ttc')" title="Copier" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:4px">📋</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Astuces -->
+      <div style="font-size:11.5px;color:var(--text3);background:var(--accent-light);padding:10px 12px;border-radius:8px;line-height:1.6">
+        💡 <strong>Astuce :</strong> Cliquez sur 📋 pour copier une valeur. Raccourci pour ouvrir cette calculatrice : <code style="background:var(--surface);padding:2px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:11px">Ctrl+T</code>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="viderCalcTVA()">🔄 Réinitialiser</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-calc-tva')">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-import-produits" style="display:none" onclick="if(event.target===this)closeModal('modal-import-produits')">
   <div class="modal modal-lg">
     <div class="modal-header">
@@ -5695,6 +5779,132 @@ const FRAIS_PAR_DEFAUT = [
   { label: 'Facture HT MAD',                     value: 0 }
 ];
 
+// ============================================================
+//  CALCULATRICE TVA — HT ↔ TVA ↔ TTC (4 taux marocains)
+// ============================================================
+let _calcTauxTVA = 20; // par défaut 20%
+let _calcSensTVA = 'ht'; // 'ht', 'ttc', ou 'tva'
+
+function ouvrirCalculatriceTVA() {
+  setTauxTVA(_calcTauxTVA);
+  setSensTVA(_calcSensTVA);
+  openModal('modal-calc-tva');
+  setTimeout(() => {
+    const inp = document.getElementById('calc-tva-input');
+    if (inp) inp.focus();
+  }, 100);
+}
+
+function setTauxTVA(taux) {
+  _calcTauxTVA = taux;
+  // Mettre à jour l'état visuel des boutons
+  document.querySelectorAll('.calc-tva-taux-btn').forEach(btn => {
+    const isActive = parseInt(btn.dataset.taux) === taux;
+    if (isActive) {
+      btn.style.background = 'var(--accent-light)';
+      btn.style.color = 'var(--accent)';
+      btn.style.borderColor = 'var(--accent)';
+      btn.style.fontWeight = '700';
+    } else {
+      btn.style.background = 'var(--surface)';
+      btn.style.color = 'var(--text)';
+      btn.style.borderColor = 'var(--border)';
+      btn.style.fontWeight = '600';
+    }
+  });
+  const tauxTxt = document.getElementById('calc-tva-taux-txt');
+  if (tauxTxt) tauxTxt.textContent = String(taux);
+  calculerTVA();
+}
+
+function setSensTVA(sens) {
+  _calcSensTVA = sens;
+  document.querySelectorAll('.calc-tva-sens-btn').forEach(btn => {
+    const isActive = btn.dataset.sens === sens;
+    if (isActive) {
+      btn.style.background = 'var(--accent)';
+      btn.style.color = 'white';
+    } else {
+      btn.style.background = 'transparent';
+      btn.style.color = 'var(--text2)';
+    }
+  });
+  const label = document.getElementById('calc-tva-label');
+  const inp = document.getElementById('calc-tva-input');
+  if (label) {
+    if (sens === 'ht')  label.textContent = 'Montant HT (MAD)';
+    if (sens === 'ttc') label.textContent = 'Montant TTC (MAD)';
+    if (sens === 'tva') label.textContent = 'Montant de la TVA (MAD)';
+  }
+  if (inp) inp.focus();
+  calculerTVA();
+}
+
+function calculerTVA() {
+  const inp = document.getElementById('calc-tva-input');
+  const val = parseFloat(inp?.value) || 0;
+  const t = _calcTauxTVA / 100;
+  let ht = 0, tva = 0, ttc = 0;
+
+  if (_calcSensTVA === 'ht') {
+    ht  = val;
+    tva = val * t;
+    ttc = val * (1 + t);
+  } else if (_calcSensTVA === 'ttc') {
+    ttc = val;
+    ht  = val / (1 + t);
+    tva = ttc - ht;
+  } else if (_calcSensTVA === 'tva') {
+    tva = val;
+    ht  = t > 0 ? val / t : 0;
+    ttc = ht + tva;
+  }
+
+  const fmt = n => (n || 0).toLocaleString('fr-MA', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' MAD';
+  document.getElementById('calc-tva-ht').textContent  = fmt(ht);
+  document.getElementById('calc-tva-tva').textContent = fmt(tva);
+  document.getElementById('calc-tva-ttc').textContent = fmt(ttc);
+}
+
+function copierMontantTVA(quoi) {
+  const inp = document.getElementById('calc-tva-input');
+  const val = parseFloat(inp?.value) || 0;
+  const t = _calcTauxTVA / 100;
+  let ht = 0, tva = 0, ttc = 0;
+
+  if (_calcSensTVA === 'ht')       { ht = val; tva = val * t; ttc = val * (1 + t); }
+  else if (_calcSensTVA === 'ttc') { ttc = val; ht = val / (1 + t); tva = ttc - ht; }
+  else if (_calcSensTVA === 'tva') { tva = val; ht = t > 0 ? val / t : 0; ttc = ht + tva; }
+
+  const valeur = quoi === 'ht' ? ht : quoi === 'tva' ? tva : ttc;
+  const valeurStr = valeur.toFixed(2).replace('.', ',');
+
+  // Copier dans le presse-papier
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(valeurStr).then(() => {
+      const label = quoi === 'ht' ? 'HT' : quoi === 'tva' ? 'TVA' : 'TTC';
+      notify('✅ ' + label + ' copié : ' + valeurStr + ' MAD', 'green');
+    }).catch(() => {
+      notify('Impossible de copier', 'red');
+    });
+  } else {
+    // Fallback : sélectionner un input caché
+    const tmp = document.createElement('input');
+    tmp.value = valeurStr;
+    document.body.appendChild(tmp);
+    tmp.select();
+    document.execCommand('copy');
+    document.body.removeChild(tmp);
+    notify('✅ Copié : ' + valeurStr + ' MAD', 'green');
+  }
+}
+
+function viderCalcTVA() {
+  const inp = document.getElementById('calc-tva-input');
+  if (inp) { inp.value = ''; inp.focus(); }
+  calculerTVA();
+}
+
 function ouvrirCalculateurRevient() {
   reinitialiserCalculateur();
   rafraichirListeSauvegardes();
@@ -8273,6 +8483,13 @@ document.addEventListener('keydown', function(e) {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault();
     if (typeof ouvrirCalculateurRevient === 'function') ouvrirCalculateurRevient();
+    return;
+  }
+
+  // Ctrl+T : ouvrir la calculatrice TVA
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
+    e.preventDefault();
+    if (typeof ouvrirCalculatriceTVA === 'function') ouvrirCalculatriceTVA();
     return;
   }
 
