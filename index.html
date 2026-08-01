@@ -742,7 +742,7 @@
         <div class="filters">
           <div class="search-wrap">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><line x1="11" y1="11" x2="14.5" y2="14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-            <input class="form-input search-box" type="text" placeholder="Rechercher..." id="search-factures" oninput="renderFactures()">
+            <input class="form-input search-box" type="text" placeholder="Rechercher (n°, client, montant TTC ou règlement...)" id="search-factures" oninput="renderFactures()">
           </div>
           <select class="filter-select" id="filter-factures-statut" onchange="renderFactures()">
             <option value="">Tous les statuts</option>
@@ -2985,13 +2985,43 @@ function renderDevis() {
 //  FACTURES
 // ============================================================
 function renderFactures() {
-  const q = (document.getElementById('search-factures').value || '').toLowerCase();
+  const qRaw = (document.getElementById('search-factures').value || '').trim();
+  const q = qRaw.toLowerCase();
   const sf = document.getElementById('filter-factures-statut').value;
+
+  // Détection : est-ce que la recherche est un NOMBRE ? (recherche par montant)
+  // Accepte : "15000", "15 000", "15,000", "15000.50", "15000,50"
+  const qNum = qRaw ? parseFloat(qRaw.replace(/\s/g, '').replace(',', '.')) : NaN;
+  const isNumSearch = !isNaN(qNum) && qNum > 0 && /^[\d\s.,]+$/.test(qRaw);
+  const tolerance = 0.01; // 1 centime de marge pour arrondis flottants
+
   let list = state.factures.filter(f => {
     const cl = getClient(f.clientId);
-    const match = !q || (f.num || '').toLowerCase().includes(q) || (cl.nom || '').toLowerCase().includes(q);
     const statMatch = !sf || f.statut === sf;
-    return match && statMatch;
+    if (!q) return statMatch;
+
+    // 1. Recherche texte classique (n° facture, nom client)
+    const textMatch = (f.num || '').toLowerCase().includes(q) ||
+                      (cl.nom || '').toLowerCase().includes(q);
+
+    // 2. Recherche par montant (si l'utilisateur tape un nombre)
+    let amountMatch = false;
+    if (isNumSearch) {
+      // Match sur montant TTC exact
+      if (Math.abs((f.ttc || 0) - qNum) < tolerance) amountMatch = true;
+      // Match sur montant HT exact
+      if (Math.abs((f.ht || 0) - qNum) < tolerance) amountMatch = true;
+      // Match sur un règlement partiel exact
+      if (Array.isArray(f.reglements)) {
+        f.reglements.forEach(r => {
+          if (Math.abs((r.montant || 0) - qNum) < tolerance) amountMatch = true;
+        });
+      }
+      // Match sur montant total payé (compatibilité ancien champ)
+      if (Math.abs((f.paye || 0) - qNum) < tolerance) amountMatch = true;
+    }
+
+    return (textMatch || amountMatch) && statMatch;
   }).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   document.getElementById('factures-tbody').innerHTML = list.length ? list.map(f => {
