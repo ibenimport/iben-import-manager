@@ -2162,8 +2162,8 @@
       <div style="font-size:11.5px;color:var(--text3);margin-bottom:10px;line-height:1.6">
         Pour chaque article : <strong>Montant USD</strong> du fournisseur, <strong>Douane HT en MAD</strong> spécifique à l'article et la <strong>Quantité</strong>. Le C.P HT MAD se calcule automatiquement.
       </div>
-      <div class="lines-header" style="grid-template-columns: 2.2fr 1fr 1.1fr 1.1fr 0.8fr 1.2fr 38px">
-        <span>ITEM (Désignation)</span><span style="text-align:right">COURS</span><span style="text-align:right">MONTANT $</span><span style="text-align:right">DOUANE HT MAD</span><span style="text-align:center">QTY</span><span style="text-align:right">C.P HT MAD</span><span></span>
+      <div class="lines-header" style="grid-template-columns: 0.9fr 1.8fr 0.9fr 1fr 1fr 0.7fr 1.1fr 38px">
+        <span>RÉFÉRENCE</span><span>DÉSIGNATION</span><span style="text-align:right">COURS</span><span style="text-align:right">MONTANT $</span><span style="text-align:right">DOUANE HT MAD</span><span style="text-align:center">QTY</span><span style="text-align:right">C.P HT MAD</span><span></span>
       </div>
       <div id="calc-articles-container"></div>
       <button class="add-line-btn" onclick="addCalcArticle()">+ Ajouter un article</button>
@@ -5976,11 +5976,12 @@ function sauvegarderCalculRevient() {
   document.querySelectorAll('#calc-articles-container .line-row').forEach(row => {
     const inputs = row.querySelectorAll('input');
     articles.push({
-      item: (inputs[0]?.value || '').trim(),
-      cours: parseFloat(inputs[1]?.value) || 0,
-      montant: parseFloat(inputs[2]?.value) || 0,
-      douane: parseFloat(inputs[3]?.value) || 0,
-      qty: parseFloat(inputs[4]?.value) || 0
+      ref: (inputs[0]?.value || '').trim(),
+      item: (inputs[1]?.value || '').trim(),
+      cours: parseFloat(inputs[2]?.value) || 0,
+      montant: parseFloat(inputs[3]?.value) || 0,
+      douane: parseFloat(inputs[4]?.value) || 0,
+      qty: parseFloat(inputs[5]?.value) || 0
     });
   });
 
@@ -6226,15 +6227,24 @@ function getCalcFrais() {
   return { total, list };
 }
 
-// Ajoute une ligne d'article (item, montant USD, douane HT, qty, C.P calculé)
+// Ajoute une ligne d'article (ref, item, montant USD, douane HT, qty, C.P calculé)
 function addCalcArticle(data) {
   const id = 'calc-art-' + (++calcArticleCount);
   const div = document.createElement('div');
   div.className = 'line-row';
-  div.style.gridTemplateColumns = '2.2fr 1fr 1.1fr 1.1fr 0.8fr 1.2fr 38px';
+  div.style.gridTemplateColumns = '0.9fr 1.8fr 0.9fr 1fr 1fr 0.7fr 1.1fr 38px';
   div.id = id;
+
+  // Datalist des références produits (autocomplete)
+  const dlRefId = 'dl-calcref-' + id;
+  const dlRefHtml = state.produits && state.produits.length
+    ? `<datalist id="${dlRefId}">${state.produits.map(p => `<option value="${p.ref}"></option>`).join('')}</datalist>`
+    : '';
+
   div.innerHTML = `
-    <input class="form-input" type="text" placeholder="Ex: Articles en Verre CSM..." value="${data?.item || ''}" oninput="recalculerRevient()" style="font-size:12px">
+    ${dlRefHtml}
+    <input class="form-input" type="text" list="${dlRefId}" placeholder="Ex: S-001" value="${data?.ref || ''}" oninput="onCalcRefInput(this, '${id}'); recalculerRevient()" style="font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:600" title="Référence du produit (auto-complétion depuis le catalogue)">
+    <input class="form-input" type="text" placeholder="Désignation..." value="${data?.item || ''}" oninput="recalculerRevient()" style="font-size:12px">
     <input class="form-input" type="number" step="0.0001" value="${data?.cours || 0}" readonly oninput="recalculerRevient()" style="font-size:12px;text-align:right;background:var(--surface2);font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:600" title="Auto-rempli avec le cours effectif">
     <input class="form-input" type="number" min="0" step="0.01" value="${data?.montant || 0}" oninput="recalculerRevient()" style="font-size:12px;text-align:right" placeholder="USD">
     <input class="form-input" type="number" min="0" step="0.01" value="${data?.douane || 0}" oninput="recalculerRevient()" style="font-size:12px;text-align:right" placeholder="MAD">
@@ -6244,6 +6254,23 @@ function addCalcArticle(data) {
   `;
   document.getElementById('calc-articles-container').appendChild(div);
   recalculerRevient();
+}
+
+// Auto-remplit la Désignation quand une Référence existante est sélectionnée
+function onCalcRefInput(inputEl, id) {
+  const ref = (inputEl.value || '').trim();
+  if (!ref) return;
+  const prod = (state.produits || []).find(p => (p.ref || '').toLowerCase() === ref.toLowerCase());
+  if (prod) {
+    const row = document.getElementById(id);
+    if (row) {
+      const inputs = row.querySelectorAll('input');
+      // inputs[0] = ref, inputs[1] = désignation
+      if (inputs[1] && !inputs[1].value.trim()) {
+        inputs[1].value = prod.nom + (prod.couleur ? ' — ' + prod.couleur : '') + (prod.taille ? ' — ' + prod.taille : '');
+      }
+    }
+  }
 }
 
 function removeCalcArticle(id) {
@@ -6271,11 +6298,11 @@ function recalculerRevient() {
   let nbArticles = 0, totalQty = 0;
   document.querySelectorAll('#calc-articles-container .line-row').forEach(row => {
     const inputs = row.querySelectorAll('input');
-    // Forcer le cours (col index 1) à la valeur calculée
-    if (inputs[1]) inputs[1].value = cours.toFixed(4);
-    const montantUsd = parseFloat(inputs[2]?.value) || 0;
-    const douaneHt   = parseFloat(inputs[3]?.value) || 0;
-    const qty        = parseFloat(inputs[4]?.value) || 0;
+    // Forcer le cours (col index 2 - après ref et désignation) à la valeur calculée
+    if (inputs[2]) inputs[2].value = cours.toFixed(4);
+    const montantUsd = parseFloat(inputs[3]?.value) || 0;
+    const douaneHt   = parseFloat(inputs[4]?.value) || 0;
+    const qty        = parseFloat(inputs[5]?.value) || 0;
     const totalLigneMad = (cours * montantUsd) + douaneHt;
     const cpHt = qty > 0 ? totalLigneMad / qty : 0;
     const cpEl = row.querySelector('[id$="-cp"]');
