@@ -659,6 +659,23 @@
           <div id="dash-check-result" style="margin-top:14px"></div>
         </div>
 
+        <!-- ===== RECHERCHE PAR COLLECTION ===== -->
+        <div class="dash-section-title">🎨 Rechercher par collection</div>
+        <div class="table-card" style="padding:20px 24px;margin-bottom:26px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px">
+            <div style="font-size:12.5px;color:var(--text3);font-style:italic">Filtrez vos produits par collection (Mariage 2026, Ramadan, Silver Line...). Choisissez dans la liste ou tapez le nom.</div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:stretch">
+            <select class="form-input" id="dash-collection-select" onchange="onDashCollectionChange()" style="flex:1;min-width:200px;font-weight:600">
+              <option value="">— Toutes les collections —</option>
+            </select>
+            <input class="form-input" id="dash-collection-input" list="dash-collection-datalist" placeholder="Ou tapez le nom..." oninput="renderDashCollection()" style="flex:1;min-width:200px">
+            <datalist id="dash-collection-datalist"></datalist>
+            <button class="btn" onclick="document.getElementById('dash-collection-select').value=''; document.getElementById('dash-collection-input').value=''; renderDashCollection();" style="white-space:nowrap">✕ Effacer</button>
+          </div>
+          <div id="dash-collection-result" style="margin-top:14px"></div>
+        </div>
+
         <!-- ===== GRAPHIQUES ===== -->
         <div class="dash-section-title" style="margin-top:10px">📊 Statistiques visuelles</div>
         <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:24px">
@@ -1676,6 +1693,13 @@
             <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:12px;pointer-events:none">m / rouleau</span>
           </div>
         </div>
+        <!-- Collection (texte libre + autocomplete des collections existantes) -->
+        <div class="form-group">
+          <label class="form-label">Collection</label>
+          <input class="form-input" id="pr-collection" type="text" list="pr-collection-datalist" placeholder="Ex: Mariage 2026, Ramadan 2026, Silver Line...">
+          <datalist id="pr-collection-datalist"></datalist>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Groupez vos produits par thème ou saison (facultatif)</div>
+        </div>
         <div class="form-group">
           <label class="form-label">Unité</label>
           <select class="form-input" id="pr-unite">
@@ -2615,6 +2639,113 @@ function refreshDashCheckDatalist() {
   }).join('');
 }
 
+// Alimente le sélecteur ET le datalist des collections dans le Dashboard
+function refreshDashCollectionUI() {
+  const collections = getAllCollections();
+  // Alimenter le SELECT
+  const sel = document.getElementById('dash-collection-select');
+  if (sel) {
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Toutes les collections —</option>' +
+      collections.map(c => `<option value="${c}">${c} (${(state.produits || []).filter(p => (p.collection || '') === c).length})</option>`).join('');
+    sel.value = current;
+  }
+  // Alimenter le DATALIST (autocomplete)
+  const dl = document.getElementById('dash-collection-datalist');
+  if (dl) {
+    dl.innerHTML = collections.map(c => `<option value="${c}"></option>`).join('');
+  }
+}
+
+// Quand on choisit une collection dans le dropdown → remplit l'input et lance la recherche
+function onDashCollectionChange() {
+  const sel = document.getElementById('dash-collection-select');
+  const inp = document.getElementById('dash-collection-input');
+  if (sel && inp) inp.value = sel.value || '';
+  renderDashCollection();
+}
+
+// Affiche les produits de la collection recherchée
+function renderDashCollection() {
+  const inp = document.getElementById('dash-collection-input');
+  const sel = document.getElementById('dash-collection-select');
+  const box = document.getElementById('dash-collection-result');
+  if (!box) return;
+
+  const search = ((inp?.value || sel?.value || '')).trim().toLowerCase();
+
+  // Si la recherche vient de l'input mais ne correspond pas au select, on désynchronise
+  if (inp && sel && inp.value && inp.value !== sel.value) {
+    sel.value = '';
+  }
+
+  if (!search) {
+    box.innerHTML = '';
+    return;
+  }
+
+  // Filtrer les produits
+  const found = (state.produits || []).filter(p =>
+    (p.collection || '').toLowerCase().includes(search)
+  );
+
+  if (found.length === 0) {
+    box.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text3);font-style:italic;background:var(--surface2);border-radius:8px">
+      Aucun produit trouvé pour la collection "<strong>${search}</strong>"
+    </div>`;
+    return;
+  }
+
+  // Grouper par collection exacte trouvée
+  const byCollection = {};
+  found.forEach(p => {
+    const col = p.collection || '—';
+    if (!byCollection[col]) byCollection[col] = [];
+    byCollection[col].push(p);
+  });
+
+  let html = `<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">
+    ✅ <strong>${found.length}</strong> produit${found.length > 1 ? 's' : ''} trouvé${found.length > 1 ? 's' : ''}
+    ${Object.keys(byCollection).length > 1 ? ' dans ' + Object.keys(byCollection).length + ' collections' : ''}
+  </div>`;
+
+  Object.keys(byCollection).sort().forEach(col => {
+    const products = byCollection[col];
+    html += `<div style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:8px;padding:6px 12px;background:var(--accent-light);border-radius:6px;display:inline-block">
+        🎨 ${col} <span style="opacity:0.7">(${products.length})</span>
+      </div>
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+          <thead>
+            <tr style="background:var(--surface2)">
+              <th style="text-align:left;padding:8px 12px;font-weight:600;color:var(--text2)">Réf.</th>
+              <th style="text-align:left;padding:8px 12px;font-weight:600;color:var(--text2)">Désignation</th>
+              <th style="text-align:left;padding:8px 12px;font-weight:600;color:var(--text2)">Famille</th>
+              <th style="text-align:right;padding:8px 12px;font-weight:600;color:var(--text2)">Prix vente HT</th>
+              <th style="text-align:right;padding:8px 12px;font-weight:600;color:var(--text2)">Stock</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${products.map(p => {
+              const stock = (state.stocks || []).filter(s => s.produitId === p.id).reduce((sum, s) => sum + (s.qty || 0), 0);
+              return `<tr style="border-top:1px solid var(--border)">
+                <td style="padding:8px 12px;font-family:'JetBrains Mono',monospace;font-weight:600">${p.ref || '—'}</td>
+                <td style="padding:8px 12px">${p.nom || '—'}${p.couleur ? ' — ' + p.couleur : ''}${p.taille ? ' — ' + p.taille : ''}</td>
+                <td style="padding:8px 12px;color:var(--text3)">${p.famille || '—'}</td>
+                <td style="padding:8px 12px;text-align:right;font-weight:600">${fmtMAD(p.prixVente || 0)}</td>
+                <td style="padding:8px 12px;text-align:right;color:${stock > 0 ? 'var(--green)' : 'var(--red)'};font-weight:600">${stock}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  });
+
+  box.innerHTML = html;
+}
+
 function checkProduitPrix() {
   const refInput = document.getElementById('dash-check-ref');
   const box = document.getElementById('dash-check-result');
@@ -2867,9 +2998,14 @@ function renderDashboardCharts() {
 
 function renderDashboard() {
   refreshDashCheckDatalist();
+  refreshDashCollectionUI();
   // Re-render check result si une référence est saisie (pour MAJ après mvt)
   if (document.getElementById('dash-check-ref') && document.getElementById('dash-check-ref').value) {
     checkProduitPrix();
+  }
+  // Re-render collection result si une recherche est active
+  if (document.getElementById('dash-collection-input') && (document.getElementById('dash-collection-input').value || document.getElementById('dash-collection-select')?.value)) {
+    renderDashCollection();
   }
   // Render les graphiques de stats visuelles
   setTimeout(renderDashboardCharts, 30);
@@ -5760,6 +5896,23 @@ function populateCouleurSelect() {
   sel.value = current;
 }
 
+// Récupère toutes les collections uniques (depuis les produits) pour l'autocomplete
+function getAllCollections() {
+  const collections = new Set();
+  (state.produits || []).forEach(p => {
+    if (p.collection && p.collection.trim()) collections.add(p.collection.trim());
+  });
+  return Array.from(collections).sort();
+}
+
+// Alimente le datalist du champ Collection dans le modal produit
+function populateCollectionDatalist() {
+  const dl = document.getElementById('pr-collection-datalist');
+  if (!dl) return;
+  const collections = getAllCollections();
+  dl.innerHTML = collections.map(c => `<option value="${c}"></option>`).join('');
+}
+
 // Bouton + Taille : demande une nouvelle taille et l'ajoute au système
 function ajouterTaille() {
   const t = prompt('Nouvelle taille (ex: 50 mm, 6 mm...) :');
@@ -6364,9 +6517,10 @@ function showProduitModal(id) {
   populateSousFamilleSelect('');
   populateTailleSelect();
   populateCouleurSelect();
+  populateCollectionDatalist();
   document.getElementById('produit-id').value = '';
   document.getElementById('modal-produit-title').textContent = 'Nouveau produit';
-  ['pr-ref','pr-nom','pr-couleur','pr-desc'].forEach(f => document.getElementById(f).value = '');
+  ['pr-ref','pr-nom','pr-couleur','pr-desc','pr-collection'].forEach(f => { const el = document.getElementById(f); if (el) el.value = ''; });
   document.getElementById('pr-famille').value = '';
   document.getElementById('pr-sousfamille').value = '';
   if (document.getElementById('pr-couleur-select')) document.getElementById('pr-couleur-select').value = '';
@@ -6388,6 +6542,7 @@ function editProduit(id) {
   populateFamilleSelect();
   populateTailleSelect();
   populateCouleurSelect();
+  populateCollectionDatalist();
   const p = state.produits.find(x => x.id === id);
   if (!p) return;
   document.getElementById('produit-id').value = p.id;
@@ -6395,6 +6550,7 @@ function editProduit(id) {
   document.getElementById('pr-ref').value = p.ref || '';
   document.getElementById('pr-nom').value = p.nom || '';
   document.getElementById('pr-couleur').value = p.couleur || '';
+  if (document.getElementById('pr-collection')) document.getElementById('pr-collection').value = p.collection || '';
   // Si l'ancien produit n'a pas de famille (avant la mise à jour), on essaie de l'identifier via 'cat'
   const famille = p.famille || (state.familles[p.cat] ? p.cat : '');
   document.getElementById('pr-famille').value = famille;
@@ -6462,6 +6618,7 @@ function saveProduit() {
     couleur,
     taille,
     longueurRouleau,
+    collection: (document.getElementById('pr-collection')?.value || '').trim(),
     desc: document.getElementById('pr-desc').value.trim(),
     prixAchat: parseFloat(document.getElementById('pr-prix-achat').value) || 0,
     prixVente: parseFloat(document.getElementById('pr-prix-vente').value) || 0,
