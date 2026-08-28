@@ -2143,6 +2143,15 @@
         </div>
       </div>
 
+      <!-- Sélecteur de devise -->
+      <div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <span style="font-size:12.5px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.05em">💱 Devise de la facture :</span>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="calc-devise-btn" data-devise="USD" onclick="setCalcDevise('USD')" style="padding:8px 16px;border:2px solid var(--accent);background:var(--accent);color:white;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;transition:all 0.15s">🇺🇸 USD $</button>
+          <button type="button" class="calc-devise-btn" data-devise="EUR" onclick="setCalcDevise('EUR')" style="padding:8px 16px;border:2px solid var(--border);background:var(--surface);color:var(--text);border-radius:6px;cursor:pointer;font-weight:600;font-size:13px;transition:all 0.15s">🇪🇺 EUR €</button>
+        </div>
+      </div>
+
       <!-- En-tête -->
       <div class="form-grid">
         <div class="form-group">
@@ -2150,7 +2159,7 @@
           <input class="form-input" id="calc-invoice-no" type="text" placeholder="Ex: EM-2412" style="font-family:'JetBrains Mono',monospace;font-weight:600">
         </div>
         <div class="form-group">
-          <label class="form-label">💵 Facture USD ($)</label>
+          <label class="form-label" id="calc-facture-label">💵 Facture USD ($)</label>
           <input class="form-input" id="calc-facture-usd" type="number" min="0" step="0.01" value="0" oninput="recalculerRevient()" placeholder="Ex: 43699" style="font-weight:600">
         </div>
       </div>
@@ -2171,11 +2180,11 @@
             <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:3px" id="calc-res-total-mad">0,00 MAD</div>
           </div>
           <div>
-            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;font-weight:600">Facture USD</div>
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;font-weight:600" id="calc-res-facture-label">Facture USD</div>
             <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:3px" id="calc-res-facture-usd">0,00 $</div>
           </div>
           <div>
-            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;font-weight:600">💱 Cours DH/$ effectif</div>
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;font-weight:600" id="calc-res-cours-label">💱 Cours DH/$ effectif</div>
             <div style="font-size:20px;font-weight:700;color:var(--accent);margin-top:3px" id="calc-res-cours">0,0000</div>
           </div>
         </div>
@@ -2187,7 +2196,7 @@
         Pour chaque article : <strong>Montant USD</strong> du fournisseur, <strong>Douane HT en MAD</strong> spécifique à l'article et la <strong>Quantité</strong>. Le C.P HT MAD se calcule automatiquement.
       </div>
       <div class="lines-header" style="grid-template-columns: 0.9fr 1.8fr 0.9fr 1fr 1fr 0.7fr 1.1fr 38px">
-        <span>RÉFÉRENCE</span><span>DÉSIGNATION</span><span style="text-align:right">COURS</span><span style="text-align:right">MONTANT $</span><span style="text-align:right">DOUANE HT MAD</span><span style="text-align:center">QTY</span><span style="text-align:right">C.P HT MAD</span><span></span>
+        <span>RÉFÉRENCE</span><span>DÉSIGNATION</span><span style="text-align:right">COURS</span><span style="text-align:right" id="calc-col-montant-label">MONTANT $</span><span style="text-align:right">DOUANE HT MAD</span><span style="text-align:center">QTY</span><span style="text-align:right">C.P HT MAD</span><span></span>
       </div>
       <div id="calc-articles-container"></div>
       <button class="add-line-btn" onclick="addCalcArticle()">+ Ajouter un article</button>
@@ -2196,7 +2205,7 @@
       <div class="totaux-block" style="margin-top:14px">
         <div class="total-row"><span>Nombre d'articles</span><span id="calc-nb-articles">0</span></div>
         <div class="total-row"><span>Quantité totale</span><span id="calc-nb-qty">0</span></div>
-        <div class="total-row"><span>Total Montant USD articles</span><span id="calc-articles-usd">0,00 $</span></div>
+        <div class="total-row"><span id="calc-total-articles-label">Total Montant USD articles</span><span id="calc-articles-usd">0,00 $</span></div>
         <div class="total-row"><span>Total Douane HT MAD</span><span id="calc-articles-douane">0,00 MAD</span></div>
         <div class="total-row big"><span>💵 Coût de revient total MAD</span><span id="calc-articles-revient">0,00 MAD</span></div>
       </div>
@@ -6146,6 +6155,7 @@ function sauvegarderCalculRevient() {
     state.calculsRevient[idxExistant] = {
       ...state.calculsRevient[idxExistant],
       invoiceNo,
+      devise: _calcDevise,
       factureUsd,
       frais,
       articles,
@@ -6156,6 +6166,7 @@ function sauvegarderCalculRevient() {
     state.calculsRevient.push({
       id: uid(),
       invoiceNo,
+      devise: _calcDevise,
       factureUsd,
       frais,
       articles,
@@ -6179,6 +6190,8 @@ function chargerCalculRevient() {
   // Reset les champs et charger
   document.getElementById('calc-invoice-no').value = sauvegarde.invoiceNo || '';
   document.getElementById('calc-facture-usd').value = sauvegarde.factureUsd || 0;
+  // Restaurer la devise (USD par défaut si sauvegarde ancienne sans devise)
+  setCalcDevise(sauvegarde.devise === 'EUR' ? 'EUR' : 'USD');
   // Frais
   calcFraisCount = 0;
   document.getElementById('calc-frais-container').innerHTML = '';
@@ -6334,6 +6347,8 @@ function exporterCalculRevientPDF() {
 function reinitialiserCalculateur() {
   document.getElementById('calc-invoice-no').value = '';
   document.getElementById('calc-facture-usd').value = 0;
+  // Reset devise à USD par défaut
+  setCalcDevise('USD');
   // Reset frais
   calcFraisCount = 0;
   document.getElementById('calc-frais-container').innerHTML = '';
@@ -6432,21 +6447,65 @@ function removeCalcArticle(id) {
   recalculerRevient();
 }
 
+// Devise actuellement sélectionnée dans le calculateur (USD par défaut)
+let _calcDevise = 'USD';
+
+// Change la devise du calculateur (USD ou EUR)
+function setCalcDevise(devise) {
+  _calcDevise = devise === 'EUR' ? 'EUR' : 'USD';
+  const symbol = _calcDevise === 'EUR' ? '€' : '$';
+  const flag = _calcDevise === 'EUR' ? '🇪🇺' : '🇺🇸';
+
+  // Mise à jour de l'UI des boutons
+  document.querySelectorAll('.calc-devise-btn').forEach(btn => {
+    const isActive = btn.dataset.devise === _calcDevise;
+    if (isActive) {
+      btn.style.background = 'var(--accent)';
+      btn.style.color = 'white';
+      btn.style.borderColor = 'var(--accent)';
+      btn.style.fontWeight = '700';
+    } else {
+      btn.style.background = 'var(--surface)';
+      btn.style.color = 'var(--text)';
+      btn.style.borderColor = 'var(--border)';
+      btn.style.fontWeight = '600';
+    }
+  });
+
+  // Adapter tous les libellés dynamiques
+  const factureLabel = document.getElementById('calc-facture-label');
+  const factureResLabel = document.getElementById('calc-res-facture-label');
+  const coursLabel = document.getElementById('calc-res-cours-label');
+  const colMontantLabel = document.getElementById('calc-col-montant-label');
+  const totalArtLabel = document.getElementById('calc-total-articles-label');
+  const factureInput = document.getElementById('calc-facture-usd');
+
+  if (factureLabel)    factureLabel.textContent    = '💵 Facture ' + _calcDevise + ' (' + symbol + ')';
+  if (factureResLabel) factureResLabel.textContent = 'Facture ' + _calcDevise;
+  if (coursLabel)      coursLabel.textContent      = '💱 Cours DH/' + symbol + ' effectif';
+  if (colMontantLabel) colMontantLabel.textContent = 'MONTANT ' + symbol;
+  if (totalArtLabel)   totalArtLabel.textContent   = 'Total Montant ' + _calcDevise + ' articles';
+  if (factureInput)    factureInput.placeholder    = _calcDevise === 'EUR' ? 'Ex: 40000' : 'Ex: 43699';
+
+  recalculerRevient();
+}
+
 function recalculerRevient() {
   // ── 1) Frais + Facture HT MAD = Total MAD ──
   const frais = getCalcFrais();
   const factureUsd = parseFloat(document.getElementById('calc-facture-usd').value) || 0;
+  const symbol = _calcDevise === 'EUR' ? '€' : '$';
 
-  // ── 2) Cours effectif = Total MAD / Facture USD ──
+  // ── 2) Cours effectif = Total MAD / Facture devise ──
   const totalMad = frais.total;
   const cours = factureUsd > 0 ? totalMad / factureUsd : 0;
 
   // ── 3) Affichage de la synthèse ──
   document.getElementById('calc-res-total-mad').textContent = fmtMAD(totalMad);
-  document.getElementById('calc-res-facture-usd').textContent = factureUsd.toLocaleString('fr-MA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' $';
+  document.getElementById('calc-res-facture-usd').textContent = factureUsd.toLocaleString('fr-MA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + symbol;
   document.getElementById('calc-res-cours').textContent = cours.toLocaleString('fr-MA', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
 
-  // ── 4) Pour chaque article : (cours × montant USD + douane HT) / qty ──
+  // ── 4) Pour chaque article : (cours × montant devise + douane HT) / qty ──
   let totalUsdArt = 0, totalDouane = 0, totalRevientArt = 0;
   let nbArticles = 0, totalQty = 0;
   document.querySelectorAll('#calc-articles-container .line-row').forEach(row => {
@@ -6471,7 +6530,7 @@ function recalculerRevient() {
 
   document.getElementById('calc-nb-articles').textContent = nbArticles;
   document.getElementById('calc-nb-qty').textContent = totalQty.toLocaleString('fr-MA');
-  document.getElementById('calc-articles-usd').textContent = totalUsdArt.toLocaleString('fr-MA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' $';
+  document.getElementById('calc-articles-usd').textContent = totalUsdArt.toLocaleString('fr-MA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + symbol;
   document.getElementById('calc-articles-douane').textContent = fmtMAD(totalDouane);
   document.getElementById('calc-articles-revient').textContent = fmtMAD(totalRevientArt);
 }
