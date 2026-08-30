@@ -9065,8 +9065,6 @@ function printImportation(id) {
 
   // ── INFOS ACHAT ──
   y += 22;
-  pdf.setFillColor(244, 246, 251);
-  pdf.rect(ML, y, CW, 32, 'F');
   pdf.setFont('helvetica', 'bold'); pdf.setFontSize(9); pdf.setTextColor(60, 60, 60);
   const labelW = 32;
   const labelNum = tType === 'local' ? 'N° achat local :' : 'N° importation :';
@@ -9084,21 +9082,50 @@ function printImportation(id) {
   }
   infos.push(['Réf. facture :', imp.refFacture || '—']);
   infos.push(['Entrepôt récept. :', ent.nom || '—']);
-  let yInfo = y + 6;
+
   const colW = CW / 2;
-  infos.forEach((row, idx) => {
+  // Largeur max pour la valeur (colonne - label - marges)
+  const valueMaxW = colW - labelW - 8;
+
+  // Pré-calculer les lignes de valeurs (avec retour à la ligne si trop long)
+  pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9);
+  const infosProcessed = infos.map(row => {
+    const valueLines = pdf.splitTextToSize(String(row[1]), valueMaxW);
+    // Limiter à 2 lignes max
+    return { label: row[0], valueLines: valueLines.slice(0, 2) };
+  });
+
+  // Calculer la hauteur de chaque paire de colonnes (max de gauche et droite)
+  const rowHeights = [];
+  for (let i = 0; i < infosProcessed.length; i += 2) {
+    const leftLines = infosProcessed[i]?.valueLines.length || 1;
+    const rightLines = infosProcessed[i+1]?.valueLines.length || 1;
+    rowHeights.push(Math.max(leftLines, rightLines) * 4.5 + 3);
+  }
+  const totalInfoHeight = rowHeights.reduce((s,h) => s + h, 0) + 6;
+
+  // Fond gris avec hauteur dynamique
+  pdf.setFillColor(244, 246, 251);
+  pdf.rect(ML, y, CW, totalInfoHeight, 'F');
+
+  // Écrire les infos avec positions calculées
+  for (let idx = 0; idx < infosProcessed.length; idx++) {
     const col = idx % 2;
     const ligne = Math.floor(idx / 2);
     const x = ML + 4 + col * colW;
-    const yi = yInfo + ligne * 8;
+    let yi = y + 6;
+    for (let k = 0; k < ligne; k++) yi += rowHeights[k];
+
     pdf.setFont('helvetica', 'bold'); pdf.setTextColor(95, 95, 95); pdf.setFontSize(8);
-    pdf.text(row[0], x, yi);
+    pdf.text(infosProcessed[idx].label, x, yi);
     pdf.setFont('helvetica', 'normal'); pdf.setTextColor(25, 25, 25); pdf.setFontSize(9);
-    pdf.text(String(row[1]), x + labelW, yi);
-  });
+    pdf.text(infosProcessed[idx].valueLines, x + labelW, yi);
+  }
+
+  y += totalInfoHeight;
 
   // ── TABLEAU DES ARTICLES ──
-  y += 40;
+  y += 8;
   const colWidths = [25, 88, 13, 22, 30]; // Réf, Désignation (élargie), Qté, PU HT, Total HT
   const startX = ML;
   // Header
