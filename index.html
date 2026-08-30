@@ -6259,11 +6259,14 @@ function _downloadCSV(filename, csvContent) {
 }
 
 // Header commun pour tous les PDFs de rapports
+// Détecte automatiquement l'orientation (portrait 210mm ou paysage 297mm)
 function _pdfRapportHeader(pdf, titre) {
   const s = state.settings || {};
   const p = _getRapportPeriode();
-  const W = 210, ML = 14, MR = 14;
-  // Bandeau vert
+  // Détecter la largeur réelle du PDF (portrait = 210, paysage = 297)
+  const W = pdf.internal.pageSize.getWidth();
+  const ML = 14, MR = 14;
+  // Bandeau vert sur TOUTE la largeur de la page
   pdf.setFillColor(0, 135, 90);
   pdf.rect(0, 0, W, 26, 'F');
   pdf.setTextColor(255, 255, 255);
@@ -6280,14 +6283,16 @@ function _pdfRapportHeader(pdf, titre) {
   return 32; // y start
 }
 
-// Footer commun
+// Footer commun (adaptatif selon orientation)
 function _pdfRapportFooter(pdf, titre) {
   const pageCount = pdf.internal.getNumberOfPages();
+  const W = pdf.internal.pageSize.getWidth();
+  const H = pdf.internal.pageSize.getHeight();
   for (let i = 1; i <= pageCount; i++) {
     pdf.setPage(i);
     pdf.setFontSize(7); pdf.setFont('helvetica', 'italic');
     pdf.setTextColor(150, 150, 150);
-    pdf.text('IBEN IMPORT manager v' + APP_VERSION + ' · ' + titre + ' · ' + new Date().toLocaleDateString('fr-MA') + ' · Page ' + i + '/' + pageCount, 105, 290, { align: 'center' });
+    pdf.text('IBEN IMPORT manager v' + APP_VERSION + ' · ' + titre + ' · ' + new Date().toLocaleDateString('fr-MA') + ' · Page ' + i + '/' + pageCount, W / 2, H - 7, { align: 'center' });
   }
 }
 
