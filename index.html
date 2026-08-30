@@ -9099,7 +9099,7 @@ function printImportation(id) {
 
   // ── TABLEAU DES ARTICLES ──
   y += 40;
-  const colWidths = [25, 78, 18, 25, 32]; // Réf, Désignation, Qté, PU HT, Total HT
+  const colWidths = [25, 88, 13, 22, 30]; // Réf, Désignation (élargie), Qté, PU HT, Total HT
   const startX = ML;
   // Header
   pdf.setFillColor(232, 232, 232);
@@ -9115,29 +9115,46 @@ function printImportation(id) {
   });
   y += 9;
 
-  // Lignes
+  // Lignes — avec retour à la ligne pour désignations longues
   pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8.5); pdf.setTextColor(30, 30, 30);
   (imp.lines || []).forEach((line, idx) => {
-    if (y > 250) { pdf.addPage(); y = 20; }
+    // Découper la désignation selon la largeur de la colonne (avec marge)
+    const desc = line.desc || '—';
+    const descLines = pdf.splitTextToSize(desc, colWidths[1] - 4);
+    // Hauteur de ligne dynamique : minimum 8mm, ou 4mm par ligne de texte + marge
+    const rowHeight = Math.max(8, descLines.length * 3.8 + 3);
+
+    // Saut de page si besoin
+    if (y + rowHeight > 258) { pdf.addPage(); y = 20; }
+
+    // Fond alterné (couvre toute la hauteur de la ligne)
     if (idx % 2 === 0) {
       pdf.setFillColor(248, 248, 248);
-      pdf.rect(startX, y, CW, 8, 'F');
+      pdf.rect(startX, y, CW, rowHeight, 'F');
     }
-    let xL = startX + 2;
+
+    let xL = startX;
     const cells = [
       line.ref || '—',
-      (line.desc || '—').substring(0, 55),
+      descLines, // tableau multi-lignes
       String(line.qty || 0),
       fmtN(line.pu || 0),
       fmtN(line.total || (line.qty * line.pu) || 0)
     ];
     cells.forEach((c, i) => {
       const align = i >= 2 ? 'right' : 'left';
-      const xText = align === 'right' ? xL + colWidths[i] - 4 : xL + 2;
-      pdf.text(String(c), xText, y + 5.5, { align: align });
+      const xText = align === 'right' ? xL + colWidths[i] - 2 : xL + 2;
+      // Position verticale : centrée pour lignes courtes, en haut pour multi-lignes
+      const yText = descLines.length > 1 ? y + 4.5 : y + 5.5;
+      if (i === 1) {
+        // Colonne Désignation : multi-lignes
+        pdf.text(c, xText, yText, { align: align });
+      } else {
+        pdf.text(String(c), xText, yText, { align: align });
+      }
       xL += colWidths[i];
     });
-    y += 8;
+    y += rowHeight;
   });
 
   // ── TOTAL ──
