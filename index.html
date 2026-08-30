@@ -9083,14 +9083,22 @@ function printImportation(id) {
   infos.push(['Réf. facture :', imp.refFacture || '—']);
   infos.push(['Entrepôt récept. :', ent.nom || '—']);
 
-  const colW = CW / 2;
-  // Largeur max pour la valeur (colonne - label - marges)
-  const valueMaxW = colW - labelW - 8;
+  // Ratio 60/40 : colonne gauche PLUS LARGE (pour fournisseur long)
+  // Colonne droite (Date, Pays, Réf. facture) décalée plus à droite
+  const leftColW = CW * 0.60;   // 60% pour la colonne gauche
+  const rightColW = CW * 0.40;  // 40% pour la colonne droite
+  const rightColStart = ML + 4 + leftColW;
+
+  // Largeur max pour chaque colonne
+  const valueMaxWLeft = leftColW - labelW - 8;
+  const valueMaxWRight = rightColW - labelW - 8;
 
   // Pré-calculer les lignes de valeurs (avec retour à la ligne si trop long)
   pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9);
-  const infosProcessed = infos.map(row => {
-    const valueLines = pdf.splitTextToSize(String(row[1]), valueMaxW);
+  const infosProcessed = infos.map((row, idx) => {
+    const isLeft = (idx % 2) === 0;
+    const maxW = isLeft ? valueMaxWLeft : valueMaxWRight;
+    const valueLines = pdf.splitTextToSize(String(row[1]), maxW);
     // Limiter à 2 lignes max
     return { label: row[0], valueLines: valueLines.slice(0, 2) };
   });
@@ -9110,9 +9118,9 @@ function printImportation(id) {
 
   // Écrire les infos avec positions calculées
   for (let idx = 0; idx < infosProcessed.length; idx++) {
-    const col = idx % 2;
+    const isLeft = (idx % 2) === 0;
     const ligne = Math.floor(idx / 2);
-    const x = ML + 4 + col * colW;
+    const x = isLeft ? (ML + 4) : rightColStart;
     let yi = y + 6;
     for (let k = 0; k < ligne; k++) yi += rowHeights[k];
 
