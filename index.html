@@ -6229,7 +6229,7 @@ function _getRapportPeriode() {
     fin,
     debutDate: debut ? new Date(debut) : null,
     finDate: fin ? new Date(fin + 'T23:59:59') : null,
-    label: (debut && fin) ? (new Date(debut).toLocaleDateString('fr-MA') + ' → ' + new Date(fin).toLocaleDateString('fr-MA')) : 'Toutes périodes'
+    label: (debut && fin) ? ('du ' + new Date(debut).toLocaleDateString('fr-MA') + ' au ' + new Date(fin).toLocaleDateString('fr-MA')) : 'Toutes périodes'
   };
 }
 
