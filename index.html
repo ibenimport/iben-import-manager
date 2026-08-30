@@ -490,6 +490,10 @@
         <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="9" rx="1" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8.5" r="2" stroke="currentColor" stroke-width="1.2"/><path d="M5 4V3M11 4V3" stroke="currentColor" stroke-width="1.2"/></svg>
         Trésorerie
       </div>
+      <div class="nav-item" onclick="ouvrirRapportsComptable()" title="Journal des ventes, TVA, État stocks pour comptable">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M3 2h7l3 3v9H3V2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M10 2v3h3" stroke="currentColor" stroke-width="1.3"/><line x1="5" y1="8" x2="11" y2="8" stroke="currentColor" stroke-width="1.2"/><line x1="5" y1="10.5" x2="11" y2="10.5" stroke="currentColor" stroke-width="1.2"/><line x1="5" y1="13" x2="9" y2="13" stroke="currentColor" stroke-width="1.2"/></svg>
+        Rapports comptable
+      </div>
 
       <div class="nav-section">Gestion</div>
       <div class="nav-item" onclick="goPage('clients',this)">
@@ -1749,6 +1753,143 @@
 
 <!-- ===== MODAL IMPORT CSV PRODUITS ===== -->
 <!-- ===== MODAL CALCULATRICE TVA ===== -->
+<!-- ===== MODAL RAPPORTS COMPTABLE ===== -->
+<div class="modal-overlay" id="modal-rapports" style="display:none" onclick="if(event.target===this)closeModal('modal-rapports')">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">📊 Rapports comptable</span>
+      <button class="modal-close" onclick="closeModal('modal-rapports')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Sélecteur de période commune -->
+      <div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:20px">
+        <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px">📅 Période à analyser</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <button type="button" class="btn btn-sm" onclick="setRapportPeriode('mois')" id="btn-per-mois" style="background:var(--accent);color:white;border-color:var(--accent)">📅 Mois en cours</button>
+          <button type="button" class="btn btn-sm" onclick="setRapportPeriode('mois-precedent')" id="btn-per-mois-precedent">← Mois précédent</button>
+          <button type="button" class="btn btn-sm" onclick="setRapportPeriode('trimestre')" id="btn-per-trimestre">📆 Trimestre</button>
+          <button type="button" class="btn btn-sm" onclick="setRapportPeriode('annee')" id="btn-per-annee">📅 Année en cours</button>
+          <button type="button" class="btn btn-sm" onclick="setRapportPeriode('annee-precedente')" id="btn-per-annee-precedente">← Année précédente</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label class="form-label" style="font-size:11px;color:var(--text3)">Date début</label>
+            <input class="form-input" id="rap-date-debut" type="date" style="font-size:13px">
+          </div>
+          <div>
+            <label class="form-label" style="font-size:11px;color:var(--text3)">Date fin</label>
+            <input class="form-input" id="rap-date-fin" type="date" style="font-size:13px">
+          </div>
+        </div>
+      </div>
+
+      <!-- Grille des rapports -->
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+
+        <!-- Journal des ventes -->
+        <div style="border:2px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--surface)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div style="font-size:22px">📈</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text)">Journal des ventes</div>
+          </div>
+          <div style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-bottom:12px">
+            Toutes les factures de la période avec HT, TVA, TTC. Pour la déclaration TVA collectée.
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-primary" onclick="genererJournalVentes('pdf')" style="flex:1">📄 PDF</button>
+            <button class="btn btn-sm" onclick="genererJournalVentes('csv')" style="flex:1;border-color:var(--green);color:var(--green)">📊 Excel</button>
+          </div>
+        </div>
+
+        <!-- Journal des achats -->
+        <div style="border:2px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--surface)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div style="font-size:22px">🛒</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text)">Journal des achats</div>
+          </div>
+          <div style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-bottom:12px">
+            Toutes les importations et achats locaux avec montants HT/TVA. Pour la TVA déductible.
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-primary" onclick="genererJournalAchats('pdf')" style="flex:1">📄 PDF</button>
+            <button class="btn btn-sm" onclick="genererJournalAchats('csv')" style="flex:1;border-color:var(--green);color:var(--green)">📊 Excel</button>
+          </div>
+        </div>
+
+        <!-- Récapitulatif TVA -->
+        <div style="border:2px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--surface)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div style="font-size:22px">💰</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text)">Récapitulatif TVA</div>
+          </div>
+          <div style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-bottom:12px">
+            TVA collectée (ventes) - TVA déductible (achats) = TVA à reverser à l'État.
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-primary" onclick="genererRecapTVA('pdf')" style="flex:1">📄 PDF</button>
+          </div>
+        </div>
+
+        <!-- État des stocks -->
+        <div style="border:2px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--surface)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div style="font-size:22px">📦</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text)">État des stocks</div>
+          </div>
+          <div style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-bottom:12px">
+            Liste complète produits + quantités + valorisation PMP. Pour l'inventaire annuel.
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-primary" onclick="genererEtatStock('pdf')" style="flex:1">📄 PDF</button>
+            <button class="btn btn-sm" onclick="genererEtatStock('csv')" style="flex:1;border-color:var(--green);color:var(--green)">📊 Excel</button>
+          </div>
+        </div>
+
+        <!-- Grand livre clients -->
+        <div style="border:2px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--surface)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div style="font-size:22px">👥</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text)">Grand livre clients</div>
+          </div>
+          <div style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-bottom:12px">
+            Balance par client : CA total, payé, solde dû. Pour suivi créances.
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-primary" onclick="genererGrandLivreClients('pdf')" style="flex:1">📄 PDF</button>
+            <button class="btn btn-sm" onclick="genererGrandLivreClients('csv')" style="flex:1;border-color:var(--green);color:var(--green)">📊 Excel</button>
+          </div>
+        </div>
+
+        <!-- Grand livre fournisseurs -->
+        <div style="border:2px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--surface)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div style="font-size:22px">🚚</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text)">Grand livre fournisseurs</div>
+          </div>
+          <div style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-bottom:12px">
+            Balance par fournisseur : total achats, payé, dette. Pour suivi trésorerie.
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-primary" onclick="genererGrandLivreFournisseurs('pdf')" style="flex:1">📄 PDF</button>
+            <button class="btn btn-sm" onclick="genererGrandLivreFournisseurs('csv')" style="flex:1;border-color:var(--green);color:var(--green)">📊 Excel</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Info bas -->
+      <div style="margin-top:16px;padding:12px 14px;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;font-size:12px;color:#0369A1;line-height:1.6">
+        💡 <strong>Astuce :</strong> Les rapports sont générés depuis vos données actuelles. Envoyez le PDF par email à votre comptable ou le fichier Excel pour qu'il puisse trier/filtrer.
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('modal-rapports')">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-calc-tva" style="display:none" onclick="if(event.target===this)closeModal('modal-calc-tva')">
   <div class="modal" style="max-width:520px">
     <div class="modal-header">
@@ -6030,6 +6171,567 @@ const FRAIS_PAR_DEFAUT = [
 // ============================================================
 let _calcTauxTVA = 20; // par défaut 20%
 let _calcSensTVA = 'ht'; // 'ht', 'ttc', ou 'tva'
+
+// ============================================================
+//  RAPPORTS COMPTABLE — Journaux, TVA, État stocks, Grand livre
+// ============================================================
+function ouvrirRapportsComptable() {
+  // Par défaut : mois en cours
+  setRapportPeriode('mois');
+  openModal('modal-rapports');
+}
+
+function setRapportPeriode(type) {
+  const now = new Date();
+  let debut, fin;
+  if (type === 'mois') {
+    debut = new Date(now.getFullYear(), now.getMonth(), 1);
+    fin = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  } else if (type === 'mois-precedent') {
+    debut = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    fin = new Date(now.getFullYear(), now.getMonth(), 0);
+  } else if (type === 'trimestre') {
+    const trimestre = Math.floor(now.getMonth() / 3);
+    debut = new Date(now.getFullYear(), trimestre * 3, 1);
+    fin = new Date(now.getFullYear(), trimestre * 3 + 3, 0);
+  } else if (type === 'annee') {
+    debut = new Date(now.getFullYear(), 0, 1);
+    fin = new Date(now.getFullYear(), 11, 31);
+  } else if (type === 'annee-precedente') {
+    debut = new Date(now.getFullYear() - 1, 0, 1);
+    fin = new Date(now.getFullYear() - 1, 11, 31);
+  }
+  document.getElementById('rap-date-debut').value = debut.toISOString().substring(0, 10);
+  document.getElementById('rap-date-fin').value = fin.toISOString().substring(0, 10);
+
+  // Highlight du bouton actif
+  ['mois','mois-precedent','trimestre','annee','annee-precedente'].forEach(t => {
+    const btn = document.getElementById('btn-per-' + t);
+    if (btn) {
+      if (t === type) {
+        btn.style.background = 'var(--accent)';
+        btn.style.color = 'white';
+        btn.style.borderColor = 'var(--accent)';
+      } else {
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }
+    }
+  });
+}
+
+function _getRapportPeriode() {
+  const debut = document.getElementById('rap-date-debut').value;
+  const fin = document.getElementById('rap-date-fin').value;
+  return {
+    debut,
+    fin,
+    debutDate: debut ? new Date(debut) : null,
+    finDate: fin ? new Date(fin + 'T23:59:59') : null,
+    label: (debut && fin) ? (new Date(debut).toLocaleDateString('fr-MA') + ' → ' + new Date(fin).toLocaleDateString('fr-MA')) : 'Toutes périodes'
+  };
+}
+
+// Filtre les documents par période
+function _filtrerParPeriode(items, dateField) {
+  const { debutDate, finDate } = _getRapportPeriode();
+  if (!debutDate || !finDate) return items;
+  return items.filter(item => {
+    const d = item[dateField] ? new Date(item[dateField]) : null;
+    if (!d) return false;
+    return d >= debutDate && d <= finDate;
+  });
+}
+
+// Télécharge un fichier CSV
+function _downloadCSV(filename, csvContent) {
+  const BOM = '﻿'; // BOM UTF-8 pour Excel
+  const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// Header commun pour tous les PDFs de rapports
+function _pdfRapportHeader(pdf, titre) {
+  const s = state.settings || {};
+  const p = _getRapportPeriode();
+  const W = 210, ML = 14, MR = 14;
+  // Bandeau vert
+  pdf.setFillColor(0, 135, 90);
+  pdf.rect(0, 0, W, 26, 'F');
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(15); pdf.setFont('helvetica', 'bold');
+  pdf.text(s.company || 'IBEN IMPORT', ML, 11);
+  pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
+  pdf.text((s.ice ? 'ICE: ' + s.ice : '') + (s.tel ? '  ·  Tél: ' + s.tel : ''), ML, 17);
+  pdf.text((s.email || '') + (s.adresse ? '  ·  ' + s.adresse : ''), ML, 21);
+  pdf.setFontSize(13); pdf.setFont('helvetica', 'bold');
+  pdf.text(titre, W - MR, 12, { align: 'right' });
+  pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
+  pdf.text('Période : ' + p.label, W - MR, 19, { align: 'right' });
+  pdf.text('Édité le ' + new Date().toLocaleDateString('fr-MA'), W - MR, 23, { align: 'right' });
+  return 32; // y start
+}
+
+// Footer commun
+function _pdfRapportFooter(pdf, titre) {
+  const pageCount = pdf.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    pdf.setPage(i);
+    pdf.setFontSize(7); pdf.setFont('helvetica', 'italic');
+    pdf.setTextColor(150, 150, 150);
+    pdf.text('IBEN IMPORT manager v' + APP_VERSION + ' · ' + titre + ' · ' + new Date().toLocaleDateString('fr-MA') + ' · Page ' + i + '/' + pageCount, 105, 290, { align: 'center' });
+  }
+}
+
+// ═══ JOURNAL DES VENTES ═══
+function genererJournalVentes(format) {
+  const factures = _filtrerParPeriode(state.factures || [], 'date').sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  if (factures.length === 0) { notify('Aucune facture sur cette période', 'amber'); return; }
+
+  const rows = factures.map(f => {
+    const cl = getClient(f.clientId);
+    return {
+      num: f.num || '—',
+      date: fmtDate(f.date),
+      client: (cl?.nom) || '—',
+      ice: (cl?.ice) || '',
+      ht: f.ht || 0,
+      tva: f.tva || 0,
+      ttc: f.ttc || 0,
+      paye: _calculerTotalPaye(f) || f.paye || 0,
+      reste: (f.ttc || 0) - (_calculerTotalPaye(f) || f.paye || 0),
+      statut: f.statut || '—'
+    };
+  });
+  const totalHT = rows.reduce((s,r) => s + r.ht, 0);
+  const totalTVA = rows.reduce((s,r) => s + r.tva, 0);
+  const totalTTC = rows.reduce((s,r) => s + r.ttc, 0);
+  const totalPaye = rows.reduce((s,r) => s + r.paye, 0);
+  const totalReste = rows.reduce((s,r) => s + r.reste, 0);
+
+  if (format === 'csv') {
+    let csv = 'N°;Date;Client;ICE;Total HT;TVA;Total TTC;Payé;Reste;Statut\n';
+    rows.forEach(r => {
+      csv += [r.num, r.date, r.client, r.ice, r.ht.toFixed(2), r.tva.toFixed(2), r.ttc.toFixed(2), r.paye.toFixed(2), r.reste.toFixed(2), r.statut].join(';') + '\n';
+    });
+    csv += ';;TOTAUX;;' + totalHT.toFixed(2) + ';' + totalTVA.toFixed(2) + ';' + totalTTC.toFixed(2) + ';' + totalPaye.toFixed(2) + ';' + totalReste.toFixed(2) + ';\n';
+    _downloadCSV('journal-ventes-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.csv', csv);
+    notify('✅ Journal des ventes exporté (CSV)', 'green');
+    return;
+  }
+
+  // PDF
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' }); // paysage
+  let y = _pdfRapportHeader(pdf, 'JOURNAL DES VENTES');
+
+  pdf.autoTable({
+    head: [[
+      {content: 'N°', styles: {halign: 'left'}},
+      {content: 'Date', styles: {halign: 'center'}},
+      {content: 'Client', styles: {halign: 'left'}},
+      {content: 'ICE', styles: {halign: 'left'}},
+      {content: 'Total HT', styles: {halign: 'right'}},
+      {content: 'TVA', styles: {halign: 'right'}},
+      {content: 'Total TTC', styles: {halign: 'right'}},
+      {content: 'Payé', styles: {halign: 'right'}},
+      {content: 'Reste', styles: {halign: 'right'}},
+      {content: 'Statut', styles: {halign: 'center'}}
+    ]],
+    body: rows.map(r => [r.num, r.date, r.client, r.ice, fmtMAD(r.ht), fmtMAD(r.tva), fmtMAD(r.ttc), fmtMAD(r.paye), fmtMAD(r.reste), r.statut]),
+    foot: [[
+      {content: 'TOTAUX', colSpan: 4, styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalHT), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalTVA), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalTTC), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalPaye), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalReste), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: '', styles: {fillColor: [230, 230, 230]}}
+    ]],
+    startY: y,
+    margin: { left: 14, right: 14 },
+    styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+  });
+
+  _pdfRapportFooter(pdf, 'Journal ventes');
+  pdf.save('journal-ventes-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.pdf');
+  notify('✅ Journal des ventes exporté (PDF)', 'green');
+}
+
+// ═══ JOURNAL DES ACHATS ═══
+function genererJournalAchats(format) {
+  const achats = _filtrerParPeriode(state.importations || [], 'date').sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  if (achats.length === 0) { notify('Aucun achat sur cette période', 'amber'); return; }
+
+  const rows = achats.map(a => {
+    const f = getFournisseur ? getFournisseur(a.fournisseurId) : null;
+    const tva = (a.ht || 0) * 0.20; // TVA estimée 20%
+    return {
+      num: a.num || '—',
+      date: fmtDate(a.date),
+      type: a.typeAchat === 'local' ? 'Local' : 'Import',
+      fournisseur: (f?.nom) || a.fournisseur || '—',
+      pays: (a.typeAchat === 'local' ? 'Maroc' : (a.pays || '—')),
+      refFacture: a.refFacture || '—',
+      ht: a.ht || 0,
+      tva: a.typeAchat === 'local' ? tva : 0, // TVA déductible seulement pour local
+      ttc: a.typeAchat === 'local' ? (a.ht || 0) + tva : (a.ht || 0),
+      paye: _calculerTotalPaye(a),
+      reste: (a.ht || 0) - _calculerTotalPaye(a)
+    };
+  });
+  const totalHT = rows.reduce((s,r) => s + r.ht, 0);
+  const totalTVA = rows.reduce((s,r) => s + r.tva, 0);
+  const totalTTC = rows.reduce((s,r) => s + r.ttc, 0);
+  const totalPaye = rows.reduce((s,r) => s + r.paye, 0);
+  const totalReste = rows.reduce((s,r) => s + r.reste, 0);
+
+  if (format === 'csv') {
+    let csv = 'N°;Date;Type;Fournisseur;Pays;Réf. facture;Total HT;TVA déductible;Total TTC;Payé;Reste\n';
+    rows.forEach(r => {
+      csv += [r.num, r.date, r.type, r.fournisseur, r.pays, r.refFacture, r.ht.toFixed(2), r.tva.toFixed(2), r.ttc.toFixed(2), r.paye.toFixed(2), r.reste.toFixed(2)].join(';') + '\n';
+    });
+    csv += ';;;;;TOTAUX;' + totalHT.toFixed(2) + ';' + totalTVA.toFixed(2) + ';' + totalTTC.toFixed(2) + ';' + totalPaye.toFixed(2) + ';' + totalReste.toFixed(2) + '\n';
+    _downloadCSV('journal-achats-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.csv', csv);
+    notify('✅ Journal des achats exporté (CSV)', 'green');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
+  let y = _pdfRapportHeader(pdf, 'JOURNAL DES ACHATS');
+
+  pdf.autoTable({
+    head: [[
+      {content: 'N°', styles: {halign: 'left'}},
+      {content: 'Date', styles: {halign: 'center'}},
+      {content: 'Type', styles: {halign: 'center'}},
+      {content: 'Fournisseur', styles: {halign: 'left'}},
+      {content: 'Pays', styles: {halign: 'left'}},
+      {content: 'Réf.', styles: {halign: 'left'}},
+      {content: 'Total HT', styles: {halign: 'right'}},
+      {content: 'TVA déd.', styles: {halign: 'right'}},
+      {content: 'Total TTC', styles: {halign: 'right'}},
+      {content: 'Payé', styles: {halign: 'right'}},
+      {content: 'Reste', styles: {halign: 'right'}}
+    ]],
+    body: rows.map(r => [r.num, r.date, r.type, r.fournisseur, r.pays, r.refFacture, fmtMAD(r.ht), fmtMAD(r.tva), fmtMAD(r.ttc), fmtMAD(r.paye), fmtMAD(r.reste)]),
+    foot: [[
+      {content: 'TOTAUX', colSpan: 6, styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalHT), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalTVA), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalTTC), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalPaye), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalReste), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}}
+    ]],
+    startY: y,
+    margin: { left: 14, right: 14 },
+    styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+  });
+
+  _pdfRapportFooter(pdf, 'Journal achats');
+  pdf.save('journal-achats-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.pdf');
+  notify('✅ Journal des achats exporté (PDF)', 'green');
+}
+
+// ═══ RÉCAPITULATIF TVA ═══
+function genererRecapTVA(format) {
+  const factures = _filtrerParPeriode(state.factures || [], 'date');
+  const achats = _filtrerParPeriode(state.importations || [], 'date');
+
+  const tvaCollectee = factures.reduce((s, f) => s + (f.tva || 0), 0);
+  const htVentes = factures.reduce((s, f) => s + (f.ht || 0), 0);
+
+  // TVA déductible seulement pour achats LOCAUX (les imports payent TVA à la douane séparément)
+  const achatsLocaux = achats.filter(a => a.typeAchat === 'local');
+  const htAchatsLocaux = achatsLocaux.reduce((s, a) => s + (a.ht || 0), 0);
+  const tvaDeductible = htAchatsLocaux * 0.20;
+
+  const tvaAPayer = tvaCollectee - tvaDeductible;
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+  let y = _pdfRapportHeader(pdf, 'RÉCAPITULATIF TVA');
+
+  y += 5;
+  pdf.setFontSize(11); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(20, 20, 20);
+  pdf.text('Déclaration TVA de la période', 14, y);
+  y += 8;
+
+  // Bloc TVA collectée
+  pdf.setFillColor(232, 245, 233);
+  pdf.rect(14, y, 182, 24, 'F');
+  pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(0, 135, 90);
+  pdf.text('🟢 TVA COLLECTÉE (sur ventes)', 18, y + 7);
+  pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(60, 60, 60);
+  pdf.text('Nombre de factures : ' + factures.length, 18, y + 13);
+  pdf.text('Total HT ventes    : ' + fmtMAD(htVentes), 18, y + 18);
+  pdf.setFontSize(12); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(0, 135, 90);
+  pdf.text(fmtMAD(tvaCollectee), 192, y + 15, {align: 'right'});
+  y += 30;
+
+  // Bloc TVA déductible
+  pdf.setFillColor(255, 243, 224);
+  pdf.rect(14, y, 182, 30, 'F');
+  pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(180, 83, 9);
+  pdf.text('🟠 TVA DÉDUCTIBLE (sur achats locaux)', 18, y + 7);
+  pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(60, 60, 60);
+  pdf.text('Nombre d\'achats locaux : ' + achatsLocaux.length, 18, y + 13);
+  pdf.text('Total HT achats locaux : ' + fmtMAD(htAchatsLocaux), 18, y + 18);
+  pdf.text('Note : TVA imports payée à la douane (non incluse ici)', 18, y + 24);
+  pdf.setFontSize(12); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(180, 83, 9);
+  pdf.text(fmtMAD(tvaDeductible), 192, y + 15, {align: 'right'});
+  y += 36;
+
+  // Bloc TVA à payer
+  const couleur = tvaAPayer > 0 ? [192, 56, 43] : [0, 135, 90];
+  const bgCouleur = tvaAPayer > 0 ? [253, 226, 226] : [232, 245, 233];
+  pdf.setFillColor(...bgCouleur);
+  pdf.rect(14, y, 182, 22, 'F');
+  pdf.setDrawColor(...couleur);
+  pdf.setLineWidth(0.8);
+  pdf.rect(14, y, 182, 22);
+  pdf.setFontSize(12); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(...couleur);
+  pdf.text(tvaAPayer > 0 ? '💸 TVA À REVERSER À L\'ÉTAT' : '💰 CRÉDIT TVA (à reporter)', 18, y + 9);
+  pdf.setFontSize(16); pdf.setFont('helvetica', 'bold');
+  pdf.text(fmtMAD(Math.abs(tvaAPayer)), 192, y + 14, {align: 'right'});
+  y += 30;
+
+  // Formule
+  pdf.setFontSize(9); pdf.setFont('helvetica', 'italic'); pdf.setTextColor(120, 120, 120);
+  pdf.text('Formule : TVA collectée (' + fmtMAD(tvaCollectee) + ') − TVA déductible (' + fmtMAD(tvaDeductible) + ') = ' + fmtMAD(tvaAPayer), 14, y);
+
+  _pdfRapportFooter(pdf, 'Récap TVA');
+  pdf.save('recap-tva-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.pdf');
+  notify('✅ Récapitulatif TVA exporté (PDF)', 'green');
+}
+
+// ═══ ÉTAT DES STOCKS ═══
+function genererEtatStock(format) {
+  const produits = state.produits || [];
+  if (produits.length === 0) { notify('Aucun produit dans le catalogue', 'amber'); return; }
+
+  const rows = produits.map(p => {
+    const qty = getQtyStock ? getQtyStock(p.id, null) : 0;
+    const pmp = p.prixAchat || 0;
+    const valeur = qty * pmp;
+    return {
+      ref: p.ref || '—',
+      nom: p.nom || '—',
+      famille: p.famille || '—',
+      couleur: p.couleur || '—',
+      taille: p.taille || '—',
+      unite: p.unite || 'Pièce',
+      qty,
+      pmp,
+      valeur
+    };
+  }).sort((a,b) => (a.ref || '').localeCompare(b.ref || ''));
+
+  const totalValeur = rows.reduce((s,r) => s + r.valeur, 0);
+  const totalQty = rows.reduce((s,r) => s + r.qty, 0);
+  const totalRefs = rows.length;
+
+  if (format === 'csv') {
+    let csv = 'Réf;Désignation;Famille;Couleur;Taille;Unité;Quantité;PMP (MAD);Valeur (MAD)\n';
+    rows.forEach(r => {
+      csv += [r.ref, r.nom, r.famille, r.couleur, r.taille, r.unite, r.qty, r.pmp.toFixed(2), r.valeur.toFixed(2)].join(';') + '\n';
+    });
+    csv += ';;;;;TOTAL;' + totalQty + ';;' + totalValeur.toFixed(2) + '\n';
+    _downloadCSV('etat-stock-' + new Date().toISOString().substring(0,10) + '.csv', csv);
+    notify('✅ État des stocks exporté (CSV)', 'green');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
+  let y = _pdfRapportHeader(pdf, 'ÉTAT DES STOCKS');
+
+  pdf.autoTable({
+    head: [[
+      {content: 'Réf', styles: {halign: 'left'}},
+      {content: 'Désignation', styles: {halign: 'left'}},
+      {content: 'Famille', styles: {halign: 'left'}},
+      {content: 'Couleur', styles: {halign: 'left'}},
+      {content: 'Taille', styles: {halign: 'left'}},
+      {content: 'Unité', styles: {halign: 'center'}},
+      {content: 'Qté', styles: {halign: 'right'}},
+      {content: 'PMP', styles: {halign: 'right'}},
+      {content: 'Valeur', styles: {halign: 'right'}}
+    ]],
+    body: rows.map(r => [r.ref, r.nom, r.famille, r.couleur, r.taille, r.unite, r.qty, fmtMAD(r.pmp), fmtMAD(r.valeur)]),
+    foot: [[
+      {content: 'TOTAL (' + totalRefs + ' réf.)', colSpan: 6, styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: totalQty.toString(), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: '', styles: {fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalValeur), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}}
+    ]],
+    startY: y,
+    margin: { left: 14, right: 14 },
+    styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+  });
+
+  _pdfRapportFooter(pdf, 'État stocks');
+  pdf.save('etat-stock-' + new Date().toISOString().substring(0,10) + '.pdf');
+  notify('✅ État des stocks exporté (PDF)', 'green');
+}
+
+// ═══ GRAND LIVRE CLIENTS ═══
+function genererGrandLivreClients(format) {
+  const clients = state.clients || [];
+  if (clients.length === 0) { notify('Aucun client', 'amber'); return; }
+
+  const factures = _filtrerParPeriode(state.factures || [], 'date');
+
+  const rows = clients.map(cl => {
+    const facturesCl = factures.filter(f => f.clientId === cl.id);
+    const nbFactures = facturesCl.length;
+    const totalTTC = facturesCl.reduce((s, f) => s + (f.ttc || 0), 0);
+    const totalPaye = facturesCl.reduce((s, f) => s + (_calculerTotalPaye(f) || f.paye || 0), 0);
+    let solde = totalTTC - totalPaye;
+    if (Math.abs(solde) < 0.01) solde = 0;
+    return {
+      nom: cl.nom || '—',
+      ice: cl.ice || '—',
+      ville: cl.ville || '—',
+      nbFactures,
+      totalTTC,
+      totalPaye,
+      solde
+    };
+  }).filter(r => r.nbFactures > 0).sort((a,b) => b.solde - a.solde);
+
+  const totalCA = rows.reduce((s,r) => s + r.totalTTC, 0);
+  const totalPaye = rows.reduce((s,r) => s + r.totalPaye, 0);
+  const totalSolde = rows.reduce((s,r) => s + r.solde, 0);
+
+  if (format === 'csv') {
+    let csv = 'Client;ICE;Ville;Nb factures;CA total TTC;Payé;Solde dû\n';
+    rows.forEach(r => {
+      csv += [r.nom, r.ice, r.ville, r.nbFactures, r.totalTTC.toFixed(2), r.totalPaye.toFixed(2), r.solde.toFixed(2)].join(';') + '\n';
+    });
+    csv += ';;;TOTAUX;' + totalCA.toFixed(2) + ';' + totalPaye.toFixed(2) + ';' + totalSolde.toFixed(2) + '\n';
+    _downloadCSV('grand-livre-clients-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.csv', csv);
+    notify('✅ Grand livre clients exporté (CSV)', 'green');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+  let y = _pdfRapportHeader(pdf, 'GRAND LIVRE CLIENTS');
+
+  pdf.autoTable({
+    head: [[
+      {content: 'Client', styles: {halign: 'left'}},
+      {content: 'ICE', styles: {halign: 'left'}},
+      {content: 'Ville', styles: {halign: 'left'}},
+      {content: 'Nb Fact', styles: {halign: 'center'}},
+      {content: 'CA TTC', styles: {halign: 'right'}},
+      {content: 'Payé', styles: {halign: 'right'}},
+      {content: 'Solde dû', styles: {halign: 'right'}}
+    ]],
+    body: rows.map(r => [r.nom, r.ice, r.ville, r.nbFactures, fmtMAD(r.totalTTC), fmtMAD(r.totalPaye), fmtMAD(r.solde)]),
+    foot: [[
+      {content: 'TOTAUX', colSpan: 4, styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalCA), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalPaye), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalSolde), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}}
+    ]],
+    startY: y,
+    margin: { left: 14, right: 14 },
+    styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+  });
+
+  _pdfRapportFooter(pdf, 'Grand livre clients');
+  pdf.save('grand-livre-clients-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.pdf');
+  notify('✅ Grand livre clients exporté (PDF)', 'green');
+}
+
+// ═══ GRAND LIVRE FOURNISSEURS ═══
+function genererGrandLivreFournisseurs(format) {
+  const fournisseurs = state.fournisseurs || [];
+  if (fournisseurs.length === 0) { notify('Aucun fournisseur', 'amber'); return; }
+
+  const achats = _filtrerParPeriode(state.importations || [], 'date');
+
+  const rows = fournisseurs.map(f => {
+    const achatsF = achats.filter(a => a.fournisseurId === f.id);
+    const nbAchats = achatsF.length;
+    const totalHT = achatsF.reduce((s, a) => s + (a.ht || 0), 0);
+    const totalPaye = achatsF.reduce((s, a) => s + _calculerTotalPaye(a), 0);
+    let solde = totalHT - totalPaye;
+    if (Math.abs(solde) < 0.01) solde = 0;
+    return {
+      nom: f.nom || '—',
+      type: f.type === 'local' ? 'Local' : 'Import',
+      pays: f.type === 'local' ? 'Maroc' : (f.pays || '—'),
+      ice: f.ice || '—',
+      nbAchats,
+      totalHT,
+      totalPaye,
+      solde
+    };
+  }).filter(r => r.nbAchats > 0).sort((a,b) => b.solde - a.solde);
+
+  const totalAchats = rows.reduce((s,r) => s + r.totalHT, 0);
+  const totalPaye = rows.reduce((s,r) => s + r.totalPaye, 0);
+  const totalSolde = rows.reduce((s,r) => s + r.solde, 0);
+
+  if (format === 'csv') {
+    let csv = 'Fournisseur;Type;Pays;ICE;Nb achats;Total HT;Payé;Solde à payer\n';
+    rows.forEach(r => {
+      csv += [r.nom, r.type, r.pays, r.ice, r.nbAchats, r.totalHT.toFixed(2), r.totalPaye.toFixed(2), r.solde.toFixed(2)].join(';') + '\n';
+    });
+    csv += ';;;;TOTAUX;' + totalAchats.toFixed(2) + ';' + totalPaye.toFixed(2) + ';' + totalSolde.toFixed(2) + '\n';
+    _downloadCSV('grand-livre-fournisseurs-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.csv', csv);
+    notify('✅ Grand livre fournisseurs exporté (CSV)', 'green');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+  let y = _pdfRapportHeader(pdf, 'GRAND LIVRE FOURNISSEURS');
+
+  pdf.autoTable({
+    head: [[
+      {content: 'Fournisseur', styles: {halign: 'left'}},
+      {content: 'Type', styles: {halign: 'center'}},
+      {content: 'Pays', styles: {halign: 'left'}},
+      {content: 'ICE', styles: {halign: 'left'}},
+      {content: 'Nb Achats', styles: {halign: 'center'}},
+      {content: 'Total HT', styles: {halign: 'right'}},
+      {content: 'Payé', styles: {halign: 'right'}},
+      {content: 'Solde à payer', styles: {halign: 'right'}}
+    ]],
+    body: rows.map(r => [r.nom, r.type, r.pays, r.ice, r.nbAchats, fmtMAD(r.totalHT), fmtMAD(r.totalPaye), fmtMAD(r.solde)]),
+    foot: [[
+      {content: 'TOTAUX', colSpan: 5, styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalAchats), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalPaye), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
+      {content: fmtMAD(totalSolde), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}}
+    ]],
+    startY: y,
+    margin: { left: 14, right: 14 },
+    styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+  });
+
+  _pdfRapportFooter(pdf, 'Grand livre fournisseurs');
+  pdf.save('grand-livre-fournisseurs-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.pdf');
+  notify('✅ Grand livre fournisseurs exporté (PDF)', 'green');
+}
 
 function ouvrirCalculatriceTVA() {
   setTauxTVA(_calcTauxTVA);
