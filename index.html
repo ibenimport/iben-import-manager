@@ -1568,6 +1568,9 @@
 
       <!-- Nouveau règlement -->
       <div class="section-title">+ Ajouter un règlement</div>
+      <div style="background:#EFF6FF;border-left:3px solid #2563EB;padding:10px 14px;border-radius:6px;margin-bottom:14px;font-size:12.5px;color:#1E3A8A;line-height:1.6">
+        💡 <strong>Astuce :</strong> Vous pouvez ajouter <strong>plusieurs règlements</strong> pour la même facture (acompte + solde, plusieurs virements à dates différentes, mix virement + chèque + espèces...). Chaque règlement a sa propre date, son mode et son montant.
+      </div>
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">Date *</label>
@@ -1600,7 +1603,10 @@
           <input class="form-input" id="reg-notes" type="text" placeholder="Ex: Acompte, paiement partiel...">
         </div>
       </div>
-      <div style="text-align:right;margin-top:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px;flex-wrap:wrap">
+        <div style="font-size:11.5px;color:var(--text3);font-style:italic">
+          Après avoir enregistré, le formulaire se réinitialise pour ajouter le règlement suivant.
+        </div>
         <button class="btn btn-primary" onclick="saveReglement()">💾 Enregistrer ce règlement</button>
       </div>
 
@@ -4743,18 +4749,35 @@ function saveReglement() {
 
   save();
   rafraichirHistoriqueRegements();
-  // Reset des champs de saisie
+  // Reset intelligent des champs pour saisir un AUTRE règlement facilement
   const total = _getRegTotal(doc, type);
   const paye = _calculerTotalPaye(doc);
-  document.getElementById('reg-montant').value = Math.max(0, total - paye).toFixed(2);
+  const reste = Math.max(0, total - paye);
+  // Nouvelle date = aujourd'hui (pour ne pas garder la vieille)
+  document.getElementById('reg-date').value = today();
+  // Nouveau montant pré-rempli avec le RESTE à payer (facilite acomptes)
+  document.getElementById('reg-montant').value = reste.toFixed(2);
+  // Vider référence + notes + échéance (nouveau règlement = nouvelles infos)
   document.getElementById('reg-reference').value = '';
   document.getElementById('reg-notes').value = '';
+  if (document.getElementById('reg-echeance')) document.getElementById('reg-echeance').value = '';
 
   if (typeof renderFactures === 'function') renderFactures();
   if (typeof renderImportations === 'function') renderImportations();
   if (typeof renderTresorerie === 'function') renderTresorerie();
   if (typeof renderDashboard === 'function') renderDashboard();
-  notify('✅ Règlement enregistré', 'green');
+
+  // Message clair selon le statut restant
+  if (reste <= 0.01) {
+    notify('✅ Règlement enregistré · Facture SOLDÉE 🎉', 'green');
+  } else {
+    notify('✅ Règlement enregistré · Reste ' + fmtMAD(reste) + ' à payer', 'green');
+    // Focus sur le champ date pour saisir un autre règlement facilement
+    setTimeout(() => {
+      const dateEl = document.getElementById('reg-date');
+      if (dateEl) dateEl.focus();
+    }, 200);
+  }
 }
 
 function supprimerReglement(regId) {
@@ -5306,14 +5329,45 @@ function exportPDF() {
     y += 10;
   }
 
-  // Notes (uniquement si l'utilisateur en a saisi)
+  // Notes (uniquement si l'utilisateur en a saisi) - hauteur dynamique multi-lignes
   const note = doc.notes || '';
   if (note) {
     pdf.setFontSize(8); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C_MUTED);
-    pdf.text(note.substring(0,200), ML, y, {maxWidth:CW}); y += 9;
+    // Découper le texte selon la largeur pour connaître le nombre RÉEL de lignes
+    const noteLines = pdf.splitTextToSize(note, CW);
+    pdf.text(noteLines, ML, y);
+    // Avancer y en fonction du nombre de lignes (4mm par ligne à fontSize 8) + marge
+    y += (noteLines.length * 4) + 6;
+  }
+
+  // Historique des règlements de la facture (si applicable)
+  if (!isBL && previewDocCat === 'facture' && Array.isArray(doc.reglements) && doc.reglements.length > 0) {
+    // Vérifier qu'il reste assez de place en bas de page, sinon nouvelle page
+    if (y > 235) { pdf.addPage(); y = 20; }
+    pdf.setFontSize(8); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C_TEXT);
+    pdf.text('Le règlement de cette facture se décompose ainsi :', ML, y);
+    y += 5;
+    pdf.setFontSize(8); pdf.setFont('helvetica','normal'); pdf.setTextColor(...C_TEXT);
+    let totalRegle = 0;
+    doc.reglements.forEach(r => {
+      const dateStr = r.date ? new Date(r.date).toLocaleDateString('fr-MA') : '—';
+      const montantStr = (r.montant || 0).toLocaleString('fr-MA', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      const modeStr = r.mode || '—';
+      const refStr = r.reference ? ' (Réf: ' + r.reference + ')' : '';
+      pdf.text('• ' + dateStr + ' — ' + modeStr + ' : ' + montantStr + ' MAD' + refStr, ML + 2, y);
+      totalRegle += (r.montant || 0);
+      y += 4.5;
+    });
+    // Ligne total
+    y += 1;
+    pdf.setFontSize(8); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C_TEXT);
+    pdf.text('• Total réglé : ' + totalRegle.toLocaleString('fr-MA', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' MAD', ML + 2, y);
+    y += 8;
   }
 
   if (!isBL) {
+    // Vérifier place restante avant le message de remerciement
+    if (y > 265) { pdf.addPage(); y = 20; }
     pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C_TEXT);
     pdf.text('NOUS VOUS REMERCIONS DE VOTRE CONFIANCE !', ML, y);
   } else {
