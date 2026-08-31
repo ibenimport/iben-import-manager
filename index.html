@@ -3987,6 +3987,7 @@ function exportPDFFicheClient() {
     margin: { left: ML, right: MR },
     styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
     headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+    footStyles: { fillColor: [230, 230, 230], textColor: [20, 20, 20], fontStyle: 'bold' },
     columnStyles: {
       0: { halign: 'left', cellWidth: 22 },
       1: { halign: 'center', cellWidth: 22 },
@@ -4029,6 +4030,7 @@ function exportPDFFicheClient() {
     margin: { left: ML, right: MR },
     styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
     headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+    footStyles: { fillColor: [230, 230, 230], textColor: [20, 20, 20], fontStyle: 'bold' },
     columnStyles: {
       0: { halign: 'center', cellWidth: 22 },
       1: { halign: 'left',   cellWidth: 26 },
@@ -4196,6 +4198,7 @@ function exportPDFFicheFournisseur() {
     margin: { left: ML, right: MR },
     styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
     headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+    footStyles: { fillColor: [230, 230, 230], textColor: [20, 20, 20], fontStyle: 'bold' },
     columnStyles: {
       0: { halign: 'left', cellWidth: 22 },
       1: { halign: 'center', cellWidth: 22 },
@@ -4238,6 +4241,7 @@ function exportPDFFicheFournisseur() {
     margin: { left: ML, right: MR },
     styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
     headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+    footStyles: { fillColor: [230, 230, 230], textColor: [20, 20, 20], fontStyle: 'bold' },
     columnStyles: {
       0: { halign: 'center', cellWidth: 22 },
       1: { halign: 'left',   cellWidth: 26 },
@@ -6376,6 +6380,7 @@ function genererJournalVentes(format) {
     margin: { left: 14, right: 14 },
     styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
     headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+    footStyles: { fillColor: [230, 230, 230], textColor: [20, 20, 20], fontStyle: 'bold' },
   });
 
   _pdfRapportFooter(pdf, 'Journal ventes');
@@ -6453,6 +6458,7 @@ function genererJournalAchats(format) {
     margin: { left: 14, right: 14 },
     styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
     headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+    footStyles: { fillColor: [230, 230, 230], textColor: [20, 20, 20], fontStyle: 'bold' },
   });
 
   _pdfRapportFooter(pdf, 'Journal achats');
@@ -6596,6 +6602,7 @@ function genererEtatStock(format) {
     margin: { left: 14, right: 14 },
     styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
     headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+    footStyles: { fillColor: [230, 230, 230], textColor: [20, 20, 20], fontStyle: 'bold' },
   });
 
   _pdfRapportFooter(pdf, 'État stocks');
@@ -6668,6 +6675,7 @@ function genererGrandLivreClients(format) {
     margin: { left: 14, right: 14 },
     styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
     headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+    footStyles: { fillColor: [230, 230, 230], textColor: [20, 20, 20], fontStyle: 'bold' },
   });
 
   _pdfRapportFooter(pdf, 'Grand livre clients');
@@ -6742,6 +6750,7 @@ function genererGrandLivreFournisseurs(format) {
     margin: { left: 14, right: 14 },
     styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
     headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
+    footStyles: { fillColor: [230, 230, 230], textColor: [20, 20, 20], fontStyle: 'bold' },
   });
 
   _pdfRapportFooter(pdf, 'Grand livre fournisseurs');
