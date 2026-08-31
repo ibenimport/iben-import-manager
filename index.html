@@ -8389,30 +8389,43 @@ function exportStockPDF() {
     return ia - ib;
   });
 
-  // ── TOTAUX GLOBAUX ──
-  let grandTotalRefs = 0, grandTotalQty = 0, grandTotalValeur = 0;
+  // Helper : formater les quantités groupées par unité (ex: "500 Pièce · 100 Kg · 20 Rouleau")
+  const formatQtyByUnit = (qtyByUnit) => {
+    const entries = Object.entries(qtyByUnit).filter(([u, q]) => q !== 0);
+    if (entries.length === 0) return '0';
+    return entries.map(([unite, qty]) => qty.toLocaleString('fr-MA') + ' ' + unite).join(' · ');
+  };
+
+  // ── TOTAUX GLOBAUX (groupés par unité pour ne pas mélanger pièces/kg/rouleaux) ──
+  let grandTotalRefs = 0, grandTotalValeur = 0;
+  const grandTotalQtyByUnit = {}; // { 'Pièce': 500, 'Kg': 100, 'Rouleau': 20 }
   produitsFiltrés.forEach(p => {
     const qty = fe ? getQtyStock(p.id, fe) : getQtyStock(p.id, null);
+    const unite = p.unite || 'Pièce';
     grandTotalRefs++;
-    grandTotalQty += qty;
+    if (!grandTotalQtyByUnit[unite]) grandTotalQtyByUnit[unite] = 0;
+    grandTotalQtyByUnit[unite] += qty;
     grandTotalValeur += qty * (p.prixAchat || 0);
   });
 
   // ── TABLEAU par famille ──
   famKeys.forEach(fam => {
     const prods = groups[fam];
-    let famQty = 0, famValeur = 0;
+    let famValeur = 0;
+    const famQtyByUnit = {}; // { 'Pièce': X, 'Kg': Y, ... }
     const rows = prods.map(p => {
       const qty = fe ? getQtyStock(p.id, fe) : getQtyStock(p.id, null);
+      const unite = p.unite || 'Pièce';
       const valeur = qty * (p.prixAchat || 0);
-      famQty += qty;
+      if (!famQtyByUnit[unite]) famQtyByUnit[unite] = 0;
+      famQtyByUnit[unite] += qty;
       famValeur += valeur;
       const stat = qty <= 0 ? 'Rupture' : qty <= (p.alerte || 5) ? 'Alerte' : 'OK';
       return [
         p.ref || '—',
         (p.nom || '') + (p.couleur ? ' · ' + p.couleur : ''),
         p.sousFamille || '—',
-        (p.unite || 'Pièce'),
+        unite,
         String(qty),
         fmtN(p.prixAchat || 0),
         fmtN(valeur),
@@ -8420,11 +8433,11 @@ function exportStockPDF() {
       ];
     });
 
-    // En-tête de famille
+    // En-tête de famille — quantités groupées par unité
     pdf.autoTable({
       startY: y,
       head: [[{
-        content: fam + '  (' + prods.length + ' réf · ' + famQty + ' u · ' + fmtN(famValeur) + ' MAD)',
+        content: fam + '  (' + prods.length + ' réf · ' + formatQtyByUnit(famQtyByUnit) + ' · ' + fmtN(famValeur) + ' MAD)',
         colSpan: 8,
         styles: { fillColor: [220, 230, 250], textColor: [31, 46, 38], fontStyle: 'bold', halign: 'left', fontSize: 9 }
       }]],
@@ -8479,24 +8492,49 @@ function exportStockPDF() {
     if (y > 250) { pdf.addPage(); y = 18; }
   });
 
-  // ── RÉCAPITULATIF GLOBAL — style épuré (texte noir gras, sans bandeau coloré) ──
-  if (y > 260) { pdf.addPage(); }
-  y = 262;
-  // Fond gris clair léger (au lieu du bleu foncé)
+  // ── RÉCAPITULATIF GLOBAL — quantités groupées par unité (pas de mélange !) ──
+  // Calcul de la hauteur nécessaire (dépend du nombre d'unités différentes)
+  const unitEntries = Object.entries(grandTotalQtyByUnit).filter(([u, q]) => q !== 0);
+  const nbUnites = unitEntries.length;
+  const recapHeight = Math.max(24, 12 + nbUnites * 5);
+
+  if (y + recapHeight > 285) { pdf.addPage(); }
+  y = 285 - recapHeight;
+
+  // Fond gris clair léger
   pdf.setFillColor(240, 240, 240);
-  pdf.rect(ML, y, CW, 22, 'F');
-  // Bordure noire fine autour
+  pdf.rect(ML, y, CW, recapHeight, 'F');
+  // Bordure noire fine
   pdf.setDrawColor(20, 20, 20); pdf.setLineWidth(0.4);
-  pdf.rect(ML, y, CW, 22);
-  // Titre en noir gras
+  pdf.rect(ML, y, CW, recapHeight);
+
+  // Titre
   pdf.setFont('helvetica', 'bold'); pdf.setFontSize(11); pdf.setTextColor(20, 20, 20);
   pdf.text("RÉCAPITULATIF GLOBAL", ML + 4, y + 7);
-  // Chiffres en noir
+
+  // Bloc gauche : Références + Quantités par unité
   pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(20, 20, 20);
-  pdf.text("Références : " + grandTotalRefs, ML + 4, y + 14);
-  pdf.text("Quantité totale : " + grandTotalQty + " unités", ML + 70, y + 14);
-  pdf.setFont('helvetica', 'bold'); pdf.setFontSize(10); pdf.setTextColor(20, 20, 20);
-  pdf.text("Valeur stock HT : " + fmtN(grandTotalValeur) + " MAD", W - MR - 4, y + 14, { align: 'right' });
+  pdf.text("Total références : " + grandTotalRefs, ML + 4, y + 14);
+
+  // Liste des quantités par unité (ex: "Pièce: 1240 · Kg: 84,5 · Rouleau: 20")
+  pdf.setFontSize(8.5); pdf.setFont('helvetica', 'bold');
+  pdf.text("Quantités par unité :", ML + 70, y + 14);
+  pdf.setFont('helvetica', 'normal');
+  let yUnit = y + 14;
+  if (unitEntries.length === 0) {
+    pdf.text("Aucun stock", ML + 110, y + 14);
+  } else {
+    unitEntries.forEach(([unite, qty]) => {
+      pdf.text("• " + unite + " : " + qty.toLocaleString('fr-MA'), ML + 110, yUnit);
+      yUnit += 5;
+    });
+  }
+
+  // Bloc droit : Valeur stock HT (noir gras, à droite)
+  pdf.setFont('helvetica', 'bold'); pdf.setFontSize(11); pdf.setTextColor(20, 20, 20);
+  pdf.text("Valeur stock HT :", W - MR - 4, y + 14, { align: 'right' });
+  pdf.setFontSize(13);
+  pdf.text(fmtN(grandTotalValeur) + " MAD", W - MR - 4, y + 22, { align: 'right' });
 
   // ── PIED DE PAGE ──
   const pageCount = pdf.internal.getNumberOfPages();
