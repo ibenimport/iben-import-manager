@@ -8343,15 +8343,17 @@ function exportStockPDF() {
   let yh = y + 10;
   headerLines.forEach(line => { pdf.text(line, ML + 22, yh); yh += 4; });
 
-  // ── BANDEAU TITRE ──
+  // ── BANDEAU TITRE (style épuré : texte noir gras avec ligne de séparation) ──
   y = 38;
-  pdf.setFillColor(15, 30, 60);
-  pdf.rect(ML, y, CW, 12, 'F');
-  pdf.setFont('helvetica', 'bold'); pdf.setFontSize(12); pdf.setTextColor(255, 255, 255);
-  pdf.text("ÉTAT DES STOCKS", ML + 4, y + 8);
-  pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
+  pdf.setFont('helvetica', 'bold'); pdf.setFontSize(14); pdf.setTextColor(20, 20, 20);
+  pdf.text("ÉTAT DES STOCKS", ML, y + 6);
+  pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(80, 80, 80);
   const dateStr = new Date().toLocaleDateString('fr-MA', { day: '2-digit', month: 'long', year: 'numeric' });
-  pdf.text("Édité le " + dateStr, W - MR - 4, y + 8, { align: 'right' });
+  pdf.text("Édité le " + dateStr, W - MR, y + 6, { align: 'right' });
+  // Ligne de séparation fine
+  pdf.setDrawColor(20, 20, 20); pdf.setLineWidth(0.4);
+  pdf.line(ML, y + 10, W - MR, y + 10);
+  y += 4; // ajuster pour compenser l'absence du bandeau plein
 
   // ── FILTRES ACTIFS (sous-titre) ──
   y += 16;
@@ -8477,19 +8479,23 @@ function exportStockPDF() {
     if (y > 250) { pdf.addPage(); y = 18; }
   });
 
-  // ── RÉCAPITULATIF GLOBAL — positionné en BAS de la dernière page ──
-  // Si le tableau a presque atteint le bas, créer une nouvelle page pour le récap
+  // ── RÉCAPITULATIF GLOBAL — style épuré (texte noir gras, sans bandeau coloré) ──
   if (y > 260) { pdf.addPage(); }
-  // Position fixe en bas : Y = 262 (pied de page à 290)
   y = 262;
-  pdf.setFillColor(15, 30, 60);
+  // Fond gris clair léger (au lieu du bleu foncé)
+  pdf.setFillColor(240, 240, 240);
   pdf.rect(ML, y, CW, 22, 'F');
-  pdf.setFont('helvetica', 'bold'); pdf.setFontSize(10); pdf.setTextColor(255, 255, 255);
+  // Bordure noire fine autour
+  pdf.setDrawColor(20, 20, 20); pdf.setLineWidth(0.4);
+  pdf.rect(ML, y, CW, 22);
+  // Titre en noir gras
+  pdf.setFont('helvetica', 'bold'); pdf.setFontSize(11); pdf.setTextColor(20, 20, 20);
   pdf.text("RÉCAPITULATIF GLOBAL", ML + 4, y + 7);
-  pdf.setFontSize(9); pdf.setFont('helvetica', 'normal');
+  // Chiffres en noir
+  pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(20, 20, 20);
   pdf.text("Références : " + grandTotalRefs, ML + 4, y + 14);
   pdf.text("Quantité totale : " + grandTotalQty + " unités", ML + 70, y + 14);
-  pdf.setFont('helvetica', 'bold'); pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'bold'); pdf.setFontSize(10); pdf.setTextColor(20, 20, 20);
   pdf.text("Valeur stock HT : " + fmtN(grandTotalValeur) + " MAD", W - MR - 4, y + 14, { align: 'right' });
 
   // ── PIED DE PAGE ──
