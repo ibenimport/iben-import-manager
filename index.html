@@ -3266,7 +3266,14 @@ function renderDevis() {
       <td class="actions">
         <button class="action-btn blue" onclick="previewDoc('${d.id}','devis')">PDF</button>
         <button class="action-btn" onclick="editDoc('${d.id}','devis')">Modifier</button>
-        ${d.statut !== 'Converti' ? `<button class="action-btn" onclick="convertToFacture('${d.id}')">→ Facture</button>` : ''}
+        ${d.statut !== 'Converti' ? `<button class="action-btn" onclick="convertToFacture('${d.id}')">→ Facture</button>` : (function(){
+          // Devis "Converti" mais facture liée n'existe plus → afficher bouton Débloquer
+          const factureLiee = (state.factures || []).find(f => f.refDevis === d.num);
+          if (!factureLiee) {
+            return `<button class="action-btn" style="border-color:var(--accent);color:var(--accent)" onclick="debloquerDevis('${d.id}')" title="La facture liée n'existe plus. Débloquer ce devis pour le reconvertir.">🔄 Débloquer</button>`;
+          }
+          return '';
+        })()}
         <button class="action-btn red" onclick="deleteDoc('${d.id}','devis')">Suppr.</button>
       </td>
     </tr>`;
@@ -4698,9 +4705,19 @@ function deleteDoc(id, cat) {
   if (!confirm('Supprimer ce ' + labelCat + ' ?\n\n' + (cat === 'facture' ? 'Les quantités déduites du stock seront restaurées.' : ''))) return;
   if (!askSecurityCode('Supprimer ce ' + labelCat)) return;
   let stockRestaure = 0;
+  let devisDebloque = 0; // Compteur pour message notification
   if (cat === 'devis') state.devis = state.devis.filter(d => d.id !== id);
   else if (cat === 'facture') {
     stockRestaure = reapprovisionnerStockDoc(id, 'facture');
+    // ⭐ Auto-reset : si cette facture vient d'un devis, débloquer le devis
+    const factureSupprimee = state.factures.find(f => f.id === id);
+    if (factureSupprimee && factureSupprimee.refDevis) {
+      const devisOrigine = state.devis.find(d => d.num === factureSupprimee.refDevis);
+      if (devisOrigine && devisOrigine.statut === 'Converti') {
+        devisOrigine.statut = 'En attente';
+        devisDebloque++;
+      }
+    }
     state.factures = state.factures.filter(f => f.id !== id);
   } else state.livraisons = state.livraisons.filter(l => l.id !== id);
   save();
@@ -4710,9 +4727,31 @@ function deleteDoc(id, cat) {
   if (typeof renderStocks === 'function') renderStocks();
   if (typeof renderMouvements === 'function') renderMouvements();
   if (typeof renderProduits === 'function') renderProduits();
+  if (typeof renderDevis === 'function') renderDevis(); // Rafraîchir devis si débloqué
   renderDashboard();
-  if (stockRestaure > 0) notify('Document supprimé · ' + stockRestaure + ' ligne(s) restaurée(s) en stock', 'green');
-  else notify('Document supprimé');
+  // Message de notification adapté
+  let msg = 'Document supprimé';
+  if (stockRestaure > 0) msg += ' · ' + stockRestaure + ' ligne(s) restaurée(s) en stock';
+  if (devisDebloque > 0) msg += ' · Devis d\'origine débloqué (peut être reconverti) ✓';
+  notify(msg, 'green');
+}
+
+// Débloque un devis "Converti" dont la facture liée a été supprimée
+// Remet son statut à "En attente" pour permettre une nouvelle conversion
+function debloquerDevis(id) {
+  const d = state.devis.find(x => x.id === id);
+  if (!d) return;
+  // Vérification de sécurité : la facture liée ne doit pas exister
+  const factureLiee = state.factures.find(f => f.refDevis === d.num);
+  if (factureLiee) {
+    notify('❌ Impossible : une facture liée existe encore (' + factureLiee.num + ')', 'red');
+    return;
+  }
+  if (!confirm('Débloquer le devis ' + (d.num || '') + ' ?\n\nSon statut repassera à "En attente" et vous pourrez le reconvertir en facture.')) return;
+  d.statut = 'En attente';
+  save();
+  renderDevis();
+  notify('✅ Devis débloqué · Vous pouvez maintenant le reconvertir en facture', 'green');
 }
 
 function convertToFacture(id) {
@@ -5020,10 +5059,19 @@ function previewDoc(id, cat) {
     </tr>
   `).join('');
 
+  // Calcul du HT brut (avant remise globale) si applicable
+  const remiseGlobPct = doc.remiseGlob || 0;
+  const htBrut = remiseGlobPct > 0 ? (doc.ht / (1 - remiseGlobPct/100)) : doc.ht;
+  const remiseMontant = htBrut - doc.ht;
+
   const totauxHTML = cat === 'livraison' ? '' : `
     <div style="display:flex;justify-content:flex-end;margin-top:16px">
-      <div style="width:260px">
-        <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;color:#6B7280"><span>Sous-total HT</span><span>${fmtMAD(doc.ht)}</span></div>
+      <div style="width:280px">
+        <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;color:#6B7280"><span>Sous-total HT</span><span>${fmtMAD(htBrut)}</span></div>
+        ${remiseGlobPct > 0 ? `
+        <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;color:#C62828;border-top:1px dashed #E5E7EB"><span>Remise globale (${remiseGlobPct}%)</span><span>- ${fmtMAD(remiseMontant)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;color:#374151;font-weight:600;border-top:1px solid #E5E7EB"><span>Total HT net</span><span>${fmtMAD(doc.ht)}</span></div>
+        ` : ''}
         <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;color:#6B7280"><span>TVA 20%</span><span>${fmtMAD(doc.tva)}</span></div>
         <div style="display:flex;justify-content:space-between;padding:10px 14px;margin-top:8px;font-size:15px;font-weight:800;background:${T.primary};color:white;border-radius:8px">
           <span>Total TTC</span><span>${fmtMAD(doc.ttc)}</span>
