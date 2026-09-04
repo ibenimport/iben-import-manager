@@ -4693,6 +4693,9 @@ function saveDoc() {
 }
 
 function editDoc(id, cat) {
+  const labelCat = cat === 'devis' ? 'devis' : cat === 'facture' ? 'facture' : 'bon de livraison';
+  // 🔒 Code de sécurité requis pour modifier un document
+  if (!askSecurityCode('Modifier ce ' + labelCat)) return;
   let doc;
   if (cat === 'devis') doc = state.devis.find(d => d.id === id);
   else if (cat === 'facture') doc = state.factures.find(f => f.id === id);
@@ -4748,6 +4751,8 @@ function debloquerDevis(id) {
     return;
   }
   if (!confirm('Débloquer le devis ' + (d.num || '') + ' ?\n\nSon statut repassera à "En attente" et vous pourrez le reconvertir en facture.')) return;
+  // 🔒 Code de sécurité requis
+  if (!askSecurityCode('Débloquer le devis ' + (d.num || ''))) return;
   d.statut = 'En attente';
   save();
   renderDevis();
