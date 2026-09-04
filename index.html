@@ -4724,8 +4724,11 @@ function convertToFacture(id) {
   const newFactId = uid();
   const nouvelleFacture = {
     id: newFactId, num, clientId: d.clientId, date: today(), echeance: plusDays(today(), 30),
-    objet: d.objet, notes: d.notes, lines: d.lines, ht: d.ht, tva: d.tva, ttc: d.ttc,
-    statut: 'Impayée', paye: 0, modeReglement: 'Virement bancaire'
+    objet: d.objet, notes: d.notes, lines: d.lines,
+    ht: d.ht, tva: d.tva, ttc: d.ttc,
+    remiseGlob: d.remiseGlob || 0, // ⭐ Correction : préserver la remise globale du devis
+    statut: 'Impayée', paye: 0, modeReglement: 'Virement bancaire',
+    refDevis: d.num || '' // Traçabilité : sait de quel devis vient la facture
   };
   state.factures.push(nouvelleFacture);
   d.statut = 'Converti';
@@ -4745,7 +4748,9 @@ function createBL(factureId) {
   const num = 'BL-' + yr + '-' + String(state.settings.numBL).padStart(3, '0');
   state.livraisons.push({
     id: uid(), num, clientId: f.clientId, date: today(), echeance: '',
-    objet: f.objet, notes: f.notes, lines: f.lines, ht: f.ht, tva: f.tva, ttc: f.ttc,
+    objet: f.objet, notes: f.notes, lines: f.lines,
+    ht: f.ht, tva: f.tva, ttc: f.ttc,
+    remiseGlob: f.remiseGlob || 0, // ⭐ Cohérence : préserver la remise globale
     statut: 'En cours', refDoc: f.num
   });
   state.settings.numBL++;
