@@ -5354,15 +5354,29 @@ function exportPDF() {
   pdf.text((cl.nom || '\u2014'), CL_X, cy, {maxWidth: CL_MAX});
   cy += 5;
 
-  // Infos client
+  // Infos client \u2014 hauteur dynamique pour chaque ligne (\u00e9vite chevauchement si texte long)
   pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
   pdf.setTextColor(...C_TEXT);
-  if (cl.adresse && cl.adresse.trim()) { pdf.text(cl.adresse, CL_X, cy, {maxWidth: CL_MAX}); cy += 4.2; }
-  if (cl.ville   && cl.ville.trim())   { pdf.text(cl.ville, CL_X, cy, {maxWidth: CL_MAX}); cy += 4.2; }
-  if (cl.tel     && cl.tel.trim())     { pdf.text('T\u00e9l : ' + cl.tel, CL_X, cy, {maxWidth: CL_MAX}); cy += 4.2; }
-  if (cl.email   && cl.email.trim())   { pdf.text(cl.email, CL_X, cy, {maxWidth: CL_MAX}); cy += 4.2; }
-  if (cl.ice     && cl.ice.trim())     { pdf.text('I.C.E : ' + cl.ice, CL_X, cy, {maxWidth: CL_MAX}); cy += 4.2; }
-  if (cl.rc      && cl.rc.trim())      { pdf.text('RC : ' + cl.rc, CL_X, cy, {maxWidth: CL_MAX}); cy += 4.2; }
+  // Helper pour \u00e9crire une ligne qui peut wrapper et avancer cy correctement
+  const writeClientLine = (text) => {
+    if (!text || !text.trim()) return;
+    const lines = pdf.splitTextToSize(text, CL_MAX);
+    pdf.text(lines, CL_X, cy);
+    cy += (lines.length * 4.2);
+  };
+  // Normaliser pour d\u00e9tecter si la ville est d\u00e9j\u00e0 incluse dans l'adresse (\u00e9vite doublon)
+  const normalise = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  const villeNorm = normalise(cl.ville);
+  const adresseNorm = normalise(cl.adresse);
+  const villeDejaDansAdresse = villeNorm && adresseNorm && adresseNorm.includes(villeNorm);
+
+  writeClientLine(cl.adresse);
+  // N'\u00e9crit la ville QUE si elle n'est pas d\u00e9j\u00e0 dans l'adresse
+  if (!villeDejaDansAdresse) writeClientLine(cl.ville);
+  writeClientLine(cl.tel ? 'T\u00e9l : ' + cl.tel : '');
+  writeClientLine(cl.email);
+  writeClientLine(cl.ice ? 'I.C.E : ' + cl.ice : '');
+  writeClientLine(cl.rc ? 'RC : ' + cl.rc : '');
 
   y = Math.max(ey, cy) + 5;
 
