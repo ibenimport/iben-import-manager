@@ -6453,6 +6453,18 @@ function genererJournalVentes(format) {
     styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
     headStyles: { fillColor: [0, 135, 90], textColor: 255, fontStyle: 'bold' },
     footStyles: { fillColor: [230, 230, 230], textColor: [20, 20, 20], fontStyle: 'bold' },
+    columnStyles: {
+      0: { halign: 'left', cellWidth: 24 },      // N°
+      1: { halign: 'center', cellWidth: 20 },    // Date
+      2: { halign: 'left', cellWidth: 'auto' },  // Client
+      3: { halign: 'left', cellWidth: 36 },      // ICE
+      4: { halign: 'right', cellWidth: 26 },     // Total HT
+      5: { halign: 'right', cellWidth: 24 },     // TVA
+      6: { halign: 'right', cellWidth: 26 },     // Total TTC
+      7: { halign: 'right', cellWidth: 24 },     // Payé
+      8: { halign: 'right', cellWidth: 24 },     // Reste
+      9: { halign: 'center', cellWidth: 18 }     // Statut
+    }
   });
 
   _pdfRapportFooter(pdf, 'Journal ventes');
@@ -6526,6 +6538,19 @@ function genererJournalAchats(format) {
       {content: fmtMAD(totalPaye), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}},
       {content: fmtMAD(totalReste), styles: {halign: 'right', fontStyle: 'bold', fillColor: [230, 230, 230]}}
     ]],
+    columnStyles: {
+      0: { halign: 'left', cellWidth: 24 },      // N°
+      1: { halign: 'center', cellWidth: 20 },    // Date
+      2: { halign: 'center', cellWidth: 18 },    // Type
+      3: { halign: 'left', cellWidth: 'auto' },  // Fournisseur
+      4: { halign: 'left', cellWidth: 22 },      // Pays
+      5: { halign: 'left', cellWidth: 28 },      // Réf
+      6: { halign: 'right', cellWidth: 24 },     // Total HT
+      7: { halign: 'right', cellWidth: 22 },     // TVA déd
+      8: { halign: 'right', cellWidth: 24 },     // Total TTC
+      9: { halign: 'right', cellWidth: 22 },     // Payé
+      10: { halign: 'right', cellWidth: 22 }     // Reste
+    },
     startY: y,
     margin: { left: 14, right: 14 },
     styles: { font: 'helvetica', fontSize: 8, cellPadding: 2 },
