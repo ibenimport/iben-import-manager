@@ -2454,7 +2454,7 @@ function initSupabaseClient() {
   return sb;
 }
 
-const APP_VERSION       = '2.3';
+const APP_VERSION       = '2.2';
 const APP_VERSION_DATE  = '29/07/2026';
 // Notes : qui peut être affichée en survol de la version
 const APP_VERSION_NOTES = 'v2.2 · 🎨 Polish Edition · Import CSV produits · Taille libre toutes familles · Reset password complet · Création client depuis devis · Achats local repensés · PDF aligné centré · Sécurité renforcée';
@@ -5411,10 +5411,10 @@ function exportPDF() {
       ];
     });
     tColStyles = {
-      0: {halign:'left',   cellWidth:42},                        // Référence : + large
+      0: {halign:'left',   cellWidth:28},
       1: {halign:'left',   cellWidth:'auto', fontStyle:'bold'},
-      2: {halign:'center', cellWidth:20},                        // Quantité : - étroite
-      3: {halign:'center', cellWidth:26},
+      2: {halign:'center', cellWidth:30},
+      3: {halign:'center', cellWidth:30},
     };
   } else {
     // En-t\u00eates avec alignement explicite par colonne
@@ -5435,9 +5435,9 @@ function exportPDF() {
       fmtN(l.total || 0) + ' MAD',
     ]);
     tColStyles = {
-      0: {halign:'left',   cellWidth:34},                        // Référence : + large
+      0: {halign:'left',   cellWidth:20},
       1: {halign:'left',   cellWidth:'auto', fontStyle:'bold'},
-      2: {halign:'center', cellWidth:15},                        // Quantité : - étroite
+      2: {halign:'center', cellWidth:20},
       3: {halign:'center', cellWidth:28},   // P.U. HT : valeurs centrées
       4: {halign:'center', cellWidth:18},
       5: {halign:'right',  cellWidth:32},   // Total HT : valeurs alignées à DROITE
@@ -5583,28 +5583,14 @@ function exportPDF() {
   }
 
   if (!isBL) {
-    // Message de remerciement : ne JAMAIS créer une page juste pour cette ligne.
-    // Si pas de place sous le texte en lettres, on l'omet simplement (évite page orpheline).
-    if (y <= 282) {
-      pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C_TEXT);
-      pdf.text('NOUS VOUS REMERCIONS DE VOTRE CONFIANCE !', ML, y);
-    }
+    // Vérifier place restante avant le message de remerciement
+    if (y > 265) { pdf.addPage(); y = 20; }
+    pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C_TEXT);
+    pdf.text('NOUS VOUS REMERCIONS DE VOTRE CONFIANCE !', ML, y);
   } else {
-    // ── BL : Visa Fournisseur + Visa Client — position DYNAMIQUE sous le tableau ──
+    // ── BL : Visa Fournisseur + Visa Client — bas de page, SANS encadrement ──
     const visaW = (CW - 10) / 2;
-    // Hauteur totale du bloc visa : titre (0) + filet (+1.5) + Date (+8) + Signature (+14) ≈ 18mm
-    const visaBlockHeight = 20;
-    const pageBottom = 275; // avant pied de page (FY=284)
-    // Si pas assez de place en bas → nouvelle page
-    let visaY;
-    if (y + visaBlockHeight > pageBottom) {
-      pdf.addPage();
-      y = 30;
-      visaY = y + 10;
-    } else {
-      // Sinon placer en bas de page si on a largement la place, sinon juste sous le contenu
-      visaY = Math.min(248, Math.max(y + 10, pageBottom - visaBlockHeight));
-    }
+    const visaY = 248;   // descendu encore plus en bas (avant: 218)
     const visaXL = ML;
     const visaXR = ML + visaW + 10;
 
@@ -5627,9 +5613,13 @@ function exportPDF() {
   }
 
   // ╔══════════════════════════════════════════════════════════╗
-  // ║  PIED DE PAGE — minimal, une seule ligne (sur CHAQUE page)║
+  // ║  PIED DE PAGE — minimal, une seule ligne                ║
   // ╚══════════════════════════════════════════════════════════╝
   const FY = 284;
+
+  // Filet gris fin
+  pdf.setDrawColor(...C_LINE); pdf.setLineWidth(0.3);
+  pdf.line(ML, FY, W - MR, FY);
 
   // Pied de page : Nom entreprise | RC | Patente | I.F | CNSS | ICE — tout sur une ligne
   const footParts = [
@@ -5641,19 +5631,12 @@ function exportPDF() {
     s.ice     ? 'ICE : '      + s.ice     : '',
   ].filter(Boolean);
 
-  const totalPages = pdf.internal.getNumberOfPages();
-  for (let p = 1; p <= totalPages; p++) {
-    pdf.setPage(p);
-    // Filet gris fin
-    pdf.setDrawColor(...C_LINE); pdf.setLineWidth(0.3);
-    pdf.line(ML, FY, W - MR, FY);
-    // Texte entreprise centré
-    pdf.setFontSize(6.8); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(...C_MUTED);
-    pdf.text(footParts.join('   |   '), W/2, FY + 5, {align:'center', maxWidth: CW});
-    // Pagination i/total
-    pdf.setFontSize(7.5); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(...C_TEXT);
-    pdf.text(p + '/' + totalPages, W - MR, FY + 5, {align:'right'});
-  }
+  pdf.setFontSize(6.8); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(...C_MUTED);
+  pdf.text(footParts.join('   |   '), W/2, FY + 5, {align:'center', maxWidth: CW});
+
+  // Pagination
+  pdf.setFontSize(7.5); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(...C_TEXT);
+  pdf.text('1/1', W - MR, FY + 5, {align:'right'});
 
   pdf.save(lbl.toLowerCase().replace(/ /g,'-')+'-'+doc.num+'.pdf');
   notify('PDF t\u00e9l\u00e9charg\u00e9', 'green');
@@ -9388,15 +9371,9 @@ function printImportation(id) {
     pdf.text(noteLines, ML, y + 5);
   }
 
-  // ── FOOTER (sur chaque page avec pagination) ──
-  const totalPagesImp = pdf.internal.getNumberOfPages();
-  for (let p = 1; p <= totalPagesImp; p++) {
-    pdf.setPage(p);
-    pdf.setFontSize(7.5); pdf.setTextColor(140, 140, 140); pdf.setFont('helvetica', 'normal');
-    pdf.text('Document généré par IBEN IMPORT manager v' + APP_VERSION + ' · ' + new Date().toLocaleDateString('fr-MA'), W / 2, 290, { align: 'center' });
-    pdf.setFont('helvetica', 'bold'); pdf.setTextColor(60, 60, 60); pdf.setFontSize(8);
-    pdf.text(p + '/' + totalPagesImp, W - MR, 290, { align: 'right' });
-  }
+  // ── FOOTER ──
+  pdf.setFontSize(7.5); pdf.setTextColor(140, 140, 140); pdf.setFont('helvetica', 'normal');
+  pdf.text('Document généré par IBEN IMPORT manager v' + APP_VERSION + ' · ' + new Date().toLocaleDateString('fr-MA'), W / 2, 290, { align: 'center' });
 
   pdf.save('Importation_' + (imp.num || 'sans-num') + '.pdf');
   notify('PDF généré', 'green');
