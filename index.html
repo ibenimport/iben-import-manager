@@ -5583,10 +5583,12 @@ function exportPDF() {
   }
 
   if (!isBL) {
-    // Vérifier place restante avant le message de remerciement (seuil serré : juste avant le pied FY=284)
-    if (y > 278) { pdf.addPage(); y = 20; }
-    pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C_TEXT);
-    pdf.text('NOUS VOUS REMERCIONS DE VOTRE CONFIANCE !', ML, y);
+    // Message de remerciement : ne JAMAIS créer une page juste pour cette ligne.
+    // Si pas de place sous le texte en lettres, on l'omet simplement (évite page orpheline).
+    if (y <= 282) {
+      pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C_TEXT);
+      pdf.text('NOUS VOUS REMERCIONS DE VOTRE CONFIANCE !', ML, y);
+    }
   } else {
     // ── BL : Visa Fournisseur + Visa Client — position DYNAMIQUE sous le tableau ──
     const visaW = (CW - 10) / 2;
