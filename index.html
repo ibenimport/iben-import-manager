@@ -5583,8 +5583,8 @@ function exportPDF() {
   }
 
   if (!isBL) {
-    // Vérifier place restante avant le message de remerciement
-    if (y > 265) { pdf.addPage(); y = 20; }
+    // Vérifier place restante avant le message de remerciement (seuil serré : juste avant le pied FY=284)
+    if (y > 278) { pdf.addPage(); y = 20; }
     pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C_TEXT);
     pdf.text('NOUS VOUS REMERCIONS DE VOTRE CONFIANCE !', ML, y);
   } else {
