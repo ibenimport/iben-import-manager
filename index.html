@@ -5625,13 +5625,9 @@ function exportPDF() {
   }
 
   // ╔══════════════════════════════════════════════════════════╗
-  // ║  PIED DE PAGE — minimal, une seule ligne                ║
+  // ║  PIED DE PAGE — minimal, une seule ligne (sur CHAQUE page)║
   // ╚══════════════════════════════════════════════════════════╝
   const FY = 284;
-
-  // Filet gris fin
-  pdf.setDrawColor(...C_LINE); pdf.setLineWidth(0.3);
-  pdf.line(ML, FY, W - MR, FY);
 
   // Pied de page : Nom entreprise | RC | Patente | I.F | CNSS | ICE — tout sur une ligne
   const footParts = [
@@ -5643,12 +5639,19 @@ function exportPDF() {
     s.ice     ? 'ICE : '      + s.ice     : '',
   ].filter(Boolean);
 
-  pdf.setFontSize(6.8); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(...C_MUTED);
-  pdf.text(footParts.join('   |   '), W/2, FY + 5, {align:'center', maxWidth: CW});
-
-  // Pagination
-  pdf.setFontSize(7.5); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(...C_TEXT);
-  pdf.text('1/1', W - MR, FY + 5, {align:'right'});
+  const totalPages = pdf.internal.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    pdf.setPage(p);
+    // Filet gris fin
+    pdf.setDrawColor(...C_LINE); pdf.setLineWidth(0.3);
+    pdf.line(ML, FY, W - MR, FY);
+    // Texte entreprise centré
+    pdf.setFontSize(6.8); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(...C_MUTED);
+    pdf.text(footParts.join('   |   '), W/2, FY + 5, {align:'center', maxWidth: CW});
+    // Pagination i/total
+    pdf.setFontSize(7.5); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(...C_TEXT);
+    pdf.text(p + '/' + totalPages, W - MR, FY + 5, {align:'right'});
+  }
 
   pdf.save(lbl.toLowerCase().replace(/ /g,'-')+'-'+doc.num+'.pdf');
   notify('PDF t\u00e9l\u00e9charg\u00e9', 'green');
@@ -9383,9 +9386,15 @@ function printImportation(id) {
     pdf.text(noteLines, ML, y + 5);
   }
 
-  // ── FOOTER ──
-  pdf.setFontSize(7.5); pdf.setTextColor(140, 140, 140); pdf.setFont('helvetica', 'normal');
-  pdf.text('Document généré par IBEN IMPORT manager v' + APP_VERSION + ' · ' + new Date().toLocaleDateString('fr-MA'), W / 2, 290, { align: 'center' });
+  // ── FOOTER (sur chaque page avec pagination) ──
+  const totalPagesImp = pdf.internal.getNumberOfPages();
+  for (let p = 1; p <= totalPagesImp; p++) {
+    pdf.setPage(p);
+    pdf.setFontSize(7.5); pdf.setTextColor(140, 140, 140); pdf.setFont('helvetica', 'normal');
+    pdf.text('Document généré par IBEN IMPORT manager v' + APP_VERSION + ' · ' + new Date().toLocaleDateString('fr-MA'), W / 2, 290, { align: 'center' });
+    pdf.setFont('helvetica', 'bold'); pdf.setTextColor(60, 60, 60); pdf.setFontSize(8);
+    pdf.text(p + '/' + totalPagesImp, W - MR, 290, { align: 'right' });
+  }
 
   pdf.save('Importation_' + (imp.num || 'sans-num') + '.pdf');
   notify('PDF généré', 'green');
