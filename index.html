@@ -5588,9 +5588,21 @@ function exportPDF() {
     pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C_TEXT);
     pdf.text('NOUS VOUS REMERCIONS DE VOTRE CONFIANCE !', ML, y);
   } else {
-    // ── BL : Visa Fournisseur + Visa Client — bas de page, SANS encadrement ──
+    // ── BL : Visa Fournisseur + Visa Client — position DYNAMIQUE sous le tableau ──
     const visaW = (CW - 10) / 2;
-    const visaY = 248;   // descendu encore plus en bas (avant: 218)
+    // Hauteur totale du bloc visa : titre (0) + filet (+1.5) + Date (+8) + Signature (+14) ≈ 18mm
+    const visaBlockHeight = 20;
+    const pageBottom = 275; // avant pied de page (FY=284)
+    // Si pas assez de place en bas → nouvelle page
+    let visaY;
+    if (y + visaBlockHeight > pageBottom) {
+      pdf.addPage();
+      y = 30;
+      visaY = y + 10;
+    } else {
+      // Sinon placer en bas de page si on a largement la place, sinon juste sous le contenu
+      visaY = Math.min(248, Math.max(y + 10, pageBottom - visaBlockHeight));
+    }
     const visaXL = ML;
     const visaXR = ML + visaW + 10;
 
