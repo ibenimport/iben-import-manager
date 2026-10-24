@@ -5588,9 +5588,18 @@ function exportPDF() {
     pdf.setFontSize(9); pdf.setFont('helvetica','bold'); pdf.setTextColor(...C_TEXT);
     pdf.text('NOUS VOUS REMERCIONS DE VOTRE CONFIANCE !', ML, y);
   } else {
-    // ── BL : Visa Fournisseur + Visa Client — bas de page, SANS encadrement ──
+    // ── BL : Visa Fournisseur + Visa Client — position DYNAMIQUE sous le tableau ──
     const visaW = (CW - 10) / 2;
-    const visaY = 248;   // descendu encore plus en bas (avant: 218)
+    const visaBlockHeight = 20;
+    const pageBottom = 275;
+    let visaY;
+    if (y + visaBlockHeight > pageBottom) {
+      pdf.addPage();
+      y = 30;
+      visaY = y + 10;
+    } else {
+      visaY = Math.min(248, Math.max(y + 10, pageBottom - visaBlockHeight));
+    }
     const visaXL = ML;
     const visaXR = ML + visaW + 10;
 
@@ -5613,15 +5622,10 @@ function exportPDF() {
   }
 
   // ╔══════════════════════════════════════════════════════════╗
-  // ║  PIED DE PAGE — minimal, une seule ligne                ║
+  // ║  PIED DE PAGE — sur CHAQUE page avec pagination i/total ║
   // ╚══════════════════════════════════════════════════════════╝
   const FY = 284;
 
-  // Filet gris fin
-  pdf.setDrawColor(...C_LINE); pdf.setLineWidth(0.3);
-  pdf.line(ML, FY, W - MR, FY);
-
-  // Pied de page : Nom entreprise | RC | Patente | I.F | CNSS | ICE — tout sur une ligne
   const footParts = [
     s.company || '',
     s.rc      ? 'RC : '       + s.rc      : '',
@@ -5631,12 +5635,16 @@ function exportPDF() {
     s.ice     ? 'ICE : '      + s.ice     : '',
   ].filter(Boolean);
 
-  pdf.setFontSize(6.8); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(...C_MUTED);
-  pdf.text(footParts.join('   |   '), W/2, FY + 5, {align:'center', maxWidth: CW});
-
-  // Pagination
-  pdf.setFontSize(7.5); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(...C_TEXT);
-  pdf.text('1/1', W - MR, FY + 5, {align:'right'});
+  const totalPages = pdf.internal.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    pdf.setPage(p);
+    pdf.setDrawColor(...C_LINE); pdf.setLineWidth(0.3);
+    pdf.line(ML, FY, W - MR, FY);
+    pdf.setFontSize(6.8); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(...C_MUTED);
+    pdf.text(footParts.join('   |   '), W/2, FY + 5, {align:'center', maxWidth: CW});
+    pdf.setFontSize(7.5); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(...C_TEXT);
+    pdf.text(p + '/' + totalPages, W - MR, FY + 5, {align:'right'});
+  }
 
   pdf.save(lbl.toLowerCase().replace(/ /g,'-')+'-'+doc.num+'.pdf');
   notify('PDF t\u00e9l\u00e9charg\u00e9', 'green');
