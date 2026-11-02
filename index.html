@@ -9303,7 +9303,7 @@ function printImportation(id) {
 
   // ── TABLEAU DES ARTICLES ──
   y += 8;
-  const colWidths = [25, 88, 13, 22, 30]; // Réf, Désignation (élargie), Qté, PU HT, Total HT
+  const colWidths = [34, 79, 13, 22, 30]; // Réf (élargie pour refs longues), Désignation, Qté, PU HT, Total HT
   const startX = ML;
   // Header
   pdf.setFillColor(232, 232, 232);
@@ -9325,8 +9325,12 @@ function printImportation(id) {
     // Découper la désignation selon la largeur de la colonne (avec marge)
     const desc = line.desc || '—';
     const descLines = pdf.splitTextToSize(desc, colWidths[1] - 4);
-    // Hauteur de ligne dynamique : minimum 8mm, ou 4mm par ligne de texte + marge
-    const rowHeight = Math.max(8, descLines.length * 3.8 + 3);
+    // Découper aussi la référence pour éviter débordement sur colonne désignation
+    const refStr = line.ref || '—';
+    const refLines = pdf.splitTextToSize(refStr, colWidths[0] - 4);
+    // Hauteur de ligne dynamique : max entre lignes désignation et lignes référence
+    const nbLines = Math.max(descLines.length, refLines.length);
+    const rowHeight = Math.max(8, nbLines * 3.8 + 3);
 
     // Saut de page si besoin
     if (y + rowHeight > 258) { pdf.addPage(); y = 20; }
@@ -9339,8 +9343,8 @@ function printImportation(id) {
 
     let xL = startX;
     const cells = [
-      line.ref || '—',
-      descLines, // tableau multi-lignes
+      refLines,  // tableau multi-lignes (référence)
+      descLines, // tableau multi-lignes (désignation)
       String(line.qty || 0),
       fmtN(line.pu || 0),
       fmtN(line.total || (line.qty * line.pu) || 0)
@@ -9349,9 +9353,9 @@ function printImportation(id) {
       const align = i >= 2 ? 'right' : 'left';
       const xText = align === 'right' ? xL + colWidths[i] - 2 : xL + 2;
       // Position verticale : centrée pour lignes courtes, en haut pour multi-lignes
-      const yText = descLines.length > 1 ? y + 4.5 : y + 5.5;
-      if (i === 1) {
-        // Colonne Désignation : multi-lignes
+      const yText = nbLines > 1 ? y + 4.5 : y + 5.5;
+      if (i === 0 || i === 1) {
+        // Colonnes Référence et Désignation : multi-lignes
         pdf.text(c, xText, yText, { align: align });
       } else {
         pdf.text(String(c), xText, yText, { align: align });
