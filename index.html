@@ -7,6 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
@@ -248,6 +249,9 @@
 
   /* EMPTY STATE — Premium */
   .empty-state { text-align: center; padding: 80px 20px; color: var(--text3); }
+  .ico { width: 1.1em; height: 1.1em; vertical-align: -0.18em; flex-shrink: 0; }
+  .kpi-icon .ico, .qa-icon .ico, .ms-icon .ico, .empty-state-icon .ico { width: 1em; height: 1em; vertical-align: middle; }
+  .notif .ico { margin-right: 6px; }
   .empty-state-icon { font-size: 56px; margin-bottom: 16px; opacity: 0.5; filter: grayscale(0.4); }
   .empty-state-title { font-size: 16px; font-weight: 700; color: var(--text2); margin-bottom: 8px; letter-spacing: -0.2px; }
   .empty-state-sub { font-size: 13.5px; color: var(--text3); max-width: 420px; margin: 0 auto; line-height: 1.6; }
@@ -350,6 +354,85 @@
   @keyframes slideInRight { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
   .notif.green { background: #15803D; }
   .notif.red { background: #B91C1C; }
+
+  /* ═══ RESPONSIVE MOBILE ═══ */
+  .menu-toggle, .sidebar-close { display: none; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 9px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; flex-shrink: 0; padding: 0; }
+  .menu-toggle .ico, .sidebar-close .ico { width: 20px; height: 20px; vertical-align: middle; }
+  .sidebar-backdrop { display: none; }
+  .topbar-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .lines-scroll { width: 100%; }
+
+  @media (max-width: 900px) {
+    .sidebar { width: 280px; max-width: 85vw; transform: translateX(-100%); transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); z-index: 60; overflow-y: auto; box-shadow: none; }
+    body.sidebar-open .sidebar { transform: translateX(0); box-shadow: 8px 0 32px rgba(0,0,0,0.25); }
+    body.sidebar-open .sidebar-backdrop { display: block; position: fixed; inset: 0; background: rgba(20,14,8,0.45); backdrop-filter: blur(2px); z-index: 55; }
+    body.sidebar-open { overflow: hidden; }
+    .logo-area { position: relative; padding-right: 56px; }
+    .sidebar-close { display: flex; position: absolute; top: 50%; right: 14px; transform: translateY(-50%); }
+    .main { margin-left: 0; min-width: 0; width: 100%; }
+    .menu-toggle { display: flex; }
+    .topbar { flex-wrap: wrap; height: auto; min-height: 58px; padding: 10px 16px; gap: 8px 12px; }
+    .topbar-left { flex: 1; }
+    .topbar-title { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .topbar-right { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .topbar-right::-webkit-scrollbar { display: none; }
+    .topbar-right > * { flex-shrink: 0; white-space: nowrap; }
+    .content { padding: 20px 16px; }
+    .table-card, .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table-card table, .table-wrap table { min-width: 680px; }
+    .table-card table:has(.empty-state), .table-wrap table:has(.empty-state) { min-width: 0; }
+    .table-card table:has(.empty-state) thead { display: none; }
+    .lines-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .lines-scroll .lines-header, .lines-scroll .line-row { min-width: 760px; }
+  }
+
+  @media (max-width: 640px) {
+    body { font-size: 13.5px; }
+    .topbar-right { width: 100%; }
+    .topbar-right .btn { padding: 8px 12px; font-size: 12.5px; }
+    .content { padding: 16px 12px; }
+    /* Grilles : 2 colonnes pour les cartes de stats, 1 colonne pour le reste */
+    .stats-grid, .mini-stats { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+    .kpi-grid { grid-template-columns: 1fr 1fr !important; gap: 10px; }
+    .quick-actions-row { grid-template-columns: 1fr; }
+    .content [style*="grid-template-columns"]:not(.stats-grid):not(.lines-header):not(.line-row),
+    .modal [style*="grid-template-columns"]:not(.stats-grid):not(.lines-header):not(.line-row) { grid-template-columns: 1fr !important; }
+    .modal [style*="repeat(4,1fr);gap:6px"] { grid-template-columns: 1fr 1fr !important; }
+    .modal [style*="160px 38px"] { grid-template-columns: 1fr 110px 38px !important; }
+    .form-grid, .inv-info-grid { grid-template-columns: 1fr; }
+    .stat-card { padding: 14px; }
+    .stat-label { font-size: 10px; margin-bottom: 6px; }
+    .stat-value { font-size: 18px; word-break: break-word; }
+    .kpi-card { padding: 14px !important; }
+    .kpi-card .kpi-icon { width: 36px; height: 36px; font-size: 18px; }
+    .kpi-card .kpi-icon-wrap { margin-bottom: 10px; }
+    .kpi-value { font-size: 19px !important; word-break: break-word; }
+    .kpi-label { font-size: 10px !important; }
+    .mini-stat { padding: 12px !important; gap: 10px !important; }
+    .mini-stat .ms-icon { width: 34px; height: 34px; font-size: 15px; }
+    .dash-hero { padding: 20px; margin-bottom: 18px; }
+    .dash-hero-name { font-size: 21px; }
+    .dash-hero-actions .hero-btn { flex: 1; justify-content: center; }
+    .dash-section-title { font-size: 15px; }
+    .filters { gap: 8px; }
+    .search-wrap { flex: 1 1 100%; }
+    .search-wrap .search-box { width: 100% !important; max-width: none; }
+    .filter-select { flex: 1 1 140px; min-width: 0; }
+    .filters > div[style*="margin-left:auto"] { margin-left: 0 !important; flex-wrap: wrap; }
+    th, td { padding: 10px 12px !important; }
+    /* Modales en plein écran façon « bottom sheet » */
+    .modal-overlay { padding: 0; align-items: flex-end; }
+    .modal, .modal-lg { max-width: 100% !important; max-height: 94dvh; border-radius: 18px 18px 0 0; }
+    .modal-header { padding: 16px; border-radius: 18px 18px 0 0; position: sticky; top: 0; z-index: 2; }
+    .modal-title { font-size: 15px; }
+    .modal-body { padding: 16px; }
+    .modal-footer { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); flex-wrap: wrap; border-radius: 0; position: sticky; bottom: 0; }
+    .modal-footer .btn { flex: 1 1 auto; justify-content: center; }
+    /* iOS : pas de zoom automatique sur les champs */
+    input, select, textarea { font-size: 16px !important; }
+    .notif { left: 12px; right: 12px; bottom: calc(16px + env(safe-area-inset-bottom)); text-align: center; }
+    .btn:hover, .stat-card:hover { transform: none; }
+  }
 </style>
 </head>
 <body>
@@ -368,18 +451,18 @@
 
     <!-- Onglets login/signup -->
     <div id="auth-tabs-container" style="display:flex;gap:6px;background:var(--surface2);padding:5px;border-radius:10px;margin-bottom:22px">
-      <button type="button" class="btn btn-sm btn-primary" id="auth-tab-login"  onclick="basculerAuthTab('login')"  style="flex:1">🔐 Se connecter</button>
-      <button type="button" class="btn btn-sm" id="auth-tab-signup" onclick="basculerAuthTab('signup')" style="flex:1">✨ Créer un compte</button>
+      <button type="button" class="btn btn-sm btn-primary" id="auth-tab-login"  onclick="basculerAuthTab('login')"  style="flex:1"><i data-lucide="log-in"></i> Se connecter</button>
+      <button type="button" class="btn btn-sm" id="auth-tab-signup" onclick="basculerAuthTab('signup')" style="flex:1"><i data-lucide="sparkles"></i> Créer un compte</button>
     </div>
 
     <!-- Formulaire de connexion / inscription -->
     <form id="auth-form" onsubmit="event.preventDefault(); soumettreAuth();">
       <div class="form-group" style="margin-bottom:14px">
-        <label class="form-label">📧 Email</label>
+        <label class="form-label"><i data-lucide="mail"></i> Email</label>
         <input class="form-input" id="auth-email" type="email" required autocomplete="email" placeholder="votre@email.com" style="width:100%">
       </div>
       <div class="form-group" style="margin-bottom:18px">
-        <label class="form-label">🔒 Mot de passe</label>
+        <label class="form-label"><i data-lucide="lock"></i> Mot de passe</label>
         <input class="form-input" id="auth-password" type="password" required autocomplete="current-password" placeholder="••••••••" minlength="6" style="width:100%">
         <div id="auth-password-hint" style="font-size:11px;color:var(--text3);margin-top:6px;display:none">Minimum 6 caractères, choisissez quelque chose de fort</div>
       </div>
@@ -387,7 +470,7 @@
       <div id="auth-error" style="display:none;background:var(--red-bg);color:var(--red);padding:10px 14px;border-radius:8px;font-size:12.5px;margin-bottom:14px;border-left:3px solid var(--red)"></div>
       <div id="auth-success" style="display:none;background:var(--green-bg);color:var(--green);padding:10px 14px;border-radius:8px;font-size:12.5px;margin-bottom:14px;border-left:3px solid var(--green)"></div>
 
-      <button type="submit" id="auth-submit-btn" class="btn btn-primary" style="width:100%;padding:12px;font-size:14px;font-weight:600">🔐 Se connecter</button>
+      <button type="submit" id="auth-submit-btn" class="btn btn-primary" style="width:100%;padding:12px;font-size:14px;font-weight:600"><i data-lucide="log-in"></i> Se connecter</button>
 
       <div style="text-align:center;margin-top:16px">
         <a id="auth-forgot-link" href="#" onclick="event.preventDefault(); motDePasseOublie()" style="font-size:12px;color:var(--accent);text-decoration:none">Mot de passe oublié ?</a>
@@ -397,32 +480,32 @@
     <!-- Formulaire : Définir un nouveau mot de passe (mode récupération) -->
     <form id="auth-reset-form" style="display:none" onsubmit="event.preventDefault(); definirNouveauMotDePasse();">
       <div style="background:var(--accent-light);color:var(--accent);padding:12px 14px;border-radius:8px;font-size:12.5px;margin-bottom:18px;line-height:1.6">
-        🔑 <strong>Réinitialisation du mot de passe</strong><br>
+        <i data-lucide="key-round"></i> <strong>Réinitialisation du mot de passe</strong><br>
         Choisissez un nouveau mot de passe sécurisé pour votre compte.
       </div>
       <div class="form-group" style="margin-bottom:14px">
-        <label class="form-label">🔒 Nouveau mot de passe</label>
+        <label class="form-label"><i data-lucide="lock"></i> Nouveau mot de passe</label>
         <input class="form-input" id="reset-pwd-1" type="password" required autocomplete="new-password" placeholder="••••••••" minlength="6" style="width:100%">
         <div style="font-size:11px;color:var(--text3);margin-top:6px">Minimum 6 caractères. Choisissez un mot de passe FORT (lettres, chiffres, symboles).</div>
       </div>
       <div class="form-group" style="margin-bottom:18px">
-        <label class="form-label">🔒 Confirmer le nouveau mot de passe</label>
+        <label class="form-label"><i data-lucide="lock"></i> Confirmer le nouveau mot de passe</label>
         <input class="form-input" id="reset-pwd-2" type="password" required autocomplete="new-password" placeholder="••••••••" minlength="6" style="width:100%">
       </div>
 
       <div id="reset-error" style="display:none;background:var(--red-bg);color:var(--red);padding:10px 14px;border-radius:8px;font-size:12.5px;margin-bottom:14px;border-left:3px solid var(--red)"></div>
       <div id="reset-success" style="display:none;background:var(--green-bg);color:var(--green);padding:10px 14px;border-radius:8px;font-size:12.5px;margin-bottom:14px;border-left:3px solid var(--green)"></div>
 
-      <button type="submit" id="reset-submit-btn" class="btn btn-primary" style="width:100%;padding:12px;font-size:14px;font-weight:600">✅ Définir mon nouveau mot de passe</button>
+      <button type="submit" id="reset-submit-btn" class="btn btn-primary" style="width:100%;padding:12px;font-size:14px;font-weight:600"><i data-lucide="circle-check"></i> Définir mon nouveau mot de passe</button>
 
       <div style="text-align:center;margin-top:16px">
-        <a href="#" onclick="event.preventDefault(); annulerReset()" style="font-size:12px;color:var(--text3);text-decoration:none">← Retour à la connexion</a>
+        <a href="#" onclick="event.preventDefault(); annulerReset()" style="font-size:12px;color:var(--text3);text-decoration:none"><i data-lucide="arrow-left"></i> Retour à la connexion</a>
       </div>
     </form>
 
     <!-- Info bas -->
     <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--text3);line-height:1.6">
-      🛡️ Vos données sont chiffrées et stockées dans le cloud<br>
+      <i data-lucide="shield-check"></i> Vos données sont chiffrées et stockées dans le cloud<br>
       <strong>Sauvegardes automatiques 24/7</strong>
     </div>
   </div>
@@ -432,6 +515,7 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="logo-area">
+      <button type="button" class="sidebar-close" onclick="toggleSidebar(false)" aria-label="Fermer le menu"><i data-lucide="x"></i></button>
       <div class="logo-name">IBEN IMPORT <span class="logo-accent">manager</span></div>
       <div class="logo-tagline" id="sb-version" title="Cliquez pour voir les notes de version" style="cursor:pointer" onclick="afficherNotesVersion()">v2.0 · Maroc</div>
     </div>
@@ -520,24 +604,28 @@
       <!-- Info utilisateur connecté + bouton logout -->
       <div style="margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(28,22,17,0.04);border:1px solid var(--sidebar-border)">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">👤</div>
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0"><i data-lucide="user"></i></div>
           <div style="flex:1;min-width:0">
             <div style="font-size:11px;color:var(--sidebar-text);font-weight:500">Connecté en tant que</div>
             <div id="user-info-sidebar" style="font-size:11.5px;color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</div>
           </div>
         </div>
-        <button onclick="deconnexion()" style="width:100%;background:transparent;border:1px solid var(--sidebar-border);color:var(--sidebar-text);padding:6px 10px;border-radius:7px;font-size:11.5px;cursor:pointer;transition:all 0.15s;font-weight:500" onmouseover="this.style.background='rgba(192,56,43,0.1)';this.style.color='var(--red)';this.style.borderColor='var(--red)'" onmouseout="this.style.background='transparent';this.style.color='var(--sidebar-text)';this.style.borderColor='var(--sidebar-border)'">🚪 Déconnexion</button>
+        <button onclick="deconnexion()" style="width:100%;background:transparent;border:1px solid var(--sidebar-border);color:var(--sidebar-text);padding:6px 10px;border-radius:7px;font-size:11.5px;cursor:pointer;transition:all 0.15s;font-weight:500" onmouseover="this.style.background='rgba(192,56,43,0.1)';this.style.color='var(--red)';this.style.borderColor='var(--red)'" onmouseout="this.style.background='transparent';this.style.color='var(--sidebar-text)';this.style.borderColor='var(--sidebar-border)'"><i data-lucide="log-out"></i> Déconnexion</button>
       </div>
     </div>
   </aside>
+  <div class="sidebar-backdrop" onclick="toggleSidebar(false)"></div>
 
   <!-- MAIN -->
   <div class="main">
     <div class="topbar">
-      <div class="topbar-title" id="page-title">Tableau de bord</div>
+      <div class="topbar-left">
+        <button type="button" class="menu-toggle" onclick="toggleSidebar()" aria-label="Ouvrir le menu"><i data-lucide="menu"></i></button>
+        <div class="topbar-title" id="page-title">Tableau de bord</div>
+      </div>
       <div class="topbar-right" id="topbar-actions" style="display:flex;align-items:center;gap:10px">
         <!-- Indicateur de sync cloud -->
-        <div id="sync-indicator" style="padding:5px 11px;border-radius:14px;font-size:11.5px;font-weight:600;background:var(--green-bg);color:var(--green);transition:all 0.2s">☁️ Synchronisé</div>
+        <div id="sync-indicator" style="padding:5px 11px;border-radius:14px;font-size:11.5px;font-weight:600;background:var(--green-bg);color:var(--green);transition:all 0.2s"><i data-lucide="cloud"></i> Synchronisé</div>
         <button class="btn btn-primary" onclick="showNewDocModal()">+ Nouveau document</button>
       </div>
     </div>
@@ -549,13 +637,13 @@
         <!-- ═══ HERO GREETING ═══ -->
         <div class="dash-hero">
           <div class="dash-hero-greeting">
-            <div class="dash-hero-hello">Bonjour 👋</div>
+            <div class="dash-hero-hello">Bonjour <i data-lucide="hand"></i></div>
             <div class="dash-hero-name" id="dash-hero-company">Mon Entreprise</div>
             <div class="dash-hero-date" id="dash-hero-date">—</div>
           </div>
           <div class="dash-hero-actions">
-            <button class="hero-btn" onclick="openDocModal('devis')">📄 Nouveau devis</button>
-            <button class="hero-btn primary" onclick="openDocModal('facture')">💰 Nouvelle facture</button>
+            <button class="hero-btn" onclick="openDocModal('devis')"><i data-lucide="file-text"></i> Nouveau devis</button>
+            <button class="hero-btn primary" onclick="openDocModal('facture')"><i data-lucide="wallet"></i> Nouvelle facture</button>
           </div>
         </div>
 
@@ -563,7 +651,7 @@
         <div class="kpi-grid">
           <div class="kpi-card">
             <div class="kpi-icon-wrap">
-              <div class="kpi-icon">💰</div>
+              <div class="kpi-icon"><i data-lucide="wallet"></i></div>
             </div>
             <div class="kpi-label">Chiffre d'affaires TTC</div>
             <div class="kpi-value" id="stat-ca">0 MAD</div>
@@ -571,7 +659,7 @@
           </div>
           <div class="kpi-card red">
             <div class="kpi-icon-wrap">
-              <div class="kpi-icon">⏰</div>
+              <div class="kpi-icon"><i data-lucide="clock"></i></div>
             </div>
             <div class="kpi-label">À encaisser</div>
             <div class="kpi-value" style="color:var(--red)" id="stat-impaye">0 MAD</div>
@@ -579,7 +667,7 @@
           </div>
           <div class="kpi-card green">
             <div class="kpi-icon-wrap">
-              <div class="kpi-icon">📄</div>
+              <div class="kpi-icon"><i data-lucide="file-text"></i></div>
             </div>
             <div class="kpi-label">Factures émises</div>
             <div class="kpi-value" id="stat-factures">0</div>
@@ -587,7 +675,7 @@
           </div>
           <div class="kpi-card amber">
             <div class="kpi-icon-wrap">
-              <div class="kpi-icon">📝</div>
+              <div class="kpi-icon"><i data-lucide="file-pen"></i></div>
             </div>
             <div class="kpi-label">Devis</div>
             <div class="kpi-value" id="stat-devis">0</div>
@@ -596,52 +684,52 @@
         </div>
 
         <!-- ═══ ACTIONS RAPIDES ═══ -->
-        <div class="dash-section-title">⚡ Actions rapides</div>
+        <div class="dash-section-title"><i data-lucide="zap"></i> Actions rapides</div>
         <div class="quick-actions-row">
           <button class="quick-action" onclick="showImportationModal('import')">
-            <div class="qa-icon">🌍</div>
+            <div class="qa-icon"><i data-lucide="globe"></i></div>
             <div class="qa-text"><div class="qa-title">Nouvelle importation</div><div class="qa-sub">Entrée stock fournisseur</div></div>
           </button>
           <button class="quick-action" onclick="showImportationModal('local')">
-            <div class="qa-icon">🇲🇦</div>
+            <div class="qa-icon"><i data-lucide="store"></i></div>
             <div class="qa-text"><div class="qa-title">Achat local Maroc</div><div class="qa-sub">Fournisseur national</div></div>
           </button>
           <button class="quick-action" onclick="showProduitModal()">
-            <div class="qa-icon">📦</div>
+            <div class="qa-icon"><i data-lucide="package"></i></div>
             <div class="qa-text"><div class="qa-title">Nouveau produit</div><div class="qa-sub">Ajouter au catalogue</div></div>
           </button>
           <button class="quick-action" onclick="showClientModal()">
-            <div class="qa-icon">👤</div>
+            <div class="qa-icon"><i data-lucide="user"></i></div>
             <div class="qa-text"><div class="qa-title">Nouveau client</div><div class="qa-sub">Enregistrer un client</div></div>
           </button>
         </div>
 
         <!-- ═══ APERÇU STOCK ═══ -->
-        <div class="dash-section-title">📊 Aperçu du stock</div>
+        <div class="dash-section-title"><i data-lucide="chart-column"></i> Aperçu du stock</div>
         <div class="mini-stats">
           <div class="mini-stat">
-            <div class="ms-icon">📦</div>
+            <div class="ms-icon"><i data-lucide="package"></i></div>
             <div class="ms-content">
               <div class="ms-value" id="stat-stock-refs">0</div>
               <div class="ms-label">Références au catalogue</div>
             </div>
           </div>
           <div class="mini-stat">
-            <div class="ms-icon">💵</div>
+            <div class="ms-icon"><i data-lucide="banknote"></i></div>
             <div class="ms-content">
               <div class="ms-value" id="stat-stock-valeur">0 MAD</div>
               <div class="ms-label">Valeur du stock (PMP)</div>
             </div>
           </div>
           <div class="mini-stat amber">
-            <div class="ms-icon">⚠️</div>
+            <div class="ms-icon"><i data-lucide="triangle-alert"></i></div>
             <div class="ms-content">
               <div class="ms-value" style="color:var(--amber)" id="stat-stock-alertes">0</div>
               <div class="ms-label">Produits en alerte</div>
             </div>
           </div>
           <div class="mini-stat red">
-            <div class="ms-icon">🚨</div>
+            <div class="ms-icon"><i data-lucide="siren"></i></div>
             <div class="ms-content">
               <div class="ms-value" style="color:var(--red)" id="stat-stock-ruptures">0</div>
               <div class="ms-label">Produits en rupture</div>
@@ -650,7 +738,7 @@
         </div>
 
         <!-- ===== VÉRIFICATION PRIX PAR RÉFÉRENCE ===== -->
-        <div class="dash-section-title">🔍 Vérifier un produit par référence</div>
+        <div class="dash-section-title"><i data-lucide="search"></i> Vérifier un produit par référence</div>
         <div class="table-card" style="padding:20px 24px;margin-bottom:26px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px">
             <div style="font-size:12.5px;color:var(--text3);font-style:italic">Tapez la référence du produit pour voir prix d'achat (PMP), prix de vente, marge, stock et historique.</div>
@@ -658,13 +746,13 @@
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:stretch">
             <input class="form-input" id="dash-check-ref" list="dash-check-datalist" placeholder="Ex: V-001, C-002..." oninput="checkProduitPrix()" style="flex:1;min-width:200px;font-family:'JetBrains Mono',monospace;font-weight:600">
             <datalist id="dash-check-datalist"></datalist>
-            <button class="btn" onclick="document.getElementById('dash-check-ref').value=''; checkProduitPrix();" style="white-space:nowrap">✕ Effacer</button>
+            <button class="btn" onclick="document.getElementById('dash-check-ref').value=''; checkProduitPrix();" style="white-space:nowrap"><i data-lucide="x"></i> Effacer</button>
           </div>
           <div id="dash-check-result" style="margin-top:14px"></div>
         </div>
 
         <!-- ===== RECHERCHE PAR COLLECTION ===== -->
-        <div class="dash-section-title">🎨 Rechercher par collection</div>
+        <div class="dash-section-title"><i data-lucide="palette"></i> Rechercher par collection</div>
         <div class="table-card" style="padding:20px 24px;margin-bottom:26px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px">
             <div style="font-size:12.5px;color:var(--text3);font-style:italic">Filtrez vos produits par collection (Mariage 2026, Ramadan, Silver Line...). Choisissez dans la liste ou tapez le nom.</div>
@@ -675,38 +763,38 @@
             </select>
             <input class="form-input" id="dash-collection-input" list="dash-collection-datalist" placeholder="Ou tapez le nom..." oninput="renderDashCollection()" style="flex:1;min-width:200px">
             <datalist id="dash-collection-datalist"></datalist>
-            <button class="btn" onclick="document.getElementById('dash-collection-select').value=''; document.getElementById('dash-collection-input').value=''; renderDashCollection();" style="white-space:nowrap">✕ Effacer</button>
+            <button class="btn" onclick="document.getElementById('dash-collection-select').value=''; document.getElementById('dash-collection-input').value=''; renderDashCollection();" style="white-space:nowrap"><i data-lucide="x"></i> Effacer</button>
           </div>
           <div id="dash-collection-result" style="margin-top:14px"></div>
         </div>
 
         <!-- ===== GRAPHIQUES ===== -->
-        <div class="dash-section-title" style="margin-top:10px">📊 Statistiques visuelles</div>
+        <div class="dash-section-title" style="margin-top:10px"><i data-lucide="chart-column"></i> Statistiques visuelles</div>
         <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:24px">
           <div class="table-card" style="padding:16px">
-            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">📈 Évolution mensuelle du CA (12 derniers mois)</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px"><i data-lucide="trending-up"></i> Évolution mensuelle du CA (12 derniers mois)</div>
             <canvas id="chart-ca-mensuel" style="max-height:240px"></canvas>
           </div>
           <div class="table-card" style="padding:16px">
-            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">🎯 Répartition par famille</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px"><i data-lucide="chart-pie"></i> Répartition par famille</div>
             <canvas id="chart-famille" style="max-height:240px"></canvas>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px">
           <div class="table-card" style="padding:16px">
-            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">🏆 Top 10 produits vendus</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px"><i data-lucide="trophy"></i> Top 10 produits vendus</div>
             <canvas id="chart-top-produits" style="max-height:280px"></canvas>
           </div>
           <div class="table-card" style="padding:16px">
-            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">👑 Top 10 clients</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px"><i data-lucide="crown"></i> Top 10 clients</div>
             <canvas id="chart-top-clients" style="max-height:280px"></canvas>
           </div>
         </div>
 
-        <div class="dash-section-title" style="margin-top:10px">📋 Activité récente</div>
+        <div class="dash-section-title" style="margin-top:10px"><i data-lucide="clipboard-list"></i> Activité récente</div>
         <div class="tab-bar">
           <div class="tab active" onclick="switchDashTab('recent', this)">Derniers documents</div>
-          <div class="tab" onclick="switchDashTab('clients-top', this)">🏆 Meilleurs clients</div>
+          <div class="tab" onclick="switchDashTab('clients-top', this)"><i data-lucide="trophy"></i> Meilleurs clients</div>
         </div>
 
         <div id="dash-recent">
@@ -715,7 +803,7 @@
               <table>
                 <thead><tr><th>Type</th><th>Numéro</th><th>Client</th><th>Date</th><th>Montant TTC</th><th>Statut</th><th></th></tr></thead>
                 <tbody id="dash-table-body">
-                  <tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">Aucun document</div><div class="empty-state-sub">Créez votre premier devis ou facture</div></div></td></tr>
+                  <tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="clipboard-list"></i></div><div class="empty-state-title">Aucun document</div><div class="empty-state-sub">Créez votre premier devis ou facture</div></div></td></tr>
                 </tbody>
               </table>
             </div>
@@ -828,15 +916,15 @@
           </div>
           <select class="filter-select" id="filter-fourn-type" onchange="renderFournisseurs()">
             <option value="">Tous types</option>
-            <option value="import">🌍 Import (étranger)</option>
-            <option value="local">🇲🇦 Local (Maroc)</option>
+            <option value="import">Import (étranger)</option>
+            <option value="local">Local (Maroc)</option>
           </select>
           <button class="btn btn-primary btn-sm" onclick="showFournisseurModal()" style="margin-left:auto">+ Nouveau fournisseur</button>
         </div>
         <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
           <div class="stat-card"><div class="stat-label">Fournisseurs</div><div class="stat-value" id="fourn-total">0</div><div class="stat-sub">tous types</div></div>
-          <div class="stat-card"><div class="stat-label">Imports 🌍</div><div class="stat-value" id="fourn-import" style="color:var(--accent)">0</div><div class="stat-sub">étrangers</div></div>
-          <div class="stat-card"><div class="stat-label">Locaux 🇲🇦</div><div class="stat-value" id="fourn-local" style="color:var(--red)">0</div><div class="stat-sub">Maroc</div></div>
+          <div class="stat-card"><div class="stat-label">Imports <i data-lucide="globe"></i></div><div class="stat-value" id="fourn-import" style="color:var(--accent)">0</div><div class="stat-sub">étrangers</div></div>
+          <div class="stat-card"><div class="stat-label">Locaux <i data-lucide="store"></i></div><div class="stat-value" id="fourn-local" style="color:var(--red)">0</div><div class="stat-sub">Maroc</div></div>
           <div class="stat-card"><div class="stat-label">Total achats HT</div><div class="stat-value" id="fourn-total-achats">0 MAD</div><div class="stat-sub">cumul</div></div>
         </div>
         <div class="table-card">
@@ -852,13 +940,13 @@
       <!-- TRÉSORERIE -->
       <div class="page" id="page-tresorerie">
         <div style="font-size:13px;color:var(--text2);background:var(--accent-light);border-left:3px solid var(--accent);padding:10px 14px;border-radius:var(--radius-sm);margin-bottom:18px;line-height:1.6">
-          💰 <strong>Trésorerie</strong> — Suivi de ce que vos clients doivent (créances) et de ce que vous devez à vos fournisseurs (dettes). Échéancier visuel pour anticiper vos rentrées et sorties.
+          <i data-lucide="wallet"></i> <strong>Trésorerie</strong> — Suivi de ce que vos clients doivent (créances) et de ce que vous devez à vos fournisseurs (dettes). Échéancier visuel pour anticiper vos rentrées et sorties.
         </div>
         <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
-          <div class="stat-card" style="border-left:4px solid var(--green)"><div class="stat-label">💵 À recevoir clients</div><div class="stat-value" style="color:var(--green)" id="tres-creances">0 MAD</div><div class="stat-sub" id="tres-creances-sub">0 facture(s) impayée(s)</div></div>
-          <div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-label">💸 À payer fournisseurs</div><div class="stat-value" style="color:var(--red)" id="tres-dettes">0 MAD</div><div class="stat-sub" id="tres-dettes-sub">0 achat(s) à régler</div></div>
+          <div class="stat-card" style="border-left:4px solid var(--green)"><div class="stat-label"><i data-lucide="banknote"></i> À recevoir clients</div><div class="stat-value" style="color:var(--green)" id="tres-creances">0 MAD</div><div class="stat-sub" id="tres-creances-sub">0 facture(s) impayée(s)</div></div>
+          <div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-label"><i data-lucide="hand-coins"></i> À payer fournisseurs</div><div class="stat-value" style="color:var(--red)" id="tres-dettes">0 MAD</div><div class="stat-sub" id="tres-dettes-sub">0 achat(s) à régler</div></div>
           <div class="stat-card"><div class="stat-label">Solde net</div><div class="stat-value" id="tres-solde">0 MAD</div><div class="stat-sub">créances - dettes</div></div>
-          <div class="stat-card"><div class="stat-label">📅 Échéances ce mois</div><div class="stat-value" id="tres-mois">0 MAD</div><div class="stat-sub" id="tres-mois-sub">à recevoir/payer</div></div>
+          <div class="stat-card"><div class="stat-label"><i data-lucide="calendar"></i> Échéances ce mois</div><div class="stat-value" id="tres-mois">0 MAD</div><div class="stat-sub" id="tres-mois-sub">à recevoir/payer</div></div>
         </div>
 
         <!-- 2 colonnes : Créances + Dettes -->
@@ -866,7 +954,7 @@
           <!-- Créances clients -->
           <div class="table-card" style="padding:16px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <div style="font-size:14px;font-weight:700;color:var(--green)">💵 Créances clients (à recevoir)</div>
+              <div style="font-size:14px;font-weight:700;color:var(--green)"><i data-lucide="banknote"></i> Créances clients (à recevoir)</div>
               <select class="filter-select" id="filter-tres-creances" onchange="renderTresorerie()" style="font-size:12px">
                 <option value="">Toutes</option>
                 <option value="retard">En retard</option>
@@ -885,11 +973,11 @@
           <!-- Dettes fournisseurs -->
           <div class="table-card" style="padding:16px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <div style="font-size:14px;font-weight:700;color:var(--red)">💸 Dettes fournisseurs (à payer)</div>
+              <div style="font-size:14px;font-weight:700;color:var(--red)"><i data-lucide="hand-coins"></i> Dettes fournisseurs (à payer)</div>
               <select class="filter-select" id="filter-tres-dettes" onchange="renderTresorerie()" style="font-size:12px">
                 <option value="">Toutes</option>
-                <option value="import">🌍 Import</option>
-                <option value="local">🇲🇦 Local</option>
+                <option value="import">Import</option>
+                <option value="local">Local</option>
               </select>
             </div>
             <div class="table-wrap">
@@ -913,7 +1001,7 @@
             <div id="logo-preview-wrap" style="width:160px;height:110px;border:2px dashed var(--border);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;background:var(--surface2);flex-shrink:0;overflow:hidden;position:relative;cursor:pointer;transition:border-color 0.15s" onclick="document.getElementById('logo-file-input').click()" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
               <img id="logo-preview-img" src="" alt="" style="max-width:95%;max-height:95%;object-fit:contain;display:none">
               <div id="logo-placeholder" style="text-align:center;color:var(--text3);pointer-events:none">
-                <div style="font-size:30px;margin-bottom:6px">🖼️</div>
+                <div style="font-size:30px;margin-bottom:6px"><i data-lucide="image"></i></div>
                 <div style="font-size:11px;font-weight:500;line-height:1.5">Cliquer pour<br>ajouter votre logo</div>
               </div>
             </div>
@@ -923,10 +1011,10 @@
                 <span style="font-size:12px;color:var(--text3)">Formats acceptés : PNG, JPG, GIF, WebP — Taille max : 2 Mo — Recommandé : 300×100 px</span>
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button class="btn btn-primary btn-sm" onclick="document.getElementById('logo-file-input').click()">📁 Choisir un logo</button>
-                <button class="btn btn-sm" onclick="removeLogo()" id="logo-remove-btn" style="display:none;border-color:#FCA5A5;color:var(--red)">✕ Supprimer le logo</button>
+                <button class="btn btn-primary btn-sm" onclick="document.getElementById('logo-file-input').click()"><i data-lucide="folder"></i> Choisir un logo</button>
+                <button class="btn btn-sm" onclick="removeLogo()" id="logo-remove-btn" style="display:none;border-color:#FCA5A5;color:var(--red)"><i data-lucide="x"></i> Supprimer le logo</button>
               </div>
-              <div id="logo-status" style="margin-top:10px;font-size:12px;color:var(--green);display:none">✓ Logo chargé avec succès</div>
+              <div id="logo-status" style="margin-top:10px;font-size:12px;color:var(--green);display:none"><i data-lucide="check"></i> Logo chargé avec succès</div>
             </div>
           </div>
 
@@ -1002,7 +1090,7 @@
           <div id="familles-container" style="display:flex;flex-direction:column;gap:14px;margin-bottom:14px"></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn btn-sm" onclick="addFamille()" style="border-color:var(--accent);color:var(--accent)">+ Ajouter une famille</button>
-            <button class="btn btn-sm" onclick="resetFamilles()" style="border-color:#FCA5A5;color:var(--red)" title="Restaurer les 4 familles par défaut">↻ Réinitialiser aux valeurs par défaut</button>
+            <button class="btn btn-sm" onclick="resetFamilles()" style="border-color:#FCA5A5;color:var(--red)" title="Restaurer les 4 familles par défaut"><i data-lucide="rotate-ccw"></i> Réinitialiser aux valeurs par défaut</button>
           </div>
 
           <div class="sep"></div>
@@ -1022,18 +1110,18 @@
             </div>
           </div>
           <div class="sep"></div>
-          <div class="section-title">🔒 Code de sécurité</div>
+          <div class="section-title"><i data-lucide="lock"></i> Code de sécurité</div>
           <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.7">
             Ce code protège les opérations destructives (réinitialisation stocks/mouvements). Par défaut : <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace">06121984</code>.
             <strong>Pensez à le personnaliser</strong> et à le noter dans un endroit sûr.
           </div>
-          <button class="btn btn-sm" onclick="changerCodeSecurite()" style="border-color:var(--accent);color:var(--accent)">🔑 Modifier le code de sécurité</button>
+          <button class="btn btn-sm" onclick="changerCodeSecurite()" style="border-color:var(--accent);color:var(--accent)"><i data-lucide="key-round"></i> Modifier le code de sécurité</button>
 
           <div class="sep"></div>
           <div class="section-title">Données & Maintenance</div>
           <div style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.7">
             Actions de remise à zéro. <strong style="color:var(--red)">Attention</strong> : ces opérations sont irréversibles. Pensez à exporter vos données avant si nécessaire.<br>
-            🔒 Ces actions sont protégées par un <strong>code de sécurité</strong>.
+            <i data-lucide="lock"></i> Ces actions sont protégées par un <strong>code de sécurité</strong>.
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px">
             <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2)">
@@ -1074,7 +1162,7 @@
           <select class="filter-select" id="filter-produit-cat" onchange="renderProduits()">
             <option value="">Toutes les familles</option>
           </select>
-          <button class="btn btn-sm" onclick="showImportProduitsModal()" style="border-color:var(--accent);color:var(--accent)" title="Importer plusieurs produits depuis un fichier CSV/Excel">📥 Importer CSV</button>
+          <button class="btn btn-sm" onclick="showImportProduitsModal()" style="border-color:var(--accent);color:var(--accent)" title="Importer plusieurs produits depuis un fichier CSV/Excel"><i data-lucide="download"></i> Importer CSV</button>
           <button class="btn btn-primary btn-sm" onclick="showProduitModal()">+ Nouveau produit</button>
         </div>
         <div class="table-card">
@@ -1096,21 +1184,21 @@
           </div>
           <select class="filter-select" id="filter-imp-type" onchange="renderImportations()">
             <option value="">Tous les types</option>
-            <option value="import">🌍 Importations</option>
-            <option value="local">🇲🇦 Achats locaux</option>
+            <option value="import">Importations</option>
+            <option value="local">Achats locaux</option>
           </select>
           <select class="filter-select" id="filter-imp-annee" onchange="renderImportations()">
             <option value="">Toutes les années</option>
           </select>
           <div style="display:flex;gap:6px;margin-left:auto">
-            <button class="btn btn-sm" onclick="showImportationModal('local')" style="border-color:#FECACA;color:var(--red);background:var(--red-bg)">🇲🇦 + Achat local</button>
-            <button class="btn btn-primary btn-sm" onclick="showImportationModal('import')">🌍 + Importation</button>
+            <button class="btn btn-sm" onclick="showImportationModal('local')" style="border-color:#FECACA;color:var(--red);background:var(--red-bg)"><i data-lucide="store"></i> + Achat local</button>
+            <button class="btn btn-primary btn-sm" onclick="showImportationModal('import')"><i data-lucide="globe"></i> + Importation</button>
           </div>
         </div>
         <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
           <div class="stat-card"><div class="stat-label">Achats totaux</div><div class="stat-value" id="imp-total">0</div><div class="stat-sub" id="imp-total-sub">import + local</div></div>
-          <div class="stat-card"><div class="stat-label">Importations 🌍</div><div class="stat-value" id="imp-nb-import" style="color:var(--accent)">0</div><div class="stat-sub" id="imp-nb-import-sub">0 MAD</div></div>
-          <div class="stat-card"><div class="stat-label">Achats locaux 🇲🇦</div><div class="stat-value" id="imp-nb-local" style="color:var(--red)">0</div><div class="stat-sub" id="imp-nb-local-sub">0 MAD</div></div>
+          <div class="stat-card"><div class="stat-label">Importations <i data-lucide="globe"></i></div><div class="stat-value" id="imp-nb-import" style="color:var(--accent)">0</div><div class="stat-sub" id="imp-nb-import-sub">0 MAD</div></div>
+          <div class="stat-card"><div class="stat-label">Achats locaux <i data-lucide="store"></i></div><div class="stat-value" id="imp-nb-local" style="color:var(--red)">0</div><div class="stat-sub" id="imp-nb-local-sub">0 MAD</div></div>
           <div class="stat-card"><div class="stat-label">Valeur achat HT</div><div class="stat-value" id="imp-valeur">0 MAD</div><div class="stat-sub">cumul HT total</div></div>
         </div>
         <div class="table-card">
@@ -1151,16 +1239,16 @@
             <option value="rupture">Rupture</option>
           </select>
           <div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap">
-            <button class="btn btn-sm" onclick="exportStockPDF()" style="border-color:var(--accent);color:var(--accent)" title="Exporter l'état actuel du stock en PDF">🖨️ PDF / Imprimer</button>
-            <button class="btn btn-sm" onclick="ouvrirExportMouvements()" style="border-color:var(--accent);color:var(--accent)" title="Imprimer les entrées/sorties sur une période choisie">📅 Mouvements par période</button>
-            <button class="btn btn-sm" onclick="showMvtModal('sortie')" style="border-color:#FECACA;color:var(--red);background:var(--red-bg)" title="Casse, perte, retour fournisseur...">↓ Sortie manuelle</button>
-            <button class="btn btn-sm" onclick="showMvtModal('transfert')" title="Déplacer du stock entre entrepôts">⇄ Transfert</button>
-            <button class="btn btn-sm" onclick="showMvtModal('ajustement')" title="Corriger après inventaire physique">✎ Ajustement</button>
-            <button class="btn btn-primary btn-sm" onclick="goPage('importations', document.querySelector('[onclick*=importations]'))">📦 Achats</button>
+            <button class="btn btn-sm" onclick="exportStockPDF()" style="border-color:var(--accent);color:var(--accent)" title="Exporter l'état actuel du stock en PDF"><i data-lucide="printer"></i> PDF / Imprimer</button>
+            <button class="btn btn-sm" onclick="ouvrirExportMouvements()" style="border-color:var(--accent);color:var(--accent)" title="Imprimer les entrées/sorties sur une période choisie"><i data-lucide="calendar"></i> Mouvements par période</button>
+            <button class="btn btn-sm" onclick="showMvtModal('sortie')" style="border-color:#FECACA;color:var(--red);background:var(--red-bg)" title="Casse, perte, retour fournisseur..."><i data-lucide="arrow-down"></i> Sortie manuelle</button>
+            <button class="btn btn-sm" onclick="showMvtModal('transfert')" title="Déplacer du stock entre entrepôts"><i data-lucide="arrow-left-right"></i> Transfert</button>
+            <button class="btn btn-sm" onclick="showMvtModal('ajustement')" title="Corriger après inventaire physique"><i data-lucide="pencil"></i> Ajustement</button>
+            <button class="btn btn-primary btn-sm" onclick="goPage('importations', document.querySelector('[onclick*=importations]'))"><i data-lucide="package"></i> Achats</button>
           </div>
         </div>
         <div style="font-size:12px;color:var(--text2);background:var(--accent-light);border-left:3px solid var(--accent);padding:9px 14px;border-radius:var(--radius-sm);margin-bottom:14px;line-height:1.6">
-          💡 <strong>Pour entrer du stock</strong>, créez une <strong>Importation</strong> ou un <strong>Achat local</strong> dans la page <strong>Achats</strong>. Le PMP sera recalculé automatiquement et les mouvements seront tracés. La page Stocks sert uniquement à consulter l'état actuel et faire des sorties/ajustements ponctuels.
+          <i data-lucide="lightbulb"></i> <strong>Pour entrer du stock</strong>, créez une <strong>Importation</strong> ou un <strong>Achat local</strong> dans la page <strong>Achats</strong>. Le PMP sera recalculé automatiquement et les mouvements seront tracés. La page Stocks sert uniquement à consulter l'état actuel et faire des sorties/ajustements ponctuels.
         </div>
         <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
           <div class="stat-card"><div class="stat-label">Références</div><div class="stat-value" id="st-total-refs">0</div><div class="stat-sub">produits</div></div>
@@ -1189,8 +1277,8 @@
             <option value="">Tous les types</option>
             <option value="entree">↑ Entrée</option>
             <option value="sortie">↓ Sortie</option>
-            <option value="transfert">⇄ Transfert</option>
-            <option value="ajustement">✎ Ajustement</option>
+            <option value="transfert">Transfert</option>
+            <option value="ajustement">Ajustement</option>
           </select>
           <select class="filter-select" id="filter-mvt-produit" onchange="renderMouvements()">
             <option value="">Tous les produits</option>
@@ -1200,11 +1288,11 @@
           </select>
           <input class="form-input" type="date" id="filter-mvt-date-from" onchange="renderMouvements()" title="Date début" style="max-width:140px;font-size:12px">
           <input class="form-input" type="date" id="filter-mvt-date-to" onchange="renderMouvements()" title="Date fin" style="max-width:140px;font-size:12px">
-          <button class="btn btn-sm" onclick="resetFiltresMvt()" title="Effacer tous les filtres">✕ Filtres</button>
+          <button class="btn btn-sm" onclick="resetFiltresMvt()" title="Effacer tous les filtres"><i data-lucide="x"></i> Filtres</button>
           <div style="display:flex;gap:8px;margin-left:auto;align-items:center">
-            <span style="font-size:11px;color:var(--text3);font-style:italic">📖 Journal de consultation — agissez depuis Stocks ou Achats</span>
-            <button class="btn btn-sm" onclick="goPage('stocks', document.querySelector('[onclick*=stocks]'))">📊 Stocks</button>
-            <button class="btn btn-sm btn-primary" onclick="goPage('importations', document.querySelector('[onclick*=importations]'))">📦 Achats</button>
+            <span style="font-size:11px;color:var(--text3);font-style:italic"><i data-lucide="book-open"></i> Journal de consultation — agissez depuis Stocks ou Achats</span>
+            <button class="btn btn-sm" onclick="goPage('stocks', document.querySelector('[onclick*=stocks]'))"><i data-lucide="chart-column"></i> Stocks</button>
+            <button class="btn btn-sm btn-primary" onclick="goPage('importations', document.querySelector('[onclick*=importations]'))"><i data-lucide="package"></i> Achats</button>
           </div>
         </div>
         <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px">
@@ -1234,22 +1322,22 @@
   <div class="modal">
     <div class="modal-header">
       <span class="modal-title">Choisir le type de document</span>
-      <button class="modal-close" onclick="closeModal('modal-type')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-type')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
         <div onclick="openDocModal('devis')" style="border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-light)'" onmouseout="this.style.borderColor='var(--border)';this.style.background=''">
-          <div style="font-size:28px;margin-bottom:8px;">📄</div>
+          <div style="font-size:28px;margin-bottom:8px;"><i data-lucide="file-text"></i></div>
           <div style="font-weight:700;font-size:14px;color:var(--text)">Devis</div>
           <div style="font-size:12px;color:var(--text3);margin-top:4px;">Proposition commerciale</div>
         </div>
         <div onclick="openDocModal('facture')" style="border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-light)'" onmouseout="this.style.borderColor='var(--border)';this.style.background=''">
-          <div style="font-size:28px;margin-bottom:8px;">🧾</div>
+          <div style="font-size:28px;margin-bottom:8px;"><i data-lucide="receipt"></i></div>
           <div style="font-weight:700;font-size:14px;color:var(--text)">Facture</div>
           <div style="font-size:12px;color:var(--text3);margin-top:4px;">Facture avec TVA</div>
         </div>
         <div onclick="openDocModal('livraison')" style="border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-light)'" onmouseout="this.style.borderColor='var(--border)';this.style.background=''">
-          <div style="font-size:28px;margin-bottom:8px;">🚚</div>
+          <div style="font-size:28px;margin-bottom:8px;"><i data-lucide="truck"></i></div>
           <div style="font-weight:700;font-size:14px;color:var(--text)">Bon de livraison</div>
           <div style="font-size:12px;color:var(--text3);margin-top:4px;">Bon de livraison</div>
         </div>
@@ -1263,7 +1351,7 @@
   <div class="modal modal-lg">
     <div class="modal-header">
       <span class="modal-title" id="modal-doc-title">Nouveau devis</span>
-      <button class="modal-close" onclick="closeModal('modal-doc')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-doc')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="doc-id">
@@ -1299,12 +1387,14 @@
       <div class="sep"></div>
       <div class="section-title">Lignes du document</div>
       <div style="font-size:11.5px;color:var(--text2);background:var(--accent-light);padding:8px 12px;border-radius:var(--radius-sm);margin-bottom:10px;line-height:1.6">
-        💡 <strong>Saisie par référence</strong> : tapez la référence du produit (ex: V-001) et la désignation, la couleur et le prix se remplissent automatiquement.
+        <i data-lucide="lightbulb"></i> <strong>Saisie par référence</strong> : tapez la référence du produit (ex: V-001) et la désignation, la couleur et le prix se remplissent automatiquement.
       </div>
+      <div class="lines-scroll">
       <div class="lines-header">
         <span>Réf. *</span><span>Désignation (auto)</span><span>Qté</span><span>P.U. HT</span><span>Remise %</span><span>Total HT</span><span></span>
       </div>
       <div id="lines-container"></div>
+      </div>
       <button class="add-line-btn" onclick="addLine()">+ Ajouter une ligne</button>
 
       <!-- Remise globale -->
@@ -1365,7 +1455,7 @@
   <div class="modal modal-lg">
     <div class="modal-header">
       <span class="modal-title" id="preview-title">Aperçu du document</span>
-      <button class="modal-close" onclick="closeModal('modal-preview')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-preview')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <div id="print-area" class="inv-preview"></div>
@@ -1382,7 +1472,7 @@
   <div class="modal">
     <div class="modal-header">
       <span class="modal-title" id="modal-client-title">Nouveau client</span>
-      <button class="modal-close" onclick="closeModal('modal-client')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-client')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="client-id">
@@ -1432,15 +1522,15 @@
 <div class="modal-overlay" id="modal-client-detail" style="display:none" onclick="if(event.target===this)closeModal('modal-client-detail')">
   <div class="modal modal-lg">
     <div class="modal-header">
-      <span class="modal-title">👁 Fiche client détaillée</span>
-      <button class="modal-close" onclick="closeModal('modal-client-detail')">✕</button>
+      <span class="modal-title"><i data-lucide="eye"></i> Fiche client détaillée</span>
+      <button class="modal-close" onclick="closeModal('modal-client-detail')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body" id="modal-client-detail-body">
       <!-- contenu dynamique injecté par afficherDetailClient() -->
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-client-detail')">Fermer</button>
-      <button class="btn btn-primary" onclick="exportPDFFicheClient()">📥 Exporter PDF</button>
+      <button class="btn btn-primary" onclick="exportPDFFicheClient()"><i data-lucide="download"></i> Exporter PDF</button>
     </div>
   </div>
 </div>
@@ -1449,15 +1539,15 @@
 <div class="modal-overlay" id="modal-fournisseur-detail" style="display:none" onclick="if(event.target===this)closeModal('modal-fournisseur-detail')">
   <div class="modal modal-lg">
     <div class="modal-header">
-      <span class="modal-title">👁 Fiche fournisseur détaillée</span>
-      <button class="modal-close" onclick="closeModal('modal-fournisseur-detail')">✕</button>
+      <span class="modal-title"><i data-lucide="eye"></i> Fiche fournisseur détaillée</span>
+      <button class="modal-close" onclick="closeModal('modal-fournisseur-detail')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body" id="modal-fournisseur-detail-body">
       <!-- contenu dynamique injecté par afficherDetailFournisseur() -->
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-fournisseur-detail')">Fermer</button>
-      <button class="btn btn-primary" onclick="exportPDFFicheFournisseur()">📥 Exporter PDF</button>
+      <button class="btn btn-primary" onclick="exportPDFFicheFournisseur()"><i data-lucide="download"></i> Exporter PDF</button>
     </div>
   </div>
 </div>
@@ -1467,15 +1557,15 @@
   <div class="modal modal-lg">
     <div class="modal-header">
       <span class="modal-title" id="modal-fournisseur-title">Nouveau fournisseur</span>
-      <button class="modal-close" onclick="closeModal('modal-fournisseur')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-fournisseur')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="fournisseur-id">
 
       <!-- Type fournisseur (switch) -->
       <div style="display:flex;gap:8px;margin-bottom:14px;background:var(--surface2);padding:6px;border-radius:var(--radius-sm);border:1px solid var(--border)">
-        <button type="button" class="btn btn-sm" id="f-type-import" onclick="setFournType('import')" style="flex:1">🌍 Fournisseur étranger (Import)</button>
-        <button type="button" class="btn btn-sm" id="f-type-local" onclick="setFournType('local')" style="flex:1">🇲🇦 Fournisseur local (Maroc)</button>
+        <button type="button" class="btn btn-sm" id="f-type-import" onclick="setFournType('import')" style="flex:1"><i data-lucide="globe"></i> Fournisseur étranger (Import)</button>
+        <button type="button" class="btn btn-sm" id="f-type-local" onclick="setFournType('local')" style="flex:1"><i data-lucide="store"></i> Fournisseur local (Maroc)</button>
       </div>
       <input type="hidden" id="f-type-value" value="import">
 
@@ -1544,8 +1634,8 @@
 <div class="modal-overlay" id="modal-reglement" style="display:none" onclick="if(event.target===this)closeModal('modal-reglement')">
   <div class="modal modal-lg">
     <div class="modal-header">
-      <span class="modal-title" id="reg-modal-title">💳 Règlements</span>
-      <button class="modal-close" onclick="closeModal('modal-reglement')">✕</button>
+      <span class="modal-title" id="reg-modal-title"><i data-lucide="credit-card"></i> Règlements</span>
+      <button class="modal-close" onclick="closeModal('modal-reglement')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="reg-doc-id">
@@ -1573,7 +1663,7 @@
       <!-- Nouveau règlement -->
       <div class="section-title">+ Ajouter un règlement</div>
       <div style="background:#EFF6FF;border-left:3px solid #2563EB;padding:10px 14px;border-radius:6px;margin-bottom:14px;font-size:12.5px;color:#1E3A8A;line-height:1.6">
-        💡 <strong>Astuce :</strong> Vous pouvez ajouter <strong>plusieurs règlements</strong> pour la même facture (acompte + solde, plusieurs virements à dates différentes, mix virement + chèque + espèces...). Chaque règlement a sa propre date, son mode et son montant.
+        <i data-lucide="lightbulb"></i> <strong>Astuce :</strong> Vous pouvez ajouter <strong>plusieurs règlements</strong> pour la même facture (acompte + solde, plusieurs virements à dates différentes, mix virement + chèque + espèces...). Chaque règlement a sa propre date, son mode et son montant.
       </div>
       <div class="form-grid">
         <div class="form-group">
@@ -1587,11 +1677,11 @@
         <div class="form-group">
           <label class="form-label">Mode de règlement *</label>
           <select class="form-input" id="reg-mode" onchange="onRegModeChange()">
-            <option value="Espèces">💵 Espèces</option>
-            <option value="Chèque">📝 Chèque</option>
-            <option value="Virement bancaire">🏦 Virement bancaire</option>
-            <option value="Traite">📜 Traite (LCN)</option>
-            <option value="Carte bancaire">💳 Carte bancaire</option>
+            <option value="Espèces">Espèces</option>
+            <option value="Chèque">Chèque</option>
+            <option value="Virement bancaire">Virement bancaire</option>
+            <option value="Traite">Traite (LCN)</option>
+            <option value="Carte bancaire">Carte bancaire</option>
           </select>
         </div>
         <div class="form-group">
@@ -1611,13 +1701,13 @@
         <div style="font-size:11.5px;color:var(--text3);font-style:italic">
           Après avoir enregistré, le formulaire se réinitialise pour ajouter le règlement suivant.
         </div>
-        <button class="btn btn-primary" onclick="saveReglement()">💾 Enregistrer ce règlement</button>
+        <button class="btn btn-primary" onclick="saveReglement()"><i data-lucide="save"></i> Enregistrer ce règlement</button>
       </div>
 
       <div class="sep"></div>
 
       <!-- Historique des règlements -->
-      <div class="section-title">📋 Historique des règlements</div>
+      <div class="section-title"><i data-lucide="clipboard-list"></i> Historique des règlements</div>
       <div class="table-card">
         <div class="table-wrap">
           <table>
@@ -1640,7 +1730,7 @@
   <div class="modal modal-lg">
     <div class="modal-header">
       <span class="modal-title" id="modal-produit-title">Nouveau produit</span>
-      <button class="modal-close" onclick="closeModal('modal-produit')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-produit')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="produit-id">
@@ -1757,20 +1847,20 @@
 <div class="modal-overlay" id="modal-rapports" style="display:none" onclick="if(event.target===this)closeModal('modal-rapports')">
   <div class="modal modal-lg">
     <div class="modal-header">
-      <span class="modal-title">📊 Rapports comptable</span>
-      <button class="modal-close" onclick="closeModal('modal-rapports')">✕</button>
+      <span class="modal-title"><i data-lucide="chart-column"></i> Rapports comptable</span>
+      <button class="modal-close" onclick="closeModal('modal-rapports')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
 
       <!-- Sélecteur de période commune -->
       <div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:20px">
-        <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px">📅 Période à analyser</div>
+        <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px"><i data-lucide="calendar"></i> Période à analyser</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-          <button type="button" class="btn btn-sm" onclick="setRapportPeriode('mois')" id="btn-per-mois" style="background:var(--accent);color:white;border-color:var(--accent)">📅 Mois en cours</button>
-          <button type="button" class="btn btn-sm" onclick="setRapportPeriode('mois-precedent')" id="btn-per-mois-precedent">← Mois précédent</button>
-          <button type="button" class="btn btn-sm" onclick="setRapportPeriode('trimestre')" id="btn-per-trimestre">📆 Trimestre</button>
-          <button type="button" class="btn btn-sm" onclick="setRapportPeriode('annee')" id="btn-per-annee">📅 Année en cours</button>
-          <button type="button" class="btn btn-sm" onclick="setRapportPeriode('annee-precedente')" id="btn-per-annee-precedente">← Année précédente</button>
+          <button type="button" class="btn btn-sm" onclick="setRapportPeriode('mois')" id="btn-per-mois" style="background:var(--accent);color:white;border-color:var(--accent)"><i data-lucide="calendar"></i> Mois en cours</button>
+          <button type="button" class="btn btn-sm" onclick="setRapportPeriode('mois-precedent')" id="btn-per-mois-precedent"><i data-lucide="arrow-left"></i> Mois précédent</button>
+          <button type="button" class="btn btn-sm" onclick="setRapportPeriode('trimestre')" id="btn-per-trimestre"><i data-lucide="calendar-range"></i> Trimestre</button>
+          <button type="button" class="btn btn-sm" onclick="setRapportPeriode('annee')" id="btn-per-annee"><i data-lucide="calendar"></i> Année en cours</button>
+          <button type="button" class="btn btn-sm" onclick="setRapportPeriode('annee-precedente')" id="btn-per-annee-precedente"><i data-lucide="arrow-left"></i> Année précédente</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div>
@@ -1790,89 +1880,89 @@
         <!-- Journal des ventes -->
         <div style="border:2px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--surface)">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <div style="font-size:22px">📈</div>
+            <div style="font-size:22px"><i data-lucide="trending-up"></i></div>
             <div style="font-size:14px;font-weight:700;color:var(--text)">Journal des ventes</div>
           </div>
           <div style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-bottom:12px">
             Toutes les factures de la période avec HT, TVA, TTC. Pour la déclaration TVA collectée.
           </div>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-sm btn-primary" onclick="genererJournalVentes('pdf')" style="flex:1">📄 PDF</button>
-            <button class="btn btn-sm" onclick="genererJournalVentes('csv')" style="flex:1;border-color:var(--green);color:var(--green)">📊 Excel</button>
+            <button class="btn btn-sm btn-primary" onclick="genererJournalVentes('pdf')" style="flex:1"><i data-lucide="file-text"></i> PDF</button>
+            <button class="btn btn-sm" onclick="genererJournalVentes('csv')" style="flex:1;border-color:var(--green);color:var(--green)"><i data-lucide="chart-column"></i> Excel</button>
           </div>
         </div>
 
         <!-- Journal des achats -->
         <div style="border:2px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--surface)">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <div style="font-size:22px">🛒</div>
+            <div style="font-size:22px"><i data-lucide="shopping-cart"></i></div>
             <div style="font-size:14px;font-weight:700;color:var(--text)">Journal des achats</div>
           </div>
           <div style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-bottom:12px">
             Toutes les importations et achats locaux avec montants HT/TVA. Pour la TVA déductible.
           </div>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-sm btn-primary" onclick="genererJournalAchats('pdf')" style="flex:1">📄 PDF</button>
-            <button class="btn btn-sm" onclick="genererJournalAchats('csv')" style="flex:1;border-color:var(--green);color:var(--green)">📊 Excel</button>
+            <button class="btn btn-sm btn-primary" onclick="genererJournalAchats('pdf')" style="flex:1"><i data-lucide="file-text"></i> PDF</button>
+            <button class="btn btn-sm" onclick="genererJournalAchats('csv')" style="flex:1;border-color:var(--green);color:var(--green)"><i data-lucide="chart-column"></i> Excel</button>
           </div>
         </div>
 
         <!-- Récapitulatif TVA -->
         <div style="border:2px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--surface)">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <div style="font-size:22px">💰</div>
+            <div style="font-size:22px"><i data-lucide="wallet"></i></div>
             <div style="font-size:14px;font-weight:700;color:var(--text)">Récapitulatif TVA</div>
           </div>
           <div style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-bottom:12px">
             TVA collectée (ventes) - TVA déductible (achats) = TVA à reverser à l'État.
           </div>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-sm btn-primary" onclick="genererRecapTVA('pdf')" style="flex:1">📄 PDF</button>
+            <button class="btn btn-sm btn-primary" onclick="genererRecapTVA('pdf')" style="flex:1"><i data-lucide="file-text"></i> PDF</button>
           </div>
         </div>
 
         <!-- État des stocks -->
         <div style="border:2px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--surface)">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <div style="font-size:22px">📦</div>
+            <div style="font-size:22px"><i data-lucide="package"></i></div>
             <div style="font-size:14px;font-weight:700;color:var(--text)">État des stocks</div>
           </div>
           <div style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-bottom:12px">
             Liste complète produits + quantités + valorisation PMP. Pour l'inventaire annuel.
           </div>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-sm btn-primary" onclick="genererEtatStock('pdf')" style="flex:1">📄 PDF</button>
-            <button class="btn btn-sm" onclick="genererEtatStock('csv')" style="flex:1;border-color:var(--green);color:var(--green)">📊 Excel</button>
+            <button class="btn btn-sm btn-primary" onclick="genererEtatStock('pdf')" style="flex:1"><i data-lucide="file-text"></i> PDF</button>
+            <button class="btn btn-sm" onclick="genererEtatStock('csv')" style="flex:1;border-color:var(--green);color:var(--green)"><i data-lucide="chart-column"></i> Excel</button>
           </div>
         </div>
 
         <!-- Grand livre clients -->
         <div style="border:2px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--surface)">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <div style="font-size:22px">👥</div>
+            <div style="font-size:22px"><i data-lucide="users"></i></div>
             <div style="font-size:14px;font-weight:700;color:var(--text)">Grand livre clients</div>
           </div>
           <div style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-bottom:12px">
             Balance par client : CA total, payé, solde dû. Pour suivi créances.
           </div>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-sm btn-primary" onclick="genererGrandLivreClients('pdf')" style="flex:1">📄 PDF</button>
-            <button class="btn btn-sm" onclick="genererGrandLivreClients('csv')" style="flex:1;border-color:var(--green);color:var(--green)">📊 Excel</button>
+            <button class="btn btn-sm btn-primary" onclick="genererGrandLivreClients('pdf')" style="flex:1"><i data-lucide="file-text"></i> PDF</button>
+            <button class="btn btn-sm" onclick="genererGrandLivreClients('csv')" style="flex:1;border-color:var(--green);color:var(--green)"><i data-lucide="chart-column"></i> Excel</button>
           </div>
         </div>
 
         <!-- Grand livre fournisseurs -->
         <div style="border:2px solid var(--border);border-radius:var(--radius);padding:16px;background:var(--surface)">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <div style="font-size:22px">🚚</div>
+            <div style="font-size:22px"><i data-lucide="truck"></i></div>
             <div style="font-size:14px;font-weight:700;color:var(--text)">Grand livre fournisseurs</div>
           </div>
           <div style="font-size:11.5px;color:var(--text3);line-height:1.5;margin-bottom:12px">
             Balance par fournisseur : total achats, payé, dette. Pour suivi trésorerie.
           </div>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-sm btn-primary" onclick="genererGrandLivreFournisseurs('pdf')" style="flex:1">📄 PDF</button>
-            <button class="btn btn-sm" onclick="genererGrandLivreFournisseurs('csv')" style="flex:1;border-color:var(--green);color:var(--green)">📊 Excel</button>
+            <button class="btn btn-sm btn-primary" onclick="genererGrandLivreFournisseurs('pdf')" style="flex:1"><i data-lucide="file-text"></i> PDF</button>
+            <button class="btn btn-sm" onclick="genererGrandLivreFournisseurs('csv')" style="flex:1;border-color:var(--green);color:var(--green)"><i data-lucide="chart-column"></i> Excel</button>
           </div>
         </div>
 
@@ -1880,7 +1970,7 @@
 
       <!-- Info bas -->
       <div style="margin-top:16px;padding:12px 14px;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;font-size:12px;color:#0369A1;line-height:1.6">
-        💡 <strong>Astuce :</strong> Les rapports sont générés depuis vos données actuelles. Envoyez le PDF par email à votre comptable ou le fichier Excel pour qu'il puisse trier/filtrer.
+        <i data-lucide="lightbulb"></i> <strong>Astuce :</strong> Les rapports sont générés depuis vos données actuelles. Envoyez le PDF par email à votre comptable ou le fichier Excel pour qu'il puisse trier/filtrer.
       </div>
 
     </div>
@@ -1893,8 +1983,8 @@
 <div class="modal-overlay" id="modal-calc-tva" style="display:none" onclick="if(event.target===this)closeModal('modal-calc-tva')">
   <div class="modal" style="max-width:520px">
     <div class="modal-header">
-      <span class="modal-title">💰 Calculatrice TVA</span>
-      <button class="modal-close" onclick="closeModal('modal-calc-tva')">✕</button>
+      <span class="modal-title"><i data-lucide="wallet"></i> Calculatrice TVA</span>
+      <button class="modal-close" onclick="closeModal('modal-calc-tva')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
 
@@ -1936,7 +2026,7 @@
           <span style="font-size:13px;color:var(--text2);font-weight:500">Montant HT</span>
           <div style="display:flex;align-items:center;gap:10px">
             <span id="calc-tva-ht" style="font-size:16px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace">0,00 MAD</span>
-            <button type="button" onclick="copierMontantTVA('ht')" title="Copier" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:4px">📋</button>
+            <button type="button" onclick="copierMontantTVA('ht')" title="Copier" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:4px"><i data-lucide="clipboard-list"></i></button>
           </div>
         </div>
 
@@ -1944,7 +2034,7 @@
           <span style="font-size:13px;color:var(--text2);font-weight:500">TVA (<span id="calc-tva-taux-txt">20</span>%)</span>
           <div style="display:flex;align-items:center;gap:10px">
             <span id="calc-tva-tva" style="font-size:16px;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace">0,00 MAD</span>
-            <button type="button" onclick="copierMontantTVA('tva')" title="Copier" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:4px">📋</button>
+            <button type="button" onclick="copierMontantTVA('tva')" title="Copier" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:4px"><i data-lucide="clipboard-list"></i></button>
           </div>
         </div>
 
@@ -1952,18 +2042,18 @@
           <span style="font-size:14px;color:var(--text);font-weight:700">Montant TTC</span>
           <div style="display:flex;align-items:center;gap:10px">
             <span id="calc-tva-ttc" style="font-size:20px;font-weight:800;color:var(--green);font-family:'JetBrains Mono',monospace">0,00 MAD</span>
-            <button type="button" onclick="copierMontantTVA('ttc')" title="Copier" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:4px">📋</button>
+            <button type="button" onclick="copierMontantTVA('ttc')" title="Copier" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:4px"><i data-lucide="clipboard-list"></i></button>
           </div>
         </div>
       </div>
 
       <!-- Astuces -->
       <div style="font-size:11.5px;color:var(--text3);background:var(--accent-light);padding:10px 12px;border-radius:8px;line-height:1.6">
-        💡 <strong>Astuce :</strong> Cliquez sur 📋 pour copier une valeur. Raccourci pour ouvrir cette calculatrice : <code style="background:var(--surface);padding:2px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:11px">Ctrl+T</code>
+        <i data-lucide="lightbulb"></i> <strong>Astuce :</strong> Cliquez sur <i data-lucide="clipboard-list"></i> pour copier une valeur. Raccourci pour ouvrir cette calculatrice : <code style="background:var(--surface);padding:2px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:11px">Ctrl+T</code>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn" onclick="viderCalcTVA()">🔄 Réinitialiser</button>
+      <button class="btn" onclick="viderCalcTVA()"><i data-lucide="refresh-cw"></i> Réinitialiser</button>
       <button class="btn btn-primary" onclick="closeModal('modal-calc-tva')">Fermer</button>
     </div>
   </div>
@@ -1972,22 +2062,22 @@
 <div class="modal-overlay" id="modal-import-produits" style="display:none" onclick="if(event.target===this)closeModal('modal-import-produits')">
   <div class="modal modal-lg">
     <div class="modal-header">
-      <span class="modal-title">📥 Importer des produits depuis CSV</span>
-      <button class="modal-close" onclick="closeModal('modal-import-produits')">✕</button>
+      <span class="modal-title"><i data-lucide="download"></i> Importer des produits depuis CSV</span>
+      <button class="modal-close" onclick="closeModal('modal-import-produits')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <!-- Étape 1 : Téléchargement modèle -->
       <div style="background:var(--accent-light);padding:14px 16px;border-radius:var(--radius-sm);margin-bottom:18px;border-left:3px solid var(--accent)">
-        <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:6px">📄 Étape 1 — Téléchargez le modèle CSV</div>
+        <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:6px"><i data-lucide="file-text"></i> Étape 1 — Téléchargez le modèle CSV</div>
         <div style="font-size:12.5px;color:var(--text2);line-height:1.6;margin-bottom:10px">
           Téléchargez le fichier modèle, ouvrez-le dans <strong>Excel</strong> ou <strong>Google Sheets</strong>, et remplissez une ligne par produit.
         </div>
-        <button class="btn btn-sm btn-primary" onclick="telechargerModeleCSV()">📥 Télécharger le modèle CSV</button>
+        <button class="btn btn-sm btn-primary" onclick="telechargerModeleCSV()"><i data-lucide="download"></i> Télécharger le modèle CSV</button>
       </div>
 
       <!-- Étape 2 : Sélection fichier -->
       <div style="background:var(--surface2);padding:14px 16px;border-radius:var(--radius-sm);margin-bottom:18px">
-        <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:6px">📤 Étape 2 — Sélectionnez votre fichier CSV rempli</div>
+        <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:6px"><i data-lucide="upload"></i> Étape 2 — Sélectionnez votre fichier CSV rempli</div>
         <div style="font-size:12.5px;color:var(--text2);line-height:1.6;margin-bottom:10px">
           Choisissez le fichier <code>.csv</code> que vous avez rempli. Un aperçu vous sera montré avant l'import définitif.
         </div>
@@ -1996,7 +2086,7 @@
 
       <!-- Étape 3 : Aperçu -->
       <div id="import-preview-zone" style="display:none;background:var(--surface);padding:16px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:14px">
-        <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:10px">🔍 Aperçu de l'import</div>
+        <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:10px"><i data-lucide="search"></i> Aperçu de l'import</div>
         <div id="import-stats" style="font-size:13px;line-height:1.8;margin-bottom:14px"></div>
         <div id="import-errors" style="font-size:12px;color:var(--red);background:var(--red-bg);padding:10px 12px;border-radius:6px;display:none;margin-bottom:14px;max-height:160px;overflow-y:auto"></div>
         <div id="import-sample-table" style="max-height:240px;overflow:auto;border:1px solid var(--border);border-radius:6px"></div>
@@ -2004,7 +2094,7 @@
 
       <!-- Aide -->
       <details style="font-size:12px;color:var(--text2);background:var(--surface2);padding:10px 14px;border-radius:6px">
-        <summary style="cursor:pointer;font-weight:600;color:var(--text)">💡 Aide — Format du fichier CSV</summary>
+        <summary style="cursor:pointer;font-weight:600;color:var(--text)"><i data-lucide="lightbulb"></i> Aide — Format du fichier CSV</summary>
         <div style="margin-top:10px;line-height:1.8">
           <strong>Colonnes obligatoires :</strong> Référence, Désignation, Famille<br>
           <strong>Colonnes optionnelles :</strong> Sous-famille, Couleur, Taille, Longueur rouleau, Prix achat HT, Prix vente HT, Unité, TVA, Alerte stock<br><br>
@@ -2024,7 +2114,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-import-produits')">Annuler</button>
-      <button class="btn btn-primary" id="import-confirm-btn" onclick="confirmImportProduits()" disabled style="opacity:0.5;cursor:not-allowed">✅ Importer les produits</button>
+      <button class="btn btn-primary" id="import-confirm-btn" onclick="confirmImportProduits()" disabled style="opacity:0.5;cursor:not-allowed"><i data-lucide="circle-check"></i> Importer les produits</button>
     </div>
   </div>
 </div>
@@ -2034,7 +2124,7 @@
   <div class="modal" style="max-width:480px">
     <div class="modal-header">
       <span class="modal-title" id="modal-entrepot-title">Nouvel entrepôt</span>
-      <button class="modal-close" onclick="closeModal('modal-entrepot')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-entrepot')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="entrepot-id">
@@ -2073,13 +2163,13 @@
   <div class="modal" style="max-width:520px">
     <div class="modal-header">
       <span class="modal-title" id="modal-mvt-title">Entrée de stock</span>
-      <button class="modal-close" onclick="closeModal('modal-mvt')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-mvt')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="mvt-type">
       <!-- Bandeau d'aide adaptatif selon le type -->
       <div id="mvt-info-banner" style="font-size:12px;background:var(--amber-bg);color:var(--amber);border-left:3px solid var(--amber);padding:9px 12px;border-radius:var(--radius-sm);margin-bottom:14px;line-height:1.6;display:none">
-        <strong>⚠️ Sortie manuelle</strong> — ce mouvement est <strong>indépendant</strong> des factures. Utilisez-le pour : casse, perte, vol, cadeau, retour fournisseur, usage interne, correction d'inventaire. <strong>N'utilisez PAS</strong> ce mouvement pour les ventes (elles passent automatiquement par les factures).
+        <strong><i data-lucide="triangle-alert"></i> Sortie manuelle</strong> — ce mouvement est <strong>indépendant</strong> des factures. Utilisez-le pour : casse, perte, vol, cadeau, retour fournisseur, usage interne, correction d'inventaire. <strong>N'utilisez PAS</strong> ce mouvement pour les ventes (elles passent automatiquement par les factures).
       </div>
       <div class="form-grid">
         <div class="form-group full">
@@ -2121,7 +2211,7 @@
           <input class="form-input" id="mvt-prix" type="number" min="0" step="0.01" value="0" oninput="updatePMPPreview()">
         </div>
         <div class="form-group full" id="mvt-pmp-info" style="display:none;background:var(--accent-light);border-left:3px solid var(--accent);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:var(--text2);line-height:1.7">
-          <strong style="color:var(--accent)">📊 Calcul PMP (Prix Moyen Pondéré)</strong><br>
+          <strong style="color:var(--accent)"><i data-lucide="chart-column"></i> Calcul PMP (Prix Moyen Pondéré)</strong><br>
           <span id="mvt-pmp-detail">—</span>
         </div>
       </div>
@@ -2138,14 +2228,14 @@
   <div class="modal modal-lg">
     <div class="modal-header">
       <span class="modal-title" id="modal-imp-title">Nouvelle importation</span>
-      <button class="modal-close" onclick="closeModal('modal-importation')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-importation')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="imp-id">
 
       <!-- Badge informatif du type (non-switchable) -->
       <div id="imp-type-badge" style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px 16px;background:var(--accent-light);border-left:4px solid var(--accent);border-radius:var(--radius-sm)">
-        <span id="imp-type-badge-icon" style="font-size:18px">🌍</span>
+        <span id="imp-type-badge-icon" style="font-size:18px"><i data-lucide="globe"></i></span>
         <div style="flex:1">
           <div id="imp-type-badge-label" style="font-size:13px;font-weight:700;color:var(--text);letter-spacing:-0.2px">Nouvelle importation (étranger)</div>
           <div style="font-size:11px;color:var(--text3);margin-top:1px">Pour changer le type, fermez et utilisez l'autre bouton</div>
@@ -2177,7 +2267,7 @@
         </div>
         <!-- Pays d'origine (visible si import) -->
         <div class="form-group" id="imp-pays-group">
-          <label class="form-label">🌍 Pays d'origine</label>
+          <label class="form-label"><i data-lucide="globe"></i> Pays d'origine</label>
           <select class="form-input" id="imp-pays" onchange="onImpPaysChange()">
             <option value="">— Sélectionner —</option>
             <option value="Chine">🇨🇳 Chine</option>
@@ -2199,17 +2289,17 @@
             <option value="Vietnam">🇻🇳 Vietnam</option>
             <option value="Corée du Sud">🇰🇷 Corée du Sud</option>
             <option value="Taïwan">🇹🇼 Taïwan</option>
-            <option value="Autre">➕ Autre (saisir manuellement)</option>
+            <option value="Autre">Autre (saisir manuellement)</option>
           </select>
           <input class="form-input" id="imp-pays-custom" type="text" placeholder="Précisez le pays..." style="display:none;margin-top:6px">
         </div>
         <div class="form-group" id="imp-devise-group">
-          <label class="form-label">💰 Devise de la facture</label>
+          <label class="form-label"><i data-lucide="wallet"></i> Devise de la facture</label>
           <select class="form-input" id="imp-devise">
-            <option value="USD">💵 USD ($) — Dollar US</option>
-            <option value="EUR">💶 EUR (€) — Euro</option>
+            <option value="USD">USD ($) — Dollar US</option>
+            <option value="EUR">EUR (€) — Euro</option>
             <option value="CNY">🇨🇳 CNY / RMB (¥) — Yuan chinois</option>
-            <option value="MAD">🇲🇦 MAD (DH) — Dirham marocain</option>
+            <option value="MAD">MAD (DH) — Dirham marocain</option>
             <option value="TRY">🇹🇷 TRY (₺) — Livre turque</option>
             <option value="GBP">🇬🇧 GBP (£) — Livre sterling</option>
             <option value="AED">🇦🇪 AED — Dirham émirati</option>
@@ -2238,13 +2328,15 @@
       <div class="sep"></div>
       <div class="section-title" id="imp-articles-label">Articles importés</div>
       <div style="font-size:11.5px;color:var(--text2);background:var(--accent-light);padding:8px 12px;border-radius:var(--radius-sm);margin-bottom:10px;line-height:1.6">
-        💡 Tapez la <strong>référence</strong> du produit pour auto-remplir la désignation. Le <strong>PMP est recalculé</strong> automatiquement à la validation. Le <strong>prix de vente</strong> reste géré uniquement dans la fiche produit (catalogue).
+        <i data-lucide="lightbulb"></i> Tapez la <strong>référence</strong> du produit pour auto-remplir la désignation. Le <strong>PMP est recalculé</strong> automatiquement à la validation. Le <strong>prix de vente</strong> reste géré uniquement dans la fiche produit (catalogue).
       </div>
 
+      <div class="lines-scroll">
       <div class="lines-header" style="grid-template-columns: 1.1fr 2.4fr 0.8fr 1.1fr 1.1fr 38px">
         <span>Réf. *</span><span>Désignation (auto)</span><span>Qté *</span><span>P. Achat HT</span><span>Total HT</span><span></span>
       </div>
       <div id="imp-lines-container"></div>
+      </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="add-line-btn" onclick="addImpLine()" style="flex:1;min-width:240px">+ Ajouter un article</button>
         <button class="btn btn-sm" onclick="openProduitFromImp()" style="border-color:var(--accent);color:var(--accent);white-space:nowrap" title="Créer un produit qui n'existe pas encore dans le catalogue, sans quitter cette fenêtre">+ Nouveau produit (catalogue)</button>
@@ -2267,32 +2359,32 @@
 <div class="modal-overlay" id="modal-calc-revient" style="display:none" onclick="if(event.target===this)closeModal('modal-calc-revient')">
   <div class="modal modal-lg">
     <div class="modal-header">
-      <span class="modal-title">🧮 Calculateur de prix de revient (par importation)</span>
-      <button class="modal-close" onclick="closeModal('modal-calc-revient')">✕</button>
+      <span class="modal-title"><i data-lucide="calculator"></i> Calculateur de prix de revient (par importation)</span>
+      <button class="modal-close" onclick="closeModal('modal-calc-revient')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <div style="font-size:12.5px;color:var(--text2);line-height:1.7;padding:12px 14px;background:var(--accent-light);border-left:3px solid var(--accent);border-radius:var(--radius-sm);margin-bottom:14px">
-        💡 <strong>Méthode :</strong> les frais MAD sont sommés et divisés par la facture USD pour obtenir un <strong>cours effectif</strong>. Puis pour chaque article :<br>
+        <i data-lucide="lightbulb"></i> <strong>Méthode :</strong> les frais MAD sont sommés et divisés par la facture USD pour obtenir un <strong>cours effectif</strong>. Puis pour chaque article :<br>
         &nbsp;&nbsp;&nbsp;<code style="background:white;padding:2px 6px;border-radius:4px;font-size:11.5px">C.P HT MAD = (Cours × Montant USD + Douane HT) / Quantité</code>
       </div>
 
       <!-- Sauvegardes existantes -->
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-          <div style="font-size:12.5px;color:var(--text2);font-weight:600">📂 Mes calculs sauvegardés :</div>
+          <div style="font-size:12.5px;color:var(--text2);font-weight:600"><i data-lucide="folder-open"></i> Mes calculs sauvegardés :</div>
           <div style="display:flex;gap:6px;align-items:center;flex:1;min-width:240px">
             <select class="form-input" id="calc-saved-list" style="flex:1;font-size:12.5px" onchange="onChoixCalculSauvegarde()">
               <option value="">— Charger une sauvegarde —</option>
             </select>
-            <button class="btn btn-sm" onclick="chargerCalculRevient()" title="Charger la sauvegarde sélectionnée">📥</button>
-            <button class="btn btn-sm" style="border-color:#FCA5A5;color:var(--red)" onclick="supprimerCalculRevient()" title="Supprimer la sauvegarde sélectionnée">🗑️</button>
+            <button class="btn btn-sm" onclick="chargerCalculRevient()" title="Charger la sauvegarde sélectionnée"><i data-lucide="download"></i></button>
+            <button class="btn btn-sm" style="border-color:#FCA5A5;color:var(--red)" onclick="supprimerCalculRevient()" title="Supprimer la sauvegarde sélectionnée"><i data-lucide="trash-2"></i></button>
           </div>
         </div>
       </div>
 
       <!-- Sélecteur de devise -->
       <div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-        <span style="font-size:12.5px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.05em">💱 Devise de la facture :</span>
+        <span style="font-size:12.5px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.05em"><i data-lucide="coins"></i> Devise de la facture :</span>
         <div style="display:flex;gap:8px">
           <button type="button" class="calc-devise-btn" data-devise="USD" onclick="setCalcDevise('USD')" style="padding:8px 16px;border:2px solid var(--accent);background:var(--accent);color:white;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;transition:all 0.15s">🇺🇸 USD $</button>
           <button type="button" class="calc-devise-btn" data-devise="EUR" onclick="setCalcDevise('EUR')" style="padding:8px 16px;border:2px solid var(--border);background:var(--surface);color:var(--text);border-radius:6px;cursor:pointer;font-weight:600;font-size:13px;transition:all 0.15s">🇪🇺 EUR €</button>
@@ -2306,13 +2398,13 @@
           <input class="form-input" id="calc-invoice-no" type="text" placeholder="Ex: EM-2412" style="font-family:'JetBrains Mono',monospace;font-weight:600">
         </div>
         <div class="form-group">
-          <label class="form-label" id="calc-facture-label">💵 Facture USD ($)</label>
+          <label class="form-label" id="calc-facture-label"><i data-lucide="banknote"></i> Facture USD ($)</label>
           <input class="form-input" id="calc-facture-usd" type="number" min="0" step="0.01" value="0" oninput="recalculerRevient()" placeholder="Ex: 43699" style="font-weight:600">
         </div>
       </div>
 
       <div class="sep"></div>
-      <div class="section-title">💰 Frais et facture en MAD</div>
+      <div class="section-title"><i data-lucide="wallet"></i> Frais et facture en MAD</div>
       <div style="font-size:11.5px;color:var(--text3);margin-bottom:10px;line-height:1.6">
         Saisissez tous les frais + la <strong>Facture HT MAD</strong> (montant facture fournisseur converti). Le système calcule automatiquement le cours effectif.
       </div>
@@ -2331,21 +2423,23 @@
             <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:3px" id="calc-res-facture-usd">0,00 $</div>
           </div>
           <div>
-            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;font-weight:600" id="calc-res-cours-label">💱 Cours DH/$ effectif</div>
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;font-weight:600" id="calc-res-cours-label"><i data-lucide="coins"></i> Cours DH/$ effectif</div>
             <div style="font-size:20px;font-weight:700;color:var(--accent);margin-top:3px" id="calc-res-cours">0,0000</div>
           </div>
         </div>
       </div>
 
       <div class="sep"></div>
-      <div class="section-title">📦 Articles importés</div>
+      <div class="section-title"><i data-lucide="package"></i> Articles importés</div>
       <div style="font-size:11.5px;color:var(--text3);margin-bottom:10px;line-height:1.6">
         Pour chaque article : <strong>Montant USD</strong> du fournisseur, <strong>Douane HT en MAD</strong> spécifique à l'article et la <strong>Quantité</strong>. Le C.P HT MAD se calcule automatiquement.
       </div>
+      <div class="lines-scroll">
       <div class="lines-header" style="grid-template-columns: 0.9fr 1.8fr 0.9fr 1fr 1fr 0.7fr 1.1fr 38px">
         <span>RÉFÉRENCE</span><span>DÉSIGNATION</span><span style="text-align:right">COURS</span><span style="text-align:right" id="calc-col-montant-label">MONTANT $</span><span style="text-align:right">DOUANE HT MAD</span><span style="text-align:center">QTY</span><span style="text-align:right">C.P HT MAD</span><span></span>
       </div>
       <div id="calc-articles-container"></div>
+      </div>
       <button class="add-line-btn" onclick="addCalcArticle()">+ Ajouter un article</button>
 
       <!-- Totaux articles -->
@@ -2354,13 +2448,13 @@
         <div class="total-row"><span>Quantité totale</span><span id="calc-nb-qty">0</span></div>
         <div class="total-row"><span id="calc-total-articles-label">Total Montant USD articles</span><span id="calc-articles-usd">0,00 $</span></div>
         <div class="total-row"><span>Total Douane HT MAD</span><span id="calc-articles-douane">0,00 MAD</span></div>
-        <div class="total-row big"><span>💵 Coût de revient total MAD</span><span id="calc-articles-revient">0,00 MAD</span></div>
+        <div class="total-row big"><span><i data-lucide="banknote"></i> Coût de revient total MAD</span><span id="calc-articles-revient">0,00 MAD</span></div>
       </div>
     </div>
     <div class="modal-footer" style="flex-wrap:wrap;gap:8px">
-      <button class="btn" onclick="reinitialiserCalculateur()">🔄 Réinitialiser</button>
-      <button class="btn btn-sm" onclick="exporterCalculRevientPDF()" style="border-color:var(--accent);color:var(--accent)">🖨️ Télécharger PDF</button>
-      <button class="btn btn-sm btn-primary" onclick="sauvegarderCalculRevient()" style="background:var(--green);border-color:var(--green)">💾 Sauvegarder ce calcul</button>
+      <button class="btn" onclick="reinitialiserCalculateur()"><i data-lucide="refresh-cw"></i> Réinitialiser</button>
+      <button class="btn btn-sm" onclick="exporterCalculRevientPDF()" style="border-color:var(--accent);color:var(--accent)"><i data-lucide="printer"></i> Télécharger PDF</button>
+      <button class="btn btn-sm btn-primary" onclick="sauvegarderCalculRevient()" style="background:var(--green);border-color:var(--green)"><i data-lucide="save"></i> Sauvegarder ce calcul</button>
       <button class="btn" onclick="closeModal('modal-calc-revient')" style="margin-left:auto">Fermer</button>
     </div>
   </div>
@@ -2370,12 +2464,12 @@
 <div class="modal-overlay" id="modal-export-stock" style="display:none" onclick="if(event.target===this)closeModal('modal-export-stock')">
   <div class="modal" style="max-width:600px">
     <div class="modal-header">
-      <span class="modal-title">📅 Imprimer les mouvements par période</span>
-      <button class="modal-close" onclick="closeModal('modal-export-stock')">✕</button>
+      <span class="modal-title"><i data-lucide="calendar"></i> Imprimer les mouvements par période</span>
+      <button class="modal-close" onclick="closeModal('modal-export-stock')"><i data-lucide="x"></i></button>
     </div>
     <div class="modal-body">
       <div style="font-size:12.5px;color:var(--text2);line-height:1.7;padding:12px 14px;background:var(--accent-light);border-left:3px solid var(--accent);border-radius:var(--radius-sm);margin-bottom:14px">
-        📅 Imprime les <strong>entrées et sorties</strong> de stock pendant la période choisie, groupées par produit avec les soldes.
+        <i data-lucide="calendar"></i> Imprime les <strong>entrées et sorties</strong> de stock pendant la période choisie, groupées par produit avec les soldes.
       </div>
 
       <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;font-weight:600;margin-bottom:6px">Période rapide</div>
@@ -2417,7 +2511,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('modal-export-stock')">Annuler</button>
-      <button class="btn btn-primary" onclick="lancerExportMouvements()">🖨️ Générer le PDF</button>
+      <button class="btn btn-primary" onclick="lancerExportMouvements()"><i data-lucide="printer"></i> Générer le PDF</button>
     </div>
   </div>
 </div>
@@ -2426,6 +2520,27 @@
 <div class="notif" id="notif" style="display:none"></div>
 
 <script>
+// ═══ Icônes Lucide ═══
+// Écrire ic('nom') (ou <i data-lucide="nom"></i>) dans le HTML : remplacé automatiquement par le SVG Lucide.
+function icEl(name) {
+  if (!window.lucide) return null;
+  const key = name.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');
+  const node = lucide.icons[key];
+  if (!node) return null;
+  const svg = lucide.createElement(node);
+  svg.setAttribute('class', 'ico lucide-' + name);
+  svg.setAttribute('aria-hidden', 'true');
+  return svg;
+}
+function ic(name) { return '<i data-lucide="' + name + '"></i>'; }
+function hydrateIcons(root) {
+  const list = root.matches && root.matches('i[data-lucide]') ? [root] : root.querySelectorAll('i[data-lucide]');
+  list.forEach(el => { const svg = icEl(el.getAttribute('data-lucide')); if (svg) el.replaceWith(svg); });
+}
+hydrateIcons(document);
+new MutationObserver(muts => {
+  for (const m of muts) for (const n of m.addedNodes) if (n.nodeType === 1) hydrateIcons(n);
+}).observe(document.documentElement, { childList: true, subtree: true });
 // ============================================================
 //  STATE
 // ============================================================
@@ -2457,7 +2572,7 @@ function initSupabaseClient() {
 const APP_VERSION       = '2.2';
 const APP_VERSION_DATE  = '29/07/2026';
 // Notes : qui peut être affichée en survol de la version
-const APP_VERSION_NOTES = 'v2.2 · 🎨 Polish Edition · Import CSV produits · Taille libre toutes familles · Reset password complet · Création client depuis devis · Achats local repensés · PDF aligné centré · Sécurité renforcée';
+const APP_VERSION_NOTES = 'v2.2 · Polish Edition · Import CSV produits · Taille libre toutes familles · Reset password complet · Création client depuis devis · Achats local repensés · PDF aligné centré · Sécurité renforcée';
 
 // ── FAMILLES par défaut (modifiables dans Paramètres) ──
 const DEFAULT_FAMILLES = {
@@ -2535,15 +2650,15 @@ async function chargerDepuisCloud() {
       // Cloud a des données : utiliser
       state = { ...state, ...data.app_state };
       try { localStorage.setItem('bizmanager_data', JSON.stringify(state)); } catch(e) {}
-      notify('☁️ Données chargées depuis le cloud', 'green');
+      notify('Données chargées depuis le cloud', 'green');
     } else {
       // Première fois → si on a des données locales, les pousser au cloud
       const hasLocal = state.produits.length > 0 || state.factures.length > 0 || state.clients.length > 0;
       if (hasLocal) {
-        if (confirm('🚀 Première connexion !\n\nVoulez-vous IMPORTER vos données locales actuelles vers le cloud ?\n\n• ' + state.produits.length + ' produits\n• ' + state.clients.length + ' clients\n• ' + state.factures.length + ' factures\n• ' + state.importations.length + ' achats')) {
+        if (confirm('Première connexion !\n\nVoulez-vous IMPORTER vos données locales actuelles vers le cloud ?\n\n• ' + state.produits.length + ' produits\n• ' + state.clients.length + ' clients\n• ' + state.factures.length + ' factures\n• ' + state.importations.length + ' achats')) {
           // Push immédiat
           await sauvegarderVersCloudImmediat();
-          notify('✅ Données locales importées vers le cloud', 'green');
+          notify('Données locales importées vers le cloud', 'green');
         }
       }
     }
@@ -2606,16 +2721,16 @@ function rafraichirIndicateurSync(etat) {
   const el = document.getElementById('sync-indicator');
   if (!el) return;
   const map = {
-    synced:   { txt: '☁️ Synchronisé',     color: 'var(--green)', bg: 'var(--green-bg)'   },
-    pending:  { txt: '☁️ En attente...',   color: 'var(--amber)', bg: 'var(--amber-bg)'   },
-    syncing:  { txt: '☁️ Synchronisation...', color: 'var(--accent)', bg: 'var(--accent-light)' },
-    error:    { txt: '⚠️ Erreur sync',     color: 'var(--red)',   bg: 'var(--red-bg)'     },
-    offline:  { txt: '🔌 Hors-ligne',      color: 'var(--text3)', bg: 'var(--surface2)'   }
+    synced:   { icon: 'cloud', txt: 'Synchronisé',     color: 'var(--green)', bg: 'var(--green-bg)'   },
+    pending:  { icon: 'cloud-upload', txt: 'En attente...',   color: 'var(--amber)', bg: 'var(--amber-bg)'   },
+    syncing:  { icon: 'refresh-cw', txt: 'Synchronisation...', color: 'var(--accent)', bg: 'var(--accent-light)' },
+    error:    { icon: 'cloud-alert', txt: 'Erreur sync',     color: 'var(--red)',   bg: 'var(--red-bg)'     },
+    offline:  { icon: 'wifi-off', txt: 'Hors-ligne',      color: 'var(--text3)', bg: 'var(--surface2)'   }
   };
   const c = map[etat] || map.synced;
   el.style.background = c.bg;
   el.style.color = c.color;
-  el.textContent = c.txt;
+  el.innerHTML = ic(c.icon) + ' ' + c.txt;
 }
 
 // ── Info utilisateur (sidebar) ──
@@ -2685,11 +2800,21 @@ const topbarActions = {
   clients:     `<button class="btn btn-primary" onclick="showClientModal()">+ Nouveau client</button>`,
   produits:    `<button class="btn btn-primary" onclick="showProduitModal()">+ Nouveau produit</button>`,
   entrepots:   `<button class="btn btn-primary" onclick="showEntrepotModal()">+ Nouvel entrepôt</button>`,
-  stocks:      `<button class="btn" onclick="showMvtModal('sortie')" title="Sortie hors vente (casse, perte, cadeau...)">↓ Sortie manuelle</button><button class="btn btn-primary" onclick="goPage('importations', document.querySelector('[onclick*=importations]'))">📦 Achats</button>`,
-  mouvements:  `<button class="btn" onclick="goPage('stocks', document.querySelector('[onclick*=stocks]'))">📊 Stocks</button><button class="btn btn-primary" onclick="goPage('importations', document.querySelector('[onclick*=importations]'))">📦 Achats</button>`,
-  importations:`<button class="btn" onclick="showImportationModal('local')">🇲🇦 + Achat local</button><button class="btn btn-primary" onclick="showImportationModal('import')">🌍 + Importation</button>`,
+  stocks:      `<button class="btn" onclick="showMvtModal('sortie')" title="Sortie hors vente (casse, perte, cadeau...)"><i data-lucide="arrow-down"></i> Sortie manuelle</button><button class="btn btn-primary" onclick="goPage('importations', document.querySelector('[onclick*=importations]'))"><i data-lucide="package"></i> Achats</button>`,
+  mouvements:  `<button class="btn" onclick="goPage('stocks', document.querySelector('[onclick*=stocks]'))"><i data-lucide="chart-column"></i> Stocks</button><button class="btn btn-primary" onclick="goPage('importations', document.querySelector('[onclick*=importations]'))"><i data-lucide="package"></i> Achats</button>`,
+  importations:`<button class="btn" onclick="showImportationModal('local')"><i data-lucide="store"></i> + Achat local</button><button class="btn btn-primary" onclick="showImportationModal('import')"><i data-lucide="globe"></i> + Importation</button>`,
   parametres:  `<button class="btn btn-primary" onclick="saveSettings()">Enregistrer</button>`,
 };
+
+// ── Menu latéral mobile ──
+function toggleSidebar(force) {
+  const open = typeof force === 'boolean' ? force : !document.body.classList.contains('sidebar-open');
+  document.body.classList.toggle('sidebar-open', open);
+}
+document.addEventListener('click', e => {
+  if (e.target.closest && e.target.closest('.sidebar .nav-item, .sidebar .company-badge')) toggleSidebar(false);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleSidebar(false); });
 
 function goPage(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -2749,6 +2874,8 @@ function getClient(id) {
 function notify(msg, type) {
   const el = document.getElementById('notif');
   el.textContent = msg;
+  const nIco = icEl(type === 'red' ? 'circle-alert' : 'circle-check');
+  if (nIco) el.prepend(nIco);
   el.className = 'notif ' + (type || '');
   el.style.display = 'block';
   setTimeout(() => { el.style.display = 'none'; }, 3000);
@@ -2861,7 +2988,7 @@ function renderDashCollection() {
   });
 
   let html = `<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">
-    ✅ <strong>${found.length}</strong> produit${found.length > 1 ? 's' : ''} trouvé${found.length > 1 ? 's' : ''}
+    <i data-lucide="circle-check"></i> <strong>${found.length}</strong> produit${found.length > 1 ? 's' : ''} trouvé${found.length > 1 ? 's' : ''}
     ${Object.keys(byCollection).length > 1 ? ' dans ' + Object.keys(byCollection).length + ' collections' : ''}
   </div>`;
 
@@ -2869,7 +2996,7 @@ function renderDashCollection() {
     const products = byCollection[col];
     html += `<div style="margin-bottom:14px">
       <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:8px;padding:6px 12px;background:var(--accent-light);border-radius:6px;display:inline-block">
-        🎨 ${col} <span style="opacity:0.7">(${products.length})</span>
+        <i data-lucide="palette"></i> ${col} <span style="opacity:0.7">(${products.length})</span>
       </div>
       <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
         <table style="width:100%;border-collapse:collapse;font-size:12.5px">
@@ -2910,7 +3037,7 @@ function checkProduitPrix() {
   if (!val) { box.innerHTML = ''; return; }
   const prod = state.produits.find(p => (p.ref || '').toLowerCase() === val.toLowerCase());
   if (!prod) {
-    box.innerHTML = '<div style="background:var(--red-bg);color:var(--red);padding:12px 16px;border-radius:var(--radius-sm);font-size:13px">❌ Aucun produit trouvé pour la référence "<strong>' + val + '</strong>"</div>';
+    box.innerHTML = '<div style="background:var(--red-bg);color:var(--red);padding:12px 16px;border-radius:var(--radius-sm);font-size:13px"><i data-lucide="circle-x"></i> Aucun produit trouvé pour la référence "<strong>' + val + '</strong>"</div>';
     return;
   }
   const stockTotal = getQtyStock(prod.id, null);
@@ -2945,7 +3072,7 @@ function checkProduitPrix() {
           <div style="font-size:12px;color:var(--text2);margin-top:3px">
             ${prod.famille ? '<span style="background:var(--accent-light);color:var(--accent);padding:2px 8px;border-radius:10px;font-weight:500">' + prod.famille + '</span>' : ''}
             ${prod.sousFamille ? '<span style="color:var(--text3);margin-left:6px">› ' + prod.sousFamille + '</span>' : ''}
-            ${prod.couleur ? '<span style="margin-left:8px">🎨 ' + prod.couleur + '</span>' : ''}
+            ${prod.couleur ? '<span style="margin-left:8px"><i data-lucide="palette"></i> ' + prod.couleur + '</span>' : ''}
           </div>
         </div>
         <div style="text-align:right">
@@ -3074,7 +3201,7 @@ function renderDashboardCharts() {
     const labels = Object.keys(counts);
     const data = labels.map(l => counts[l]);
     if (labels.length === 0) {
-      ctxFam.parentElement.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">🎯 Répartition par famille</div><div style="padding:50px 20px;text-align:center;color:var(--text3);font-size:12px;font-style:italic">Pas encore de ventes pour afficher les statistiques</div>';
+      ctxFam.parentElement.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px"><i data-lucide="chart-pie"></i> Répartition par famille</div><div style="padding:50px 20px;text-align:center;color:var(--text3);font-size:12px;font-style:italic">Pas encore de ventes pour afficher les statistiques</div>';
     } else {
       _dashCharts.famille = new Chart(ctxFam, {
         type: 'doughnut',
@@ -3104,7 +3231,7 @@ function renderDashboardCharts() {
     });
     const top = Object.entries(compteur).sort((a, b) => b[1] - a[1]).slice(0, 10);
     if (top.length === 0) {
-      ctxProd.parentElement.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">🏆 Top 10 produits vendus</div><div style="padding:60px 20px;text-align:center;color:var(--text3);font-size:12px;font-style:italic">Pas encore de ventes</div>';
+      ctxProd.parentElement.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px"><i data-lucide="trophy"></i> Top 10 produits vendus</div><div style="padding:60px 20px;text-align:center;color:var(--text3);font-size:12px;font-style:italic">Pas encore de ventes</div>';
     } else {
       const labels = top.map(([ref]) => {
         const p = state.produits.find(x => (x.ref || '').toLowerCase() === ref);
@@ -3134,7 +3261,7 @@ function renderDashboardCharts() {
     });
     const top = Object.entries(compteur).sort((a, b) => b[1] - a[1]).slice(0, 10);
     if (top.length === 0) {
-      ctxCl.parentElement.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">👑 Top 10 clients</div><div style="padding:60px 20px;text-align:center;color:var(--text3);font-size:12px;font-style:italic">Pas encore de ventes</div>';
+      ctxCl.parentElement.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px"><i data-lucide="crown"></i> Top 10 clients</div><div style="padding:60px 20px;text-align:center;color:var(--text3);font-size:12px;font-style:italic">Pas encore de ventes</div>';
     } else {
       const labels = top.map(([id]) => (getClient(id)?.nom || '—').substring(0, 25));
       const data = top.map(t => t[1]);
@@ -3205,7 +3332,7 @@ function renderDashboard() {
 
   const tbody = document.getElementById('dash-table-body');
   if (!all.length) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">Aucun document</div><div class="empty-state-sub">Créez votre premier devis ou facture</div></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="clipboard-list"></i></div><div class="empty-state-title">Aucun document</div><div class="empty-state-sub">Créez votre premier devis ou facture</div></div></td></tr>';
     return;
   }
   tbody.innerHTML = all.map(doc => {
@@ -3266,18 +3393,18 @@ function renderDevis() {
       <td class="actions">
         <button class="action-btn blue" onclick="previewDoc('${d.id}','devis')">PDF</button>
         <button class="action-btn" onclick="editDoc('${d.id}','devis')">Modifier</button>
-        ${d.statut !== 'Converti' ? `<button class="action-btn" onclick="convertToFacture('${d.id}')">→ Facture</button>` : (function(){
+        ${d.statut !== 'Converti' ? `<button class="action-btn" onclick="convertToFacture('${d.id}')"><i data-lucide="arrow-right"></i> Facture</button>` : (function(){
           // Devis "Converti" mais facture liée n'existe plus → afficher bouton Débloquer
           const factureLiee = (state.factures || []).find(f => f.refDevis === d.num);
           if (!factureLiee) {
-            return `<button class="action-btn" style="border-color:var(--accent);color:var(--accent)" onclick="debloquerDevis('${d.id}')" title="La facture liée n'existe plus. Débloquer ce devis pour le reconvertir.">🔄 Débloquer</button>`;
+            return `<button class="action-btn" style="border-color:var(--accent);color:var(--accent)" onclick="debloquerDevis('${d.id}')" title="La facture liée n'existe plus. Débloquer ce devis pour le reconvertir."><i data-lucide="refresh-cw"></i> Débloquer</button>`;
           }
           return '';
         })()}
         <button class="action-btn red" onclick="deleteDoc('${d.id}','devis')">Suppr.</button>
       </td>
     </tr>`;
-  }).join('') : '<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">📄</div><div class="empty-state-title">Aucun devis</div></div></td></tr>';
+  }).join('') : '<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="file-text"></i></div><div class="empty-state-title">Aucun devis</div></div></td></tr>';
 }
 
 // ============================================================
@@ -3345,7 +3472,7 @@ function renderFactures() {
         <button class="action-btn red" onclick="deleteDoc('${f.id}','facture')">Suppr.</button>
       </td>
     </tr>`;
-  }).join('') : '<tr><td colspan="11"><div class="empty-state"><div class="empty-state-icon">🧾</div><div class="empty-state-title">Aucune facture</div></div></td></tr>';
+  }).join('') : '<tr><td colspan="11"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="receipt"></i></div><div class="empty-state-title">Aucune facture</div></div></td></tr>';
 }
 
 // ============================================================
@@ -3373,7 +3500,7 @@ function renderLivraisons() {
         <button class="action-btn red" onclick="deleteDoc('${l.id}','livraison')">Suppr.</button>
       </td>
     </tr>`;
-  }).join('') : '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">🚚</div><div class="empty-state-title">Aucun bon de livraison</div></div></td></tr>';
+  }).join('') : '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="truck"></i></div><div class="empty-state-title">Aucun bon de livraison</div></div></td></tr>';
 }
 
 // ============================================================
@@ -3436,21 +3563,21 @@ function renderTresorerie() {
   // ── Tableau créances ──
   const creancesTbody = document.getElementById('tres-creances-tbody');
   if (creances.length === 0) {
-    creancesTbody.innerHTML = '<tr><td colspan="5"><div class="empty-state" style="padding:24px"><div style="font-size:32px">✅</div><div style="font-size:13px;margin-top:6px">Aucune créance — toutes les factures sont payées !</div></div></td></tr>';
+    creancesTbody.innerHTML = '<tr><td colspan="5"><div class="empty-state" style="padding:24px"><div style="font-size:32px"><i data-lucide="circle-check"></i></div><div style="font-size:13px;margin-top:6px">Aucune créance — toutes les factures sont payées !</div></div></td></tr>';
   } else {
     creancesTbody.innerHTML = creances.map(c => {
       const cl = getClient(c.f.clientId);
       const enRetard = c.f.echeance && c.f.echeance < todayStr;
       const ech = c.f.echeance || '—';
       const statut = enRetard
-        ? '<span class="badge badge-red">⚠ Retard</span>'
-        : (c.f.echeance && c.f.echeance <= dans7Jours ? '<span class="badge badge-amber">⏰ Bientôt</span>' : '<span class="badge badge-green">À venir</span>');
+        ? '<span class="badge badge-red"><i data-lucide="triangle-alert"></i> Retard</span>'
+        : (c.f.echeance && c.f.echeance <= dans7Jours ? '<span class="badge badge-amber"><i data-lucide="clock"></i> Bientôt</span>' : '<span class="badge badge-green">À venir</span>');
       return `<tr style="${enRetard ? 'background:rgba(255,237,213,0.4)' : ''}">
         <td class="td-mono td-bold">${c.f.num || '—'}</td>
         <td>${cl.nom || '—'}</td>
         <td style="font-size:12px">${ech !== '—' ? fmtDate(ech) : '—'}</td>
         <td style="text-align:right;font-weight:700;color:var(--red)">${fmtMAD(c.reste)}</td>
-        <td>${statut} <button class="action-btn" onclick="showReglementModal('${c.f.id}','facture')" style="font-size:11px">💳</button></td>
+        <td>${statut} <button class="action-btn" onclick="showReglementModal('${c.f.id}','facture')" style="font-size:11px"><i data-lucide="credit-card"></i></button></td>
       </tr>`;
     }).join('');
   }
@@ -3458,19 +3585,19 @@ function renderTresorerie() {
   // ── Tableau dettes ──
   const dettesTbody = document.getElementById('tres-dettes-tbody');
   if (dettes.length === 0) {
-    dettesTbody.innerHTML = '<tr><td colspan="5"><div class="empty-state" style="padding:24px"><div style="font-size:32px">✅</div><div style="font-size:13px;margin-top:6px">Aucune dette — tous les achats sont réglés !</div></div></td></tr>';
+    dettesTbody.innerHTML = '<tr><td colspan="5"><div class="empty-state" style="padding:24px"><div style="font-size:32px"><i data-lucide="circle-check"></i></div><div style="font-size:13px;margin-top:6px">Aucune dette — tous les achats sont réglés !</div></div></td></tr>';
   } else {
     dettesTbody.innerHTML = dettes.map(d => {
       const fournName = d.i.fournisseurId ? (getFournisseur(d.i.fournisseurId)?.nom || d.i.fournisseur || '—') : (d.i.fournisseur || '—');
       const typeBadge = (d.i.typeAchat === 'local')
-        ? '<span class="badge" style="background:var(--red-bg);color:var(--red);font-size:10px">🇲🇦</span>'
-        : '<span class="badge" style="background:var(--accent-light);color:var(--accent);font-size:10px">🌍</span>';
+        ? '<span class="badge" style="background:var(--red-bg);color:var(--red);font-size:10px"><i data-lucide="store"></i></span>'
+        : '<span class="badge" style="background:var(--accent-light);color:var(--accent);font-size:10px"><i data-lucide="globe"></i></span>';
       return `<tr>
         <td class="td-mono td-bold" style="font-size:12px">${typeBadge} ${d.i.num || '—'}</td>
         <td>${fournName}</td>
         <td style="font-size:12px">${fmtDate(d.i.date) || '—'}</td>
         <td style="text-align:right;font-weight:700;color:var(--red)">${fmtMAD(d.reste)}</td>
-        <td><button class="action-btn" onclick="showReglementModal('${d.i.id}','achat')" style="font-size:11px">💳 Payer</button></td>
+        <td><button class="action-btn" onclick="showReglementModal('${d.i.id}','achat')" style="font-size:11px"><i data-lucide="credit-card"></i> Payer</button></td>
       </tr>`;
     }).join('');
   }
@@ -3503,9 +3630,9 @@ function renderFournisseurs() {
     const achatsF = state.importations.filter(i => i.fournisseurId === f.id);
     const totalF = achatsF.reduce((s, i) => s + (i.ht || 0), 0);
     const typeBadge = f.type === 'local'
-      ? '<span class="badge" style="background:var(--red-bg);color:var(--red);font-weight:600">🇲🇦 Local</span>'
-      : '<span class="badge" style="background:var(--accent-light);color:var(--accent);font-weight:600">🌍 Import</span>';
-    const paysAffiche = f.type === 'local' ? '🇲🇦 Maroc' : (f.pays || '—');
+      ? '<span class="badge" style="background:var(--red-bg);color:var(--red);font-weight:600"><i data-lucide="store"></i> Local</span>'
+      : '<span class="badge" style="background:var(--accent-light);color:var(--accent);font-weight:600"><i data-lucide="globe"></i> Import</span>';
+    const paysAffiche = f.type === 'local' ? '<i data-lucide="store"></i> Maroc' : (f.pays || '—');
     const contact = [f.contact, f.tel].filter(Boolean).join(' · ');
     return `<tr>
       <td>${typeBadge}</td>
@@ -3516,12 +3643,12 @@ function renderFournisseurs() {
       <td style="font-weight:600">${achatsF.length}</td>
       <td style="font-weight:700;color:var(--accent)">${fmtMAD(totalF)}</td>
       <td class="actions">
-        <button class="action-btn" style="color:var(--accent);border-color:rgba(226,88,34,0.25)" onclick="afficherDetailFournisseur('${f.id}')" title="Voir l'historique complet">👁 Détail</button>
+        <button class="action-btn" style="color:var(--accent);border-color:rgba(226,88,34,0.25)" onclick="afficherDetailFournisseur('${f.id}')" title="Voir l'historique complet"><i data-lucide="eye"></i> Détail</button>
         <button class="action-btn" onclick="editFournisseur('${f.id}')">Modifier</button>
         <button class="action-btn red" onclick="deleteFournisseur('${f.id}')">Suppr.</button>
       </td>
     </tr>`;
-  }).join('') : '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">🚚</div><div class="empty-state-title">Aucun fournisseur</div><div class="empty-state-sub">Ajoutez vos fournisseurs pour les réutiliser dans Achats</div></div></td></tr>';
+  }).join('') : '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="truck"></i></div><div class="empty-state-title">Aucun fournisseur</div><div class="empty-state-sub">Ajoutez vos fournisseurs pour les réutiliser dans Achats</div></div></td></tr>';
 }
 
 function setFournType(type) {
@@ -3608,7 +3735,7 @@ function saveFournisseur() {
     const impTypeAchat = document.getElementById('imp-type-value')?.value || 'import';
     populateFournisseurSelect('imp-fournisseur-select', newOrExistingId, impTypeAchat);
     onImpFournisseurChange();
-    notify('✅ Fournisseur créé et sélectionné dans l\'achat', 'green');
+    notify('Fournisseur créé et sélectionné dans l\'achat', 'green');
     return;
   }
   notify('Fournisseur enregistré', 'green');
@@ -3618,7 +3745,7 @@ function deleteFournisseur(id) {
   const f = state.fournisseurs.find(x => x.id === id);
   if (!f) return;
   const used = state.importations.some(i => i.fournisseurId === id);
-  if (used && !confirm('⚠ Ce fournisseur est utilisé dans des achats. Supprimer quand même ?\n(Les achats garderont le nom du fournisseur en texte libre)')) return;
+  if (used && !confirm('Ce fournisseur est utilisé dans des achats. Supprimer quand même ?\n(Les achats garderont le nom du fournisseur en texte libre)')) return;
   if (!used && !confirm('Supprimer le fournisseur « ' + f.nom + ' » ?')) return;
   if (!askSecurityCode('Supprimer le fournisseur ' + f.nom)) return;
   state.fournisseurs = state.fournisseurs.filter(x => x.id !== id);
@@ -3674,10 +3801,10 @@ function afficherDetailClient(id) {
         <div>
           <div style="font-size:18px;font-weight:800;color:var(--text)">${cl.nom || '—'}</div>
           <div style="font-size:12.5px;color:var(--text2);margin-top:4px">
-            ${cl.ice ? '📋 ICE: ' + cl.ice + ' · ' : ''}
-            ${cl.ville ? '📍 ' + cl.ville : ''}
-            ${cl.tel ? ' · 📞 ' + cl.tel : ''}
-            ${cl.email ? ' · ✉ ' + cl.email : ''}
+            ${cl.ice ? '<i data-lucide="clipboard-list"></i> ICE: ' + cl.ice + ' · ' : ''}
+            ${cl.ville ? '<i data-lucide="map-pin"></i> ' + cl.ville : ''}
+            ${cl.tel ? ' · <i data-lucide="phone"></i> ' + cl.tel : ''}
+            ${cl.email ? ' · <i data-lucide="mail"></i> ' + cl.email : ''}
           </div>
         </div>
         <div style="text-align:right">
@@ -3695,7 +3822,7 @@ function afficherDetailClient(id) {
     </div>
 
     <!-- Historique factures -->
-    <div class="section-title">📄 Historique des factures (${factures.length})</div>
+    <div class="section-title"><i data-lucide="file-text"></i> Historique des factures (${factures.length})</div>
     <div class="table-card" style="margin-bottom:16px">
       <div class="table-wrap">
         <table>
@@ -3724,7 +3851,7 @@ function afficherDetailClient(id) {
     </div>
 
     <!-- Historique paiements -->
-    <div class="section-title">💳 Historique des règlements (${allReglements.length})</div>
+    <div class="section-title"><i data-lucide="credit-card"></i> Historique des règlements (${allReglements.length})</div>
     <div class="table-card">
       <div class="table-wrap">
         <table>
@@ -3766,8 +3893,8 @@ function afficherDetailFournisseur(id) {
   allReglements.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   const typeBadge = f.type === 'local'
-    ? '<span class="badge" style="background:var(--red-bg);color:var(--red);font-weight:600">🇲🇦 Local</span>'
-    : '<span class="badge" style="background:var(--accent-light);color:var(--accent);font-weight:600">🌍 Import</span>';
+    ? '<span class="badge" style="background:var(--red-bg);color:var(--red);font-weight:600"><i data-lucide="store"></i> Local</span>'
+    : '<span class="badge" style="background:var(--accent-light);color:var(--accent);font-weight:600"><i data-lucide="globe"></i> Import</span>';
 
   const html = `
     <div style="background:linear-gradient(135deg, var(--accent-light) 0%, var(--surface2) 100%);border-left:4px solid var(--accent);border-radius:var(--radius);padding:16px 20px;margin-bottom:18px">
@@ -3778,14 +3905,14 @@ function afficherDetailFournisseur(id) {
             <div style="font-size:18px;font-weight:800;color:var(--text)">${f.nom || '—'}</div>
           </div>
           <div style="font-size:12.5px;color:var(--text2);margin-top:6px">
-            ${f.pays ? '🌍 ' + f.pays + ' · ' : ''}
-            ${f.ice ? '📋 ICE: ' + f.ice + ' · ' : ''}
-            ${f.devise ? '💰 ' + f.devise + ' · ' : ''}
-            ${f.contact ? '👤 ' + f.contact : ''}
+            ${f.pays ? '<i data-lucide="globe"></i> ' + f.pays + ' · ' : ''}
+            ${f.ice ? '<i data-lucide="clipboard-list"></i> ICE: ' + f.ice + ' · ' : ''}
+            ${f.devise ? '<i data-lucide="wallet"></i> ' + f.devise + ' · ' : ''}
+            ${f.contact ? '<i data-lucide="user"></i> ' + f.contact : ''}
           </div>
           <div style="font-size:12px;color:var(--text3);margin-top:3px">
-            ${f.tel ? '📞 ' + f.tel : ''}
-            ${f.email ? ' · ✉ ' + f.email : ''}
+            ${f.tel ? '<i data-lucide="phone"></i> ' + f.tel : ''}
+            ${f.email ? ' · <i data-lucide="mail"></i> ' + f.email : ''}
           </div>
         </div>
         <div style="text-align:right">
@@ -3802,7 +3929,7 @@ function afficherDetailFournisseur(id) {
       <div class="stat-card" style="padding:14px"><div class="stat-label">Règlements</div><div class="stat-value" style="font-size:20px">${allReglements.length}</div></div>
     </div>
 
-    <div class="section-title">📦 Historique des achats (${achats.length})</div>
+    <div class="section-title"><i data-lucide="package"></i> Historique des achats (${achats.length})</div>
     <div class="table-card" style="margin-bottom:16px">
       <div class="table-wrap">
         <table>
@@ -3830,7 +3957,7 @@ function afficherDetailFournisseur(id) {
       </div>
     </div>
 
-    <div class="section-title">💳 Historique des paiements (${allReglements.length})</div>
+    <div class="section-title"><i data-lucide="credit-card"></i> Historique des paiements (${allReglements.length})</div>
     <div class="table-card">
       <div class="table-wrap">
         <table>
@@ -4059,7 +4186,7 @@ function exportPDFFicheClient() {
 
   const fileName = 'fiche-client-' + (cl.nom || 'client').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
   pdf.save(fileName);
-  notify('✅ Fiche client exportée en PDF', 'green');
+  notify('Fiche client exportée en PDF', 'green');
 }
 
 // ============================================================
@@ -4270,7 +4397,7 @@ function exportPDFFicheFournisseur() {
 
   const fileName = 'fiche-fournisseur-' + (f.nom || 'fournisseur').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
   pdf.save(fileName);
-  notify('✅ Fiche fournisseur exportée en PDF', 'green');
+  notify('Fiche fournisseur exportée en PDF', 'green');
 }
 
 function renderClients() {
@@ -4296,12 +4423,12 @@ function renderClients() {
       <td>${fmtMAD(stats.total)}</td>
       <td style="color:${solde > 0 ? 'var(--red)' : 'var(--green)'}">${fmtMAD(solde)}</td>
       <td class="actions">
-        <button class="action-btn" style="color:var(--accent);border-color:rgba(226,88,34,0.25)" onclick="afficherDetailClient('${c.id}')" title="Voir l'historique complet">👁 Détail</button>
+        <button class="action-btn" style="color:var(--accent);border-color:rgba(226,88,34,0.25)" onclick="afficherDetailClient('${c.id}')" title="Voir l'historique complet"><i data-lucide="eye"></i> Détail</button>
         <button class="action-btn" onclick="editClient('${c.id}')">Modifier</button>
         <button class="action-btn red" onclick="deleteClient('${c.id}')">Suppr.</button>
       </td>
     </tr>`;
-  }).join('') : '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">👤</div><div class="empty-state-title">Aucun client</div><div class="empty-state-sub">Ajoutez votre premier client</div></div></td></tr>';
+  }).join('') : '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="user"></i></div><div class="empty-state-title">Aucun client</div><div class="empty-state-sub">Ajoutez votre premier client</div></div></td></tr>';
 }
 
 function populateClientSelect() {
@@ -4503,7 +4630,7 @@ function addLine(data) {
     <input class="form-input" type="number" min="0" step="0.01" value="${data ? data.pu || 0 : 0}" oninput="calcTotals()" style="font-size:12px">
     <input class="form-input" type="number" min="0" max="100" step="0.01" placeholder="0" value="${data ? data.remise || '' : ''}" oninput="calcTotals()" style="font-size:12px">
     <div class="line-total-display" id="${id}-total">0,00</div>
-    <button class="del-btn" onclick="removeLine('${id}')">✕</button>
+    <button class="del-btn" onclick="removeLine('${id}')"><i data-lucide="x"></i></button>
   `;
   document.getElementById('lines-container').appendChild(div);
   if (data) setTimeout(calcTotals, 0);
@@ -4534,7 +4661,7 @@ function onLineRefInput(input, lineId) {
     // Si la quantité est vide ou 0, mettre 1 par défaut
     if (inputs[2] && (!inputs[2].value || inputs[2].value === '0')) inputs[2].value = 1;
     // Petite notification discrète
-    if (typeof notify === 'function') notify('✓ Produit chargé : ' + prod.nom, 'green');
+    if (typeof notify === 'function') notify('Produit chargé : ' + prod.nom, 'green');
   }
   calcTotals();
 }
@@ -4735,7 +4862,7 @@ function deleteDoc(id, cat) {
   // Message de notification adapté
   let msg = 'Document supprimé';
   if (stockRestaure > 0) msg += ' · ' + stockRestaure + ' ligne(s) restaurée(s) en stock';
-  if (devisDebloque > 0) msg += ' · Devis d\'origine débloqué (peut être reconverti) ✓';
+  if (devisDebloque > 0) msg += ' · Devis d\'origine débloqué (peut être reconverti) <i data-lucide="check"></i>';
   notify(msg, 'green');
 }
 
@@ -4747,7 +4874,7 @@ function debloquerDevis(id) {
   // Vérification de sécurité : la facture liée ne doit pas exister
   const factureLiee = state.factures.find(f => f.refDevis === d.num);
   if (factureLiee) {
-    notify('❌ Impossible : une facture liée existe encore (' + factureLiee.num + ')', 'red');
+    notify('Impossible : une facture liée existe encore (' + factureLiee.num + ')', 'red');
     return;
   }
   if (!confirm('Débloquer le devis ' + (d.num || '') + ' ?\n\nSon statut repassera à "En attente" et vous pourrez le reconvertir en facture.')) return;
@@ -4756,7 +4883,7 @@ function debloquerDevis(id) {
   d.statut = 'En attente';
   save();
   renderDevis();
-  notify('✅ Devis débloqué · Vous pouvez maintenant le reconvertir en facture', 'green');
+  notify('Devis débloqué · Vous pouvez maintenant le reconvertir en facture', 'green');
 }
 
 function convertToFacture(id) {
@@ -4770,7 +4897,7 @@ function convertToFacture(id) {
     id: newFactId, num, clientId: d.clientId, date: today(), echeance: plusDays(today(), 30),
     objet: d.objet, notes: d.notes, lines: d.lines,
     ht: d.ht, tva: d.tva, ttc: d.ttc,
-    remiseGlob: d.remiseGlob || 0, // ⭐ Correction : préserver la remise globale du devis
+    remiseGlob: d.remiseGlob || 0, // <i data-lucide="star"></i> Correction : préserver la remise globale du devis
     statut: 'Impayée', paye: 0, modeReglement: 'Virement bancaire',
     refDevis: d.num || '' // Traçabilité : sait de quel devis vient la facture
   };
@@ -4794,7 +4921,7 @@ function createBL(factureId) {
     id: uid(), num, clientId: f.clientId, date: today(), echeance: '',
     objet: f.objet, notes: f.notes, lines: f.lines,
     ht: f.ht, tva: f.tva, ttc: f.ttc,
-    remiseGlob: f.remiseGlob || 0, // ⭐ Cohérence : préserver la remise globale
+    remiseGlob: f.remiseGlob || 0, // <i data-lucide="star"></i> Cohérence : préserver la remise globale
     statut: 'En cours', refDoc: f.num
   });
   state.settings.numBL++;
@@ -4846,8 +4973,8 @@ function showReglementModal(id, type) {
   document.getElementById('reg-doc-id').value = id;
   document.getElementById('reg-doc-type').value = type;
   const titre = type === 'facture'
-    ? '💵 Règlements Facture ' + (doc.num || '')
-    : '💸 Règlements Achat ' + (doc.num || '');
+    ? '<i data-lucide="banknote"></i> Règlements Facture ' + (doc.num || '')
+    : '<i data-lucide="hand-coins"></i> Règlements Achat ' + (doc.num || '');
   document.getElementById('reg-modal-title').textContent = titre;
 
   // Info contextuelle
@@ -4908,7 +5035,7 @@ function rafraichirHistoriqueRegements() {
     <td style="text-align:right;font-weight:700;color:var(--green)">${fmtMAD(r.montant || 0)}</td>
     <td>${r.echeance ? fmtDate(r.echeance) : '—'}</td>
     <td style="font-size:11.5px;color:var(--text3)">${r.notes || '—'}</td>
-    <td class="actions"><button class="action-btn red" onclick="supprimerReglement('${r.id}')">✕</button></td>
+    <td class="actions"><button class="action-btn red" onclick="supprimerReglement('${r.id}')"><i data-lucide="x"></i></button></td>
   </tr>`).join('');
 }
 
@@ -4963,9 +5090,9 @@ function saveReglement() {
 
   // Message clair selon le statut restant
   if (reste <= 0.01) {
-    notify('✅ Règlement enregistré · Facture SOLDÉE 🎉', 'green');
+    notify('Règlement enregistré · Facture SOLDÉE ', 'green');
   } else {
-    notify('✅ Règlement enregistré · Reste ' + fmtMAD(reste) + ' à payer', 'green');
+    notify('Règlement enregistré · Reste ' + fmtMAD(reste) + ' à payer', 'green');
     // Focus sur le champ date pour saisir un autre règlement facilement
     setTimeout(() => {
       const dateEl = document.getElementById('reg-date');
@@ -5053,7 +5180,7 @@ function previewDoc(id, cat) {
   const s   = state.settings;
   const T   = DOC_THEME[cat] || DOC_THEME.facture;
   const typeLabel = { devis: 'DEVIS', facture: 'FACTURE', livraison: 'BON DE LIVRAISON' };
-  const typeIcon  = { devis: '📄', facture: '🧾', livraison: '🚚' };
+  const typeIcon  = { devis: ic('file-text'), facture: ic('receipt'), livraison: ic('truck') };
 
   const linesHTML = (doc.lines || []).map(l => `
     <tr>
@@ -5082,8 +5209,8 @@ function previewDoc(id, cat) {
           <span>Total TTC</span><span>${fmtMAD(doc.ttc)}</span>
         </div>
         ${doc.paye > 0 ? `
-        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px;color:#2E7D32;margin-top:6px"><span>✓ Montant payé</span><span>${fmtMAD(doc.paye)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px;color:${(doc.ttc-doc.paye)>0?'#C62828':'#2E7D32'}"><span>${(doc.ttc-doc.paye)>0?'⚠ Reste à payer':'✓ Soldé'}</span><span>${fmtMAD(doc.ttc-doc.paye)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px;color:#2E7D32;margin-top:6px"><span><i data-lucide="check"></i> Montant payé</span><span>${fmtMAD(doc.paye)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px;color:${(doc.ttc-doc.paye)>0?'#C62828':'#2E7D32'}"><span>${(doc.ttc-doc.paye)>0?'<i data-lucide="triangle-alert"></i> Reste à payer':'<i data-lucide="check"></i> Soldé'}</span><span>${fmtMAD(doc.ttc-doc.paye)}</span></div>
         ` : ''}
       </div>
     </div>
@@ -5131,7 +5258,7 @@ function previewDoc(id, cat) {
         <!-- ADRESSES -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
           <div style="background:white;border:1.5px solid ${T.light};border-left:4px solid ${T.primary};border-radius:8px;padding:14px 16px">
-            <div style="font-size:9px;font-weight:800;color:${T.primary};text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px">👤 Facturé à</div>
+            <div style="font-size:9px;font-weight:800;color:${T.primary};text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px"><i data-lucide="user"></i> Facturé à</div>
             <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:4px">${cl.nom || '—'}</div>
             <div style="font-size:12px;color:#6B7280;line-height:1.8">
               ${cl.adresse || ''}${cl.adresse ? '<br>' : ''}
@@ -5141,7 +5268,7 @@ function previewDoc(id, cat) {
             </div>
           </div>
           <div style="background:white;border:1.5px solid ${T.light};border-left:4px solid ${T.mid};border-radius:8px;padding:14px 16px">
-            <div style="font-size:9px;font-weight:800;color:${T.primary};text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px">🏢 Émis par</div>
+            <div style="font-size:9px;font-weight:800;color:${T.primary};text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px"><i data-lucide="building-2"></i> Émis par</div>
             <div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:4px">${s.company || 'Mon Entreprise'}</div>
             <div style="font-size:12px;color:#6B7280;line-height:1.8">
               ${s.ice ? 'ICE : ' + s.ice + '<br>' : ''}
@@ -5155,7 +5282,7 @@ function previewDoc(id, cat) {
 
         ${doc.objet ? `
         <div style="background:${T.light};border-left:4px solid ${T.primary};border-radius:0 8px 8px 0;padding:10px 14px;font-size:13px;color:${T.dark};font-weight:600;margin-bottom:18px">
-          📋 Objet : ${doc.objet}
+          <i data-lucide="clipboard-list"></i> Objet : ${doc.objet}
         </div>` : ''}
 
         ${doc.statut ? `<div style="margin-bottom:14px">${badgeForStatut(doc.statut)}</div>` : ''}
@@ -5177,7 +5304,7 @@ function previewDoc(id, cat) {
 
         ${totauxHTML}
 
-        ${doc.modeReglement ? `<div style="margin-top:14px;font-size:12px;color:#6B7280">💳 Mode de règlement : <strong style="color:#374151">${doc.modeReglement}</strong></div>` : ''}
+        ${doc.modeReglement ? `<div style="margin-top:14px;font-size:12px;color:#6B7280"><i data-lucide="credit-card"></i> Mode de règlement : <strong style="color:#374151">${doc.modeReglement}</strong></div>` : ''}
 
         ${doc.notes ? `
         <div style="background:white;border:1.5px solid #E5E7EB;border-radius:8px;padding:12px 16px;margin-top:14px">
@@ -5196,7 +5323,7 @@ function previewDoc(id, cat) {
   `;
 
   document.getElementById('print-area').innerHTML = html;
-  document.getElementById('preview-title').textContent = typeIcon[cat] + ' ' + typeLabel[cat] + ' — ' + doc.num;
+  document.getElementById('preview-title').innerHTML = typeIcon[cat] + ' ' + typeLabel[cat] + ' — ' + doc.num;
   openModal('modal-preview');
 }
 
@@ -5799,7 +5926,7 @@ function getSecurityCode() {
 }
 
 function askSecurityCode(actionLabel) {
-  const code = prompt('🔒 Action protégée : ' + actionLabel + '\n\nVeuillez saisir le code de sécurité pour confirmer :');
+  const code = prompt('Action protégée : ' + actionLabel + '\n\nVeuillez saisir le code de sécurité pour confirmer :');
   if (code === null) return false; // annulé
   if (code.trim() !== getSecurityCode()) {
     notify('Code de sécurité incorrect', 'red');
@@ -5810,7 +5937,7 @@ function askSecurityCode(actionLabel) {
 
 // Permet de changer le code dans Paramètres
 function changerCodeSecurite() {
-  const ancien = prompt('🔒 Saisissez l\'ancien code de sécurité :');
+  const ancien = prompt('Saisissez l\'ancien code de sécurité :');
   if (ancien === null) return;
   if (ancien.trim() !== getSecurityCode()) {
     notify('Ancien code incorrect', 'red');
@@ -5823,7 +5950,7 @@ function changerCodeSecurite() {
     notify('Le code doit faire entre 4 et 12 caractères', 'red');
     return;
   }
-  const confirm2 = prompt('🔁 Confirmez le nouveau code :');
+  const confirm2 = prompt('Confirmez le nouveau code :');
   if (confirm2 === null) return;
   if (confirm2.trim() !== clean) {
     notify('Les codes ne correspondent pas', 'red');
@@ -5831,7 +5958,7 @@ function changerCodeSecurite() {
   }
   state.settings.securityCode = clean;
   save();
-  notify('✅ Code de sécurité mis à jour. Notez-le bien.', 'green');
+  notify('Code de sécurité mis à jour. Notez-le bien.', 'green');
 }
 
 // ☁️ Mode cloud uniquement — les sauvegardes manuelles locales (.json) ont été retirées
@@ -5875,7 +6002,7 @@ function resetAchats() {
     notify('Aucun achat à réinitialiser', 'amber');
     return;
   }
-  if (!confirm('Réinitialiser TOUS les achats à zéro ?\n\n• ' + nbImp + ' achat(s) supprimé(s) (importations + achats locaux)\n• ' + nbRegl + ' règlement(s) fournisseur(s) supprimé(s)\n• ' + nbCalc + ' calcul(s) de coût de revient supprimé(s)\n• Numérotation des achats réinitialisée à 1\n\n⚠️ Les produits, stocks, clients, fournisseurs, devis et factures sont CONSERVÉS.\n\nCette action est IRRÉVERSIBLE.')) return;
+  if (!confirm('Réinitialiser TOUS les achats à zéro ?\n\n• ' + nbImp + ' achat(s) supprimé(s) (importations + achats locaux)\n• ' + nbRegl + ' règlement(s) fournisseur(s) supprimé(s)\n• ' + nbCalc + ' calcul(s) de coût de revient supprimé(s)\n• Numérotation des achats réinitialisée à 1\n\nLes produits, stocks, clients, fournisseurs, devis et factures sont CONSERVÉS.\n\nCette action est IRRÉVERSIBLE.')) return;
   if (!askSecurityCode('Réinitialiser tous les achats à zéro')) return;
   state.importations = [];
   state.reglementsAchats = [];
@@ -5889,7 +6016,7 @@ function resetAchats() {
   if (typeof renderFournisseurs === 'function') renderFournisseurs();
   if (typeof renderTresorerie === 'function') renderTresorerie();
   if (typeof renderDashboard === 'function') renderDashboard();
-  notify('Tous les achats ont été réinitialisés ✓', 'green');
+  notify('Tous les achats ont été réinitialisés ', 'green');
 }
 
 function saveSettings() {
@@ -6005,10 +6132,10 @@ function notifyStockResult(res, action) {
   if (res.count > 0) msg += res.count + ' produit(s) déduits du stock';
   if (res.manquants && res.manquants.length > 0) {
     const liste = res.manquants.map(m => m.ref + ' (demandé: ' + m.demande + ', dispo: ' + m.dispo + ')').join('\n  • ');
-    setTimeout(() => alert('⚠️ Stock insuffisant pour :\n  • ' + liste + '\n\nLes quantités ont été déduites quand même (stock peut devenir négatif).'), 200);
+    setTimeout(() => alert('Stock insuffisant pour :\n  • ' + liste + '\n\nLes quantités ont été déduites quand même (stock peut devenir négatif).'), 200);
   }
   if (res.sansEntrepot > 0) {
-    setTimeout(() => alert('⚠️ ' + res.sansEntrepot + ' ligne(s) ignorée(s) : aucun entrepôt configuré.\n\nAllez dans Entrepôts pour créer un entrepôt.'), 200);
+    setTimeout(() => alert('' + res.sansEntrepot + ' ligne(s) ignorée(s) : aucun entrepôt configuré.\n\nAllez dans Entrepôts pour créer un entrepôt.'), 200);
   }
   notify(msg, 'green');
 }
@@ -6062,10 +6189,10 @@ function onMvtProduitInput() {
     document.getElementById('mvt-produit').value = prod.id;
     // Normaliser l'affichage avec la référence
     document.getElementById('mvt-produit-search').value = prod.ref || val;
-    if (info) info.innerHTML = '✓ <strong>' + prod.nom + '</strong>' + (prod.couleur ? ' — ' + prod.couleur : '') + ' · ' + (prod.unite || '');
+    if (info) info.innerHTML = '<i data-lucide="check"></i> <strong>' + prod.nom + '</strong>' + (prod.couleur ? ' — ' + prod.couleur : '') + ' · ' + (prod.unite || '');
   } else {
     document.getElementById('mvt-produit').value = '';
-    if (info) info.innerHTML = '<span style="color:var(--red)">⚠ Aucun produit trouvé pour "' + val + '"</span>';
+    if (info) info.innerHTML = '<span style="color:var(--red)"><i data-lucide="triangle-alert"></i> Aucun produit trouvé pour "' + val + '"</span>';
   }
   updateMvtStock();
 }
@@ -6424,7 +6551,7 @@ function genererJournalVentes(format) {
     });
     csv += ';;TOTAUX;;' + totalHT.toFixed(2) + ';' + totalTVA.toFixed(2) + ';' + totalTTC.toFixed(2) + ';' + totalPaye.toFixed(2) + ';' + totalReste.toFixed(2) + ';\n';
     _downloadCSV('journal-ventes-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.csv', csv);
-    notify('✅ Journal des ventes exporté (CSV)', 'green');
+    notify('Journal des ventes exporté (CSV)', 'green');
     return;
   }
 
@@ -6477,7 +6604,7 @@ function genererJournalVentes(format) {
 
   _pdfRapportFooter(pdf, 'Journal ventes');
   pdf.save('journal-ventes-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.pdf');
-  notify('✅ Journal des ventes exporté (PDF)', 'green');
+  notify('Journal des ventes exporté (PDF)', 'green');
 }
 
 // ═══ JOURNAL DES ACHATS ═══
@@ -6515,7 +6642,7 @@ function genererJournalAchats(format) {
     });
     csv += ';;;;;TOTAUX;' + totalHT.toFixed(2) + ';' + totalTVA.toFixed(2) + ';' + totalTTC.toFixed(2) + ';' + totalPaye.toFixed(2) + ';' + totalReste.toFixed(2) + '\n';
     _downloadCSV('journal-achats-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.csv', csv);
-    notify('✅ Journal des achats exporté (CSV)', 'green');
+    notify('Journal des achats exporté (CSV)', 'green');
     return;
   }
 
@@ -6568,7 +6695,7 @@ function genererJournalAchats(format) {
 
   _pdfRapportFooter(pdf, 'Journal achats');
   pdf.save('journal-achats-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.pdf');
-  notify('✅ Journal des achats exporté (PDF)', 'green');
+  notify('Journal des achats exporté (PDF)', 'green');
 }
 
 // ═══ RÉCAPITULATIF TVA ═══
@@ -6599,7 +6726,7 @@ function genererRecapTVA(format) {
   pdf.setFillColor(232, 245, 233);
   pdf.rect(14, y, 182, 24, 'F');
   pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(0, 135, 90);
-  pdf.text('🟢 TVA COLLECTÉE (sur ventes)', 18, y + 7);
+  pdf.text('TVA COLLECTÉE (sur ventes)', 18, y + 7);
   pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(60, 60, 60);
   pdf.text('Nombre de factures : ' + factures.length, 18, y + 13);
   pdf.text('Total HT ventes    : ' + fmtMAD(htVentes), 18, y + 18);
@@ -6611,7 +6738,7 @@ function genererRecapTVA(format) {
   pdf.setFillColor(255, 243, 224);
   pdf.rect(14, y, 182, 30, 'F');
   pdf.setFontSize(10); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(180, 83, 9);
-  pdf.text('🟠 TVA DÉDUCTIBLE (sur achats locaux)', 18, y + 7);
+  pdf.text('TVA DÉDUCTIBLE (sur achats locaux)', 18, y + 7);
   pdf.setFontSize(9); pdf.setFont('helvetica', 'normal'); pdf.setTextColor(60, 60, 60);
   pdf.text('Nombre d\'achats locaux : ' + achatsLocaux.length, 18, y + 13);
   pdf.text('Total HT achats locaux : ' + fmtMAD(htAchatsLocaux), 18, y + 18);
@@ -6629,7 +6756,7 @@ function genererRecapTVA(format) {
   pdf.setLineWidth(0.8);
   pdf.rect(14, y, 182, 22);
   pdf.setFontSize(12); pdf.setFont('helvetica', 'bold'); pdf.setTextColor(...couleur);
-  pdf.text(tvaAPayer > 0 ? '💸 TVA À REVERSER À L\'ÉTAT' : '💰 CRÉDIT TVA (à reporter)', 18, y + 9);
+  pdf.text(tvaAPayer > 0 ? 'TVA À REVERSER À L\'ÉTAT' : 'CRÉDIT TVA (à reporter)', 18, y + 9);
   pdf.setFontSize(16); pdf.setFont('helvetica', 'bold');
   pdf.text(fmtMAD(Math.abs(tvaAPayer)), 192, y + 14, {align: 'right'});
   y += 30;
@@ -6640,7 +6767,7 @@ function genererRecapTVA(format) {
 
   _pdfRapportFooter(pdf, 'Récap TVA');
   pdf.save('recap-tva-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.pdf');
-  notify('✅ Récapitulatif TVA exporté (PDF)', 'green');
+  notify('Récapitulatif TVA exporté (PDF)', 'green');
 }
 
 // ═══ ÉTAT DES STOCKS ═══
@@ -6676,7 +6803,7 @@ function genererEtatStock(format) {
     });
     csv += ';;;;;TOTAL;' + totalQty + ';;' + totalValeur.toFixed(2) + '\n';
     _downloadCSV('etat-stock-' + new Date().toISOString().substring(0,10) + '.csv', csv);
-    notify('✅ État des stocks exporté (CSV)', 'green');
+    notify('État des stocks exporté (CSV)', 'green');
     return;
   }
 
@@ -6712,7 +6839,7 @@ function genererEtatStock(format) {
 
   _pdfRapportFooter(pdf, 'État stocks');
   pdf.save('etat-stock-' + new Date().toISOString().substring(0,10) + '.pdf');
-  notify('✅ État des stocks exporté (PDF)', 'green');
+  notify('État des stocks exporté (PDF)', 'green');
 }
 
 // ═══ GRAND LIVRE CLIENTS ═══
@@ -6751,7 +6878,7 @@ function genererGrandLivreClients(format) {
     });
     csv += ';;;TOTAUX;' + totalCA.toFixed(2) + ';' + totalPaye.toFixed(2) + ';' + totalSolde.toFixed(2) + '\n';
     _downloadCSV('grand-livre-clients-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.csv', csv);
-    notify('✅ Grand livre clients exporté (CSV)', 'green');
+    notify('Grand livre clients exporté (CSV)', 'green');
     return;
   }
 
@@ -6785,7 +6912,7 @@ function genererGrandLivreClients(format) {
 
   _pdfRapportFooter(pdf, 'Grand livre clients');
   pdf.save('grand-livre-clients-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.pdf');
-  notify('✅ Grand livre clients exporté (PDF)', 'green');
+  notify('Grand livre clients exporté (PDF)', 'green');
 }
 
 // ═══ GRAND LIVRE FOURNISSEURS ═══
@@ -6825,7 +6952,7 @@ function genererGrandLivreFournisseurs(format) {
     });
     csv += ';;;;TOTAUX;' + totalAchats.toFixed(2) + ';' + totalPaye.toFixed(2) + ';' + totalSolde.toFixed(2) + '\n';
     _downloadCSV('grand-livre-fournisseurs-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.csv', csv);
-    notify('✅ Grand livre fournisseurs exporté (CSV)', 'green');
+    notify('Grand livre fournisseurs exporté (CSV)', 'green');
     return;
   }
 
@@ -6860,7 +6987,7 @@ function genererGrandLivreFournisseurs(format) {
 
   _pdfRapportFooter(pdf, 'Grand livre fournisseurs');
   pdf.save('grand-livre-fournisseurs-' + _getRapportPeriode().debut + '-' + _getRapportPeriode().fin + '.pdf');
-  notify('✅ Grand livre fournisseurs exporté (PDF)', 'green');
+  notify('Grand livre fournisseurs exporté (PDF)', 'green');
 }
 
 function ouvrirCalculatriceTVA() {
@@ -6961,7 +7088,7 @@ function copierMontantTVA(quoi) {
   if (navigator.clipboard) {
     navigator.clipboard.writeText(valeurStr).then(() => {
       const label = quoi === 'ht' ? 'HT' : quoi === 'tva' ? 'TVA' : 'TTC';
-      notify('✅ ' + label + ' copié : ' + valeurStr + ' MAD', 'green');
+      notify('' + label + ' copié : ' + valeurStr + ' MAD', 'green');
     }).catch(() => {
       notify('Impossible de copier', 'red');
     });
@@ -6973,7 +7100,7 @@ function copierMontantTVA(quoi) {
     tmp.select();
     document.execCommand('copy');
     document.body.removeChild(tmp);
-    notify('✅ Copié : ' + valeurStr + ' MAD', 'green');
+    notify('Copié : ' + valeurStr + ' MAD', 'green');
   }
 }
 
@@ -7012,7 +7139,7 @@ function onChoixCalculSauvegarde() {
 function sauvegarderCalculRevient() {
   const invoiceNo = (document.getElementById('calc-invoice-no').value || '').trim();
   if (!invoiceNo) {
-    notify('⚠ Saisissez un N° d\'importation pour sauvegarder', 'red');
+    notify('Saisissez un N° d\'importation pour sauvegarder', 'red');
     document.getElementById('calc-invoice-no').focus();
     return;
   }
@@ -7061,7 +7188,7 @@ function sauvegarderCalculRevient() {
   }
   save();
   rafraichirListeSauvegardes();
-  notify('✅ Calcul sauvegardé pour ' + invoiceNo, 'green');
+  notify('Calcul sauvegardé pour ' + invoiceNo, 'green');
 }
 
 // ── Charger une sauvegarde ──
@@ -7087,7 +7214,7 @@ function chargerCalculRevient() {
   document.getElementById('calc-articles-container').innerHTML = '';
   (sauvegarde.articles || []).forEach(a => addCalcArticle(a));
   recalculerRevient();
-  notify('📥 Sauvegarde chargée : ' + (sauvegarde.invoiceNo || ''), 'green');
+  notify('Sauvegarde chargée : ' + (sauvegarde.invoiceNo || ''), 'green');
 }
 
 // ── Supprimer une sauvegarde ──
@@ -7101,7 +7228,7 @@ function supprimerCalculRevient() {
   state.calculsRevient = state.calculsRevient.filter(c => c.id !== id);
   save();
   rafraichirListeSauvegardes();
-  notify('🗑️ Sauvegarde supprimée', 'green');
+  notify('Sauvegarde supprimée', 'green');
 }
 
 // ── Export PDF du calcul (nommé par N° d'importation) ──
@@ -7111,7 +7238,7 @@ function exporterCalculRevientPDF() {
 
   const invoiceNo = (document.getElementById('calc-invoice-no').value || '').trim();
   if (!invoiceNo) {
-    notify('⚠ Saisissez un N° d\'importation pour le PDF', 'red');
+    notify('Saisissez un N° d\'importation pour le PDF', 'red');
     document.getElementById('calc-invoice-no').focus();
     return;
   }
@@ -7166,7 +7293,7 @@ function exporterCalculRevientPDF() {
 
   // Section FRAIS
   pdf.setFont('helvetica', 'bold'); pdf.setFontSize(9.5); pdf.setTextColor(15, 30, 60);
-  pdf.text("💰 Frais en MAD", ML, y);
+  pdf.text("Frais en MAD", ML, y);
   y += 5;
   pdf.autoTable({
     startY: y,
@@ -7196,7 +7323,7 @@ function exporterCalculRevientPDF() {
 
   // Section ARTICLES
   pdf.setFont('helvetica', 'bold'); pdf.setFontSize(9.5); pdf.setTextColor(15, 30, 60);
-  pdf.text("📦 Articles — Coût de revient", ML, y);
+  pdf.text("Articles — Coût de revient", ML, y);
   y += 5;
   pdf.autoTable({
     startY: y,
@@ -7227,7 +7354,7 @@ function exporterCalculRevientPDF() {
   // Nom du fichier basé sur le N° d'importation
   const filename = 'CostPrice_' + invoiceNo.replace(/[^a-zA-Z0-9-_]/g, '-') + '.pdf';
   pdf.save(filename);
-  notify('🖨️ PDF généré : ' + filename, 'green');
+  notify('PDF généré : ' + filename, 'green');
 }
 
 function reinitialiserCalculateur() {
@@ -7255,7 +7382,7 @@ function addCalcFrais(data) {
   div.innerHTML = `
     <input class="form-input" type="text" value="${data?.label || ''}" placeholder="Nom du frais (ex: Transport, Douane...)" style="font-size:12.5px">
     <input class="form-input" type="number" min="0" step="0.01" value="${data?.value || 0}" oninput="recalculerRevient()" placeholder="0,00" style="font-size:12.5px;text-align:right">
-    <button class="del-btn" onclick="removeCalcFrais('${id}')" title="Supprimer cette ligne">✕</button>
+    <button class="del-btn" onclick="removeCalcFrais('${id}')" title="Supprimer cette ligne"><i data-lucide="x"></i></button>
   `;
   document.getElementById('calc-frais-container').appendChild(div);
   recalculerRevient();
@@ -7304,7 +7431,7 @@ function addCalcArticle(data) {
     <input class="form-input" type="number" min="0" step="0.01" value="${data?.douane || 0}" oninput="recalculerRevient()" style="font-size:12px;text-align:right" placeholder="MAD">
     <input class="form-input" type="number" min="0" step="0.01" value="${data?.qty || 1}" oninput="recalculerRevient()" style="font-size:12px;text-align:center">
     <div class="line-total-display" id="${id}-cp" style="font-size:13px;font-weight:700;color:var(--accent)">0,00</div>
-    <button class="del-btn" onclick="removeCalcArticle('${id}')">✕</button>
+    <button class="del-btn" onclick="removeCalcArticle('${id}')"><i data-lucide="x"></i></button>
   `;
   document.getElementById('calc-articles-container').appendChild(div);
   recalculerRevient();
@@ -7366,9 +7493,9 @@ function setCalcDevise(devise) {
   const totalArtLabel = document.getElementById('calc-total-articles-label');
   const factureInput = document.getElementById('calc-facture-usd');
 
-  if (factureLabel)    factureLabel.textContent    = '💵 Facture ' + _calcDevise + ' (' + symbol + ')';
+  if (factureLabel)    factureLabel.innerHTML    = ic('banknote') + ' Facture ' + _calcDevise + ' (' + symbol + ')';
   if (factureResLabel) factureResLabel.textContent = 'Facture ' + _calcDevise;
-  if (coursLabel)      coursLabel.textContent      = '💱 Cours DH/' + symbol + ' effectif';
+  if (coursLabel)      coursLabel.innerHTML      = ic('coins') + ' Cours DH/' + symbol + ' effectif';
   if (colMontantLabel) colMontantLabel.textContent = 'MONTANT ' + symbol;
   if (totalArtLabel)   totalArtLabel.textContent   = 'Total Montant ' + _calcDevise + ' articles';
   if (factureInput)    factureInput.placeholder    = _calcDevise === 'EUR' ? 'Ex: 40000' : 'Ex: 43699';
@@ -7453,7 +7580,7 @@ function renderProduits() {
         <button class="action-btn red" onclick="deleteProduit('${p.id}')">Suppr.</button>
       </td>
     </tr>`;
-  }).join('') : '<tr><td colspan="11"><div class="empty-state"><div class="empty-state-icon">📦</div><div class="empty-state-title">Aucun produit</div><div class="empty-state-sub">Ajoutez vos produits et services</div></div></td></tr>';
+  }).join('') : '<tr><td colspan="11"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="package"></i></div><div class="empty-state-title">Aucun produit</div><div class="empty-state-sub">Ajoutez vos produits et services</div></div></td></tr>';
 }
 
 function showProduitModal(id) {
@@ -7643,7 +7770,7 @@ function telechargerModeleCSV() {
   a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  notify('✅ Modèle CSV téléchargé — remplissez-le dans Excel puis revenez !', 'green');
+  notify('Modèle CSV téléchargé — remplissez-le dans Excel puis revenez !', 'green');
 }
 
 // Parse un fichier CSV (gère ; et , comme séparateurs, et les guillemets)
@@ -7816,7 +7943,7 @@ function afficherErreurImport(msg) {
   document.getElementById('import-sample-table').innerHTML = '';
   const err = document.getElementById('import-errors');
   err.style.display = '';
-  err.innerHTML = '❌ ' + msg;
+  err.innerHTML = '<i data-lucide="circle-x"></i> ' + msg;
   const btn = document.getElementById('import-confirm-btn');
   btn.disabled = true;
   btn.style.opacity = '0.5';
@@ -7827,9 +7954,9 @@ function afficherApercuImport(valides, ignores, erreurs) {
   document.getElementById('import-preview-zone').style.display = '';
   // Stats
   document.getElementById('import-stats').innerHTML =
-    '✅ <strong>' + valides.length + '</strong> produit(s) prêts à importer<br>' +
-    (ignores.length ? '⚠️ <strong>' + ignores.length + '</strong> produit(s) ignorés (référence déjà existante)<br>' : '') +
-    (erreurs.length ? '❌ <strong>' + erreurs.length + '</strong> erreur(s)' : '');
+    '<i data-lucide="circle-check"></i> <strong>' + valides.length + '</strong> produit(s) prêts à importer<br>' +
+    (ignores.length ? '<i data-lucide="triangle-alert"></i> <strong>' + ignores.length + '</strong> produit(s) ignorés (référence déjà existante)<br>' : '') +
+    (erreurs.length ? '<i data-lucide="circle-x"></i> <strong>' + erreurs.length + '</strong> erreur(s)' : '');
 
   // Erreurs
   const errBox = document.getElementById('import-errors');
@@ -7883,12 +8010,12 @@ function afficherApercuImport(valides, ignores, erreurs) {
     btn.disabled = false;
     btn.style.opacity = '1';
     btn.style.cursor = 'pointer';
-    btn.textContent = '✅ Importer ' + valides.length + ' produit(s)';
+    btn.innerHTML = ic('circle-check') + ' Importer ' + valides.length + ' produit(s)';
   } else {
     btn.disabled = true;
     btn.style.opacity = '0.5';
     btn.style.cursor = 'not-allowed';
-    btn.textContent = '❌ Rien à importer';
+    btn.innerHTML = ic('circle-x') + ' Rien à importer';
   }
 }
 
@@ -7934,7 +8061,7 @@ function confirmImportProduits() {
   closeModal('modal-import-produits');
   if (typeof renderProduits === 'function') renderProduits();
   if (typeof renderFamillesSettings === 'function') renderFamillesSettings();
-  let msg = '✅ ' + creesNb + ' produit(s) importé(s) avec succès';
+  let msg = '<i data-lucide="circle-check"></i> ' + creesNb + ' produit(s) importé(s) avec succès';
   if (sousFamillesCreees > 0) msg += ' (' + sousFamillesCreees + ' sous-famille(s) créée(s) automatiquement)';
   notify(msg, 'green');
 }
@@ -7953,7 +8080,7 @@ function deleteProduit(id) {
 function renderEntrepots() {
   const grid = document.getElementById('entrepots-grid');
   if (!state.entrepots.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1"><div class="empty-state"><div class="empty-state-icon">🏭</div><div class="empty-state-title">Aucun entrepôt</div><div class="empty-state-sub">Créez votre premier entrepôt ou dépôt</div></div></div>';
+    grid.innerHTML = '<div style="grid-column:1/-1"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="warehouse"></i></div><div class="empty-state-title">Aucun entrepôt</div><div class="empty-state-sub">Créez votre premier entrepôt ou dépôt</div></div></div>';
     return;
   }
   grid.innerHTML = state.entrepots.map(e => {
@@ -7970,7 +8097,7 @@ function renderEntrepots() {
       <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)">
         <div style="background:linear-gradient(135deg,#1F2E26,#00875A);padding:16px 20px">
           <div style="font-size:15px;font-weight:700;color:white">${e.nom}</div>
-          ${e.ville ? `<div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:2px">📍 ${e.ville}</div>` : ''}
+          ${e.ville ? `<div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:2px"><i data-lucide="map-pin"></i> ${e.ville}</div>` : ''}
         </div>
         <div style="padding:16px 20px">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
@@ -7983,9 +8110,9 @@ function renderEntrepots() {
               <div style="font-size:11px;color:var(--text3)">valeur stock</div>
             </div>
           </div>
-          ${e.adresse ? `<div style="font-size:12px;color:var(--text2);margin-bottom:6px">🏠 ${e.adresse}</div>` : ''}
-          ${e.resp ? `<div style="font-size:12px;color:var(--text2);margin-bottom:6px">👤 ${e.resp}</div>` : ''}
-          ${alertes > 0 ? `<div style="background:var(--amber-bg);color:var(--amber);border-radius:var(--radius-sm);padding:6px 10px;font-size:12px;font-weight:600;margin-bottom:10px">⚠ ${alertes} produit(s) en alerte</div>` : ''}
+          ${e.adresse ? `<div style="font-size:12px;color:var(--text2);margin-bottom:6px"><i data-lucide="house"></i> ${e.adresse}</div>` : ''}
+          ${e.resp ? `<div style="font-size:12px;color:var(--text2);margin-bottom:6px"><i data-lucide="user"></i> ${e.resp}</div>` : ''}
+          ${alertes > 0 ? `<div style="background:var(--amber-bg);color:var(--amber);border-radius:var(--radius-sm);padding:6px 10px;font-size:12px;font-weight:600;margin-bottom:10px"><i data-lucide="triangle-alert"></i> ${alertes} produit(s) en alerte</div>` : ''}
           <div class="actions">
             <button class="action-btn" onclick="editEntrepot('${e.id}')">Modifier</button>
             <button class="action-btn red" onclick="deleteEntrepot('${e.id}')">Supprimer</button>
@@ -8087,7 +8214,7 @@ function renderStocks() {
   document.getElementById('st-ruptures').textContent = allQtys.filter(({p,qty}) => qty <= 0).length;
 
   if (rows.length === 0) {
-    document.getElementById('stocks-tbody').innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-title">Aucun stock trouvé</div><div class="empty-state-sub">Ajoutez des produits et effectuez des entrées de stock</div></div></td></tr>';
+    document.getElementById('stocks-tbody').innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="chart-column"></i></div><div class="empty-state-title">Aucun stock trouvé</div><div class="empty-state-sub">Ajoutez des produits et effectuez des entrées de stock</div></div></td></tr>';
     return;
   }
 
@@ -8114,14 +8241,14 @@ function renderStocks() {
 
   // Couleurs par famille
   const famColors = {
-    'Verre':     { bg: '#FFE4D6', text: '#9A3712', icon: '🥃' },
-    'Céramique': { bg: '#FEF3C7', text: '#92400E', icon: '🍽️' },
-    'Métal':     { bg: '#E5E7EB', text: '#374151', icon: '🔩' },
-    'Emballage': { bg: '#FCE7F3', text: '#9D174D', icon: '📦' },
-    'Ruban':            { bg: '#EDE5FA', text: '#6B21A8', icon: '🎀' },
-    'Mercerie/Textile': { bg: '#FFE4E6', text: '#9F1239', icon: '🧵' }
+    'Verre':     { bg: '#FFE4D6', text: '#9A3712', icon: ic('wine') },
+    'Céramique': { bg: '#FEF3C7', text: '#92400E', icon: ic('utensils-crossed') },
+    'Métal':     { bg: '#E5E7EB', text: '#374151', icon: ic('cog') },
+    'Emballage': { bg: '#FCE7F3', text: '#9D174D', icon: ic('package') },
+    'Ruban':            { bg: '#EDE5FA', text: '#6B21A8', icon: ic('ribbon') },
+    'Mercerie/Textile': { bg: '#FFE4E6', text: '#9F1239', icon: ic('scissors') }
   };
-  const defaultCol = { bg: 'var(--surface2)', text: 'var(--text)', icon: '📁' };
+  const defaultCol = { bg: 'var(--surface2)', text: 'var(--text)', icon: ic('folder') };
 
   let html = '';
   famKeys.forEach(fam => {
@@ -8162,7 +8289,7 @@ function renderStocks() {
         <td>${fmtMAD(valeur)}</td>
         <td>${stockBadge(qty, p.alerte||5)}</td>
         <td class="actions">
-          <button class="action-btn" style="color:var(--red);border-color:#FECACA" onclick="showMvtModal('sortie','${p.id}','${eid||''}')" title="Sortie hors vente (casse, perte, retour fournisseur...)">↓ Sortie manuelle</button>
+          <button class="action-btn" style="color:var(--red);border-color:#FECACA" onclick="showMvtModal('sortie','${p.id}','${eid||''}')" title="Sortie hors vente (casse, perte, retour fournisseur...)"><i data-lucide="arrow-down"></i> Sortie manuelle</button>
           <button class="action-btn" onclick="showMvtModal('ajustement','${p.id}','${eid||''}')">Ajuster</button>
         </td>
       </tr>`;
@@ -8728,7 +8855,7 @@ function setImpType(type) {
       badge.style.background = 'var(--red-bg)';
       badge.style.borderLeftColor = 'var(--red)';
     }
-    if (badgeIcon) badgeIcon.textContent = '🇲🇦';
+    if (badgeIcon) badgeIcon.textContent = '';
     if (badgeLabel) badgeLabel.textContent = isNew ? 'Nouvel achat local (Maroc)' : 'Achat local (Maroc)';
     document.getElementById('imp-pays-group').style.display = 'none';
     document.getElementById('imp-ice-group').style.display = '';
@@ -8747,7 +8874,7 @@ function setImpType(type) {
       badge.style.background = 'var(--accent-light)';
       badge.style.borderLeftColor = 'var(--accent)';
     }
-    if (badgeIcon) badgeIcon.textContent = '🌍';
+    if (badgeIcon) badgeIcon.innerHTML = ic('globe');
     if (badgeLabel) badgeLabel.textContent = isNew ? 'Nouvelle importation (étranger)' : 'Importation (étranger)';
     document.getElementById('imp-pays-group').style.display = '';
     document.getElementById('imp-ice-group').style.display = 'none';
@@ -8764,7 +8891,7 @@ function setImpType(type) {
   // Mettre à jour le titre principal de la modale
   const title = document.getElementById('modal-imp-title');
   if (isNew) {
-    title.textContent = type === 'local' ? '🇲🇦 Nouvel achat local (Maroc)' : '🌍 Nouvelle importation';
+    title.innerHTML = type === 'local' ? ic('store') + ' Nouvel achat local (Maroc)' : ic('globe') + ' Nouvelle importation';
     // Régénérer le numéro selon le type
     document.getElementById('imp-num').value = genererNumImportation(type);
   }
@@ -8811,14 +8938,14 @@ function renderImportations() {
   document.getElementById('importations-tbody').innerHTML = list.length ? list.map(i => {
     const tType = i.typeAchat || 'import';
     const typeBadge = tType === 'local'
-      ? '<span class="badge" style="background:var(--red-bg);color:var(--red);font-weight:600">🇲🇦 Local</span>'
-      : '<span class="badge" style="background:var(--accent-light);color:var(--accent);font-weight:600">🌍 Import</span>';
+      ? '<span class="badge" style="background:var(--red-bg);color:var(--red);font-weight:600"><i data-lucide="store"></i> Local</span>'
+      : '<span class="badge" style="background:var(--accent-light);color:var(--accent);font-weight:600"><i data-lucide="globe"></i> Import</span>';
     const origine = tType === 'local' ? (i.ice ? 'ICE: ' + i.ice : '—') : (i.pays || '—');
     const fournNom = i.fournisseurId ? (getFournisseur(i.fournisseurId)?.nom || i.fournisseur || '—') : (i.fournisseur || '—');
     const totalPaye = _calculerTotalPaye(i);
     const reste = (i.ht || 0) - totalPaye;
     const paymentBadge = reste <= 0.01
-      ? '<span class="badge badge-green" style="font-size:10px">✓ Payé</span>'
+      ? '<span class="badge badge-green" style="font-size:10px"><i data-lucide="check"></i> Payé</span>'
       : (totalPaye > 0 ? '<span class="badge badge-amber" style="font-size:10px">~ ' + fmtMAD(reste) + '</span>' : '<span class="badge badge-red" style="font-size:10px">À payer</span>');
     const deviseAffiche = i.devise && i.devise !== 'MAD' ? ' · <span style="color:var(--text3);font-weight:500">' + i.devise + '</span>' : '';
     return `<tr>
@@ -8832,12 +8959,12 @@ function renderImportations() {
       <td style="font-weight:700;color:var(--accent)">${fmtMAD(i.ht || 0)}<div style="margin-top:2px">${paymentBadge}</div></td>
       <td class="actions">
         <button class="action-btn" onclick="editImportation('${i.id}')">Voir</button>
-        <button class="action-btn" style="color:var(--green);border-color:#A7F3D0" onclick="showReglementModal('${i.id}','achat')" title="Gérer les règlements de cet achat">💳 Régler</button>
-        <button class="action-btn blue" onclick="printImportation('${i.id}')">🖨️ PDF</button>
+        <button class="action-btn" style="color:var(--green);border-color:#A7F3D0" onclick="showReglementModal('${i.id}','achat')" title="Gérer les règlements de cet achat"><i data-lucide="credit-card"></i> Régler</button>
+        <button class="action-btn blue" onclick="printImportation('${i.id}')"><i data-lucide="printer"></i> PDF</button>
         <button class="action-btn red" onclick="deleteImportation('${i.id}')">Suppr.</button>
       </td>
     </tr>`;
-  }).join('') : '<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">📦</div><div class="empty-state-title">Aucun achat enregistré</div><div class="empty-state-sub">Créez une importation ou un achat local pour entrer du stock</div></div></td></tr>';
+  }).join('') : '<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="package"></i></div><div class="empty-state-title">Aucun achat enregistré</div><div class="empty-state-sub">Créez une importation ou un achat local pour entrer du stock</div></div></td></tr>';
 }
 
 // ── Lignes du modal ──
@@ -8870,7 +8997,7 @@ function addImpLine(data) {
     <input class="form-input" type="number" min="0" step="1" value="${data ? data.qty || 1 : 1}" oninput="calcImpTotals()" style="font-size:12px;text-align:center">
     <input class="form-input" type="number" min="0" step="0.01" value="${data ? data.pu || 0 : 0}" oninput="calcImpTotals()" style="font-size:12px;text-align:right" title="Prix d'achat unitaire HT">
     <div class="line-total-display" id="${id}-total" style="font-size:13px">0,00</div>
-    <button class="del-btn" onclick="removeImpLine('${id}')">✕</button>
+    <button class="del-btn" onclick="removeImpLine('${id}')"><i data-lucide="x"></i></button>
   `;
   document.getElementById('imp-lines-container').appendChild(div);
   if (data) setTimeout(calcImpTotals, 0);
@@ -8941,7 +9068,7 @@ function populateImpEntrepotSelect() {
   const sel = document.getElementById('imp-entrepot');
   if (!sel) return;
   if (state.entrepots.length === 0) {
-    sel.innerHTML = '<option value="">⚠ Aucun entrepôt — créez-en un d\'abord</option>';
+    sel.innerHTML = '<option value="">Aucun entrepôt — créez-en un d\'abord</option>';
   } else {
     sel.innerHTML = state.entrepots.map(e => `<option value="${e.id}">${e.nom}</option>`).join('');
   }
@@ -9033,7 +9160,7 @@ function editImportation(id) {
   // Sélectionner le bon fournisseur dans le select repopulé
   if (imp.fournisseurId) document.getElementById('imp-fournisseur-select').value = imp.fournisseurId;
   // Override title pour édition
-  document.getElementById('modal-imp-title').textContent = (tType === 'local' ? '🇲🇦 Achat local ' : '🌍 Importation ') + (imp.num || '');
+  document.getElementById('modal-imp-title').innerHTML = (tType === 'local' ? ic('store') + ' Achat local ' : ic('globe') + ' Importation ') + (imp.num || '');
   initImpLines(imp.lines || []);
   calcImpTotals();
   openModal('modal-importation');
@@ -9121,7 +9248,7 @@ function saveImportation() {
     }
   });
   if (refsInconnues.length > 0) {
-    if (!confirm('⚠ Références inconnues : ' + refsInconnues.join(', ') + '\n\nCes lignes seront ignorées pour le stock. Continuer ?')) return;
+    if (!confirm('Références inconnues : ' + refsInconnues.join(', ') + '\n\nCes lignes seront ignorées pour le stock. Continuer ?')) return;
   }
 
   const ht = lines.reduce((s, l) => s + (l.total || 0), 0);
@@ -9177,7 +9304,7 @@ function deleteImportation(id) {
   const imp = state.importations.find(x => x.id === id);
   if (!imp) return;
   const labelAchat = imp.typeAchat === 'local' ? 'l\'achat local' : 'l\'importation';
-  if (!confirm('Supprimer ' + labelAchat + ' ' + (imp.num || '') + ' ?\n\nLes quantités entrées en stock seront annulées et les mouvements supprimés.\n\n⚠️ Attention : le PMP ne sera PAS recalculé en arrière (les anciens prix moyens restent).')) return;
+  if (!confirm('Supprimer ' + labelAchat + ' ' + (imp.num || '') + ' ?\n\nLes quantités entrées en stock seront annulées et les mouvements supprimés.\n\nAttention : le PMP ne sera PAS recalculé en arrière (les anciens prix moyens restent).')) return;
   if (!askSecurityCode('Supprimer ' + labelAchat + ' ' + (imp.num || ''))) return;
   const nb = annulerImportationStock(id);
   state.importations = state.importations.filter(x => x.id !== id);
@@ -9458,7 +9585,7 @@ function renderMouvements() {
   }
 
   const typeBadge = { entree:'badge-green', sortie:'badge-red', transfert:'badge-blue', ajustement:'badge-amber' };
-  const typeLabel = { entree:'↑ Entrée', sortie:'↓ Sortie', transfert:'⇄ Transfert', ajustement:'✎ Ajustement' };
+  const typeLabel = { entree:ic('arrow-up')+' Entrée', sortie:ic('arrow-down')+' Sortie', transfert:ic('arrow-left-right')+' Transfert', ajustement:ic('pencil')+' Ajustement' };
 
   document.getElementById('mouvements-tbody').innerHTML = list.length ? list.map(m => {
     const p = getProduit(m.produitId);
@@ -9476,15 +9603,15 @@ function renderMouvements() {
       <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${m.stockApres !== undefined ? m.stockApres : '—'}</td>
       <td style="font-size:12px;color:var(--text3)">${m.prixUnit ? fmtMAD(m.prixUnit) : '—'}</td>
     </tr>`;
-  }).join('') : '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">🔄</div><div class="empty-state-title">Aucun mouvement</div><div class="empty-state-sub">Aucun mouvement ne correspond à vos filtres</div></div></td></tr>';
+  }).join('') : '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="refresh-cw"></i></div><div class="empty-state-title">Aucun mouvement</div><div class="empty-state-sub">Aucun mouvement ne correspond à vos filtres</div></div></td></tr>';
 }
 
 function showMvtModal(type, produitId, entrepotId) {
   populateProduitSelect();
   populateEntrepotSelects();
   document.getElementById('mvt-type').value = type;
-  const titles = { entree:'↑ Entrée de stock', sortie:'↓ Sortie manuelle de stock', transfert:'⇄ Transfert de stock', ajustement:'✎ Ajustement de stock' };
-  document.getElementById('modal-mvt-title').textContent = titles[type] || 'Mouvement de stock';
+  const titles = { entree:ic('arrow-up')+' Entrée de stock', sortie:ic('arrow-down')+' Sortie manuelle de stock', transfert:ic('arrow-left-right')+' Transfert de stock', ajustement:ic('pencil')+' Ajustement de stock' };
+  document.getElementById('modal-mvt-title').innerHTML = titles[type] || 'Mouvement de stock';
   document.getElementById('mvt-qty').value = 1;
   document.getElementById('mvt-motif').value = '';
   document.getElementById('mvt-date').value = today();
@@ -9520,7 +9647,7 @@ function showMvtModal(type, produitId, entrepotId) {
     if (p) {
       document.getElementById('mvt-produit').value = produitId;
       document.getElementById('mvt-produit-search').value = p.ref || '';
-      document.getElementById('mvt-produit-info').innerHTML = '✓ <strong>' + p.nom + '</strong>' + (p.couleur ? ' — ' + p.couleur : '') + ' · ' + (p.unite || '');
+      document.getElementById('mvt-produit-info').innerHTML = '<i data-lucide="check"></i> <strong>' + p.nom + '</strong>' + (p.couleur ? ' — ' + p.couleur : '') + ' · ' + (p.unite || '');
     }
   }
   if (entrepotId) {
@@ -9652,8 +9779,8 @@ function saveMouvement() {
 
   // Alert check
   const newTotal = getQtyStock(produitId, null);
-  if (newTotal <= 0) notify('⚠ Rupture de stock : ' + p.nom, 'red');
-  else if (newTotal <= (p.alerte || 5)) notify('⚠ Alerte stock faible : ' + p.nom, 'red');
+  if (newTotal <= 0) notify('Rupture de stock : ' + p.nom, 'red');
+  else if (newTotal <= (p.alerte || 5)) notify('Alerte stock faible : ' + p.nom, 'red');
 
   save(); closeModal('modal-mvt');
   renderStocks(); renderMouvements(); renderProduits();
@@ -9849,14 +9976,14 @@ function basculerAuthTab(mode) {
   if (mode === 'signup') {
     btnSignup.classList.add('btn-primary');
     btnLogin.classList.remove('btn-primary');
-    submitBtn.textContent = '✨ Créer mon compte';
+    submitBtn.innerHTML = ic('sparkles') + ' Créer mon compte';
     if (passwordHint) passwordHint.style.display = '';
     if (passwordInput) passwordInput.autocomplete = 'new-password';
     if (forgotLink) forgotLink.style.display = 'none';
   } else {
     btnLogin.classList.add('btn-primary');
     btnSignup.classList.remove('btn-primary');
-    submitBtn.textContent = '🔐 Se connecter';
+    submitBtn.innerHTML = ic('log-in') + ' Se connecter';
     if (passwordHint) passwordHint.style.display = 'none';
     if (passwordInput) passwordInput.autocomplete = 'current-password';
     if (forgotLink) forgotLink.style.display = '';
@@ -9866,14 +9993,14 @@ function basculerAuthTab(mode) {
 
 function afficherAuthError(msg) {
   const el = document.getElementById('auth-error');
-  if (el) { el.textContent = '❌ ' + msg; el.style.display = ''; }
+  if (el) { el.textContent = '' + msg; el.style.display = ''; }
   const ok = document.getElementById('auth-success');
   if (ok) ok.style.display = 'none';
 }
 
 function afficherAuthSuccess(msg) {
   const el = document.getElementById('auth-success');
-  if (el) { el.textContent = '✅ ' + msg; el.style.display = ''; }
+  if (el) { el.textContent = '' + msg; el.style.display = ''; }
   const err = document.getElementById('auth-error');
   if (err) err.style.display = 'none';
 }
@@ -9894,7 +10021,7 @@ async function soumettreAuth() {
 
   const btn = document.getElementById('auth-submit-btn');
   const ancienText = btn.textContent;
-  btn.textContent = '⏳ Patientez...';
+  btn.innerHTML = ic('loader-circle') + ' Patientez...';
   btn.disabled = true;
 
   try {
@@ -9939,7 +10066,7 @@ async function motDePasseOublie() {
     const redirectTo = window.location.origin + window.location.pathname;
     const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
     if (error) throw error;
-    afficherAuthSuccess('✉️ Email envoyé ! Vérifiez votre boîte (et les spams) pour réinitialiser votre mot de passe.');
+    afficherAuthSuccess('Email envoyé ! Vérifiez votre boîte (et les spams) pour réinitialiser votre mot de passe.');
   } catch (e) {
     afficherAuthError(e.message || 'Erreur');
   }
@@ -9989,7 +10116,7 @@ async function definirNouveauMotDePasse() {
     return;
   }
   if (pwd1 !== pwd2) {
-    if (errEl) { errEl.textContent = '❌ Les deux mots de passe ne correspondent pas.'; errEl.style.display = ''; }
+    if (errEl) { errEl.textContent = 'Les deux mots de passe ne correspondent pas.'; errEl.style.display = ''; }
     return;
   }
   if (!sb) {
@@ -9999,12 +10126,12 @@ async function definirNouveauMotDePasse() {
 
   const ancienText = btn.textContent;
   btn.disabled = true;
-  btn.textContent = '⏳ Mise à jour en cours...';
+  btn.innerHTML = ic('loader-circle') + ' Mise à jour en cours...';
   try {
     const { error } = await sb.auth.updateUser({ password: pwd1 });
     if (error) throw error;
     if (okEl) {
-      okEl.textContent = '✅ Mot de passe modifié avec succès ! Vous allez être redirigé vers la connexion...';
+      okEl.textContent = 'Mot de passe modifié avec succès ! Vous allez être redirigé vers la connexion...';
       okEl.style.display = '';
     }
     // Vider les champs
@@ -10039,7 +10166,7 @@ function montrerAuthOverlay() {
 // Étape post-login : charger état depuis cloud et démarrer l'app
 async function apresLogin() {
   masquerAuthOverlay();
-  notify('🎉 Bienvenue ! Chargement de vos données...', 'green');
+  notify('Bienvenue ! Chargement de vos données...', 'green');
   await chargerDepuisCloud();
   renderDashboard();
   rafraichirIndicateurSync('synced');
@@ -10062,7 +10189,7 @@ function appliquerVersion() {
   }
 }
 function afficherNotesVersion() {
-  alert('🚀 IBEN IMPORT manager\nVersion : ' + APP_VERSION + '\nDate : ' + APP_VERSION_DATE + '\n\n📋 Notes :\n' + APP_VERSION_NOTES);
+  alert('IBEN IMPORT manager\nVersion : ' + APP_VERSION + '\nDate : ' + APP_VERSION_DATE + '\n\nNotes :\n' + APP_VERSION_NOTES);
 }
 appliquerVersion();
 
