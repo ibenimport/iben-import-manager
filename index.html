@@ -881,7 +881,7 @@
         <div class="table-card">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Numéro</th><th>Document lié</th><th>Client</th><th>Date</th><th>Objet</th><th>Statut</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Numéro</th><th>Facturation</th><th>Client</th><th>Date</th><th>Objet</th><th>Montant TTC</th><th>Livraison</th><th>Actions</th></tr></thead>
               <tbody id="livraisons-tbody"></tbody>
             </table>
           </div>
@@ -1318,6 +1318,29 @@
 <!-- ======== MODALS ======== -->
 
 <!-- Nouveau document -->
+<div class="modal-overlay" id="modal-facturer-bl" style="display:none" onclick="if(event.target===this)closeModal('modal-facturer-bl')">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header">
+      <span class="modal-title"><i data-lucide="receipt"></i> Facturer des bons de livraison</span>
+      <button class="modal-close" onclick="closeModal('modal-facturer-bl')"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12.5px;color:var(--text2);background:var(--accent-light);padding:10px 14px;border-radius:var(--radius-sm);margin-bottom:16px;line-height:1.6">
+        <i data-lucide="lightbulb"></i> Cochez les BL livrés à regrouper : une <strong>seule facture</strong> est créée avec le total. Le stock a déjà été retiré à chaque BL, il n'est <strong>pas retiré une deuxième fois</strong>.
+      </div>
+      <div class="form-group" style="margin-bottom:14px">
+        <label class="form-label">Client</label>
+        <select class="form-input" id="fbl-client" onchange="renderFacturerBL()"></select>
+      </div>
+      <div id="fbl-liste"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-facturer-bl')">Annuler</button>
+      <button class="btn btn-primary" id="fbl-btn" onclick="facturerBLSelectionnes()"><i data-lucide="receipt"></i> Créer la facture</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-type" style="display:none" onclick="if(event.target===this)closeModal('modal-type')">
   <div class="modal">
     <div class="modal-header">
@@ -2796,7 +2819,7 @@ const topbarActions = {
   dashboard:   `<button class="btn btn-primary" onclick="showNewDocModal()">+ Nouveau document</button>`,
   devis:       `<button class="btn btn-primary" onclick="openDocModal('devis')">+ Nouveau devis</button>`,
   factures:    `<button class="btn btn-primary" onclick="openDocModal('facture')">+ Nouvelle facture</button>`,
-  livraisons:  `<button class="btn btn-primary" onclick="openDocModal('livraison')">+ Nouveau BL</button>`,
+  livraisons:  `<button class="btn" onclick="ouvrirFacturerBL()" style="border-color:var(--green);color:var(--green)"><i data-lucide="receipt"></i> Facturer des BL</button><button class="btn btn-primary" onclick="openDocModal('livraison')">+ Nouveau BL</button>`,
   clients:     `<button class="btn btn-primary" onclick="showClientModal()">+ Nouveau client</button>`,
   produits:    `<button class="btn btn-primary" onclick="showProduitModal()">+ Nouveau produit</button>`,
   entrepots:   `<button class="btn btn-primary" onclick="showEntrepotModal()">+ Nouvel entrepôt</button>`,
@@ -3468,7 +3491,7 @@ function renderFactures() {
         <button class="action-btn blue" onclick="previewDoc('${f.id}','facture')">PDF</button>
         <button class="action-btn" onclick="editDoc('${f.id}','facture')">Modifier</button>
         ${f.statut !== 'Payée' ? `<button class="action-btn" onclick="showReglementModal('${f.id}')">Règlement</button>` : ''}
-        <button class="action-btn" onclick="createBL('${f.id}')">BL</button>
+        ${f.blIds && f.blIds.length ? '' : `<button class="action-btn" onclick="createBL('${f.id}')">BL</button>`}
         <button class="action-btn red" onclick="deleteDoc('${f.id}','facture')">Suppr.</button>
       </td>
     </tr>`;
@@ -3487,20 +3510,27 @@ function renderLivraisons() {
 
   document.getElementById('livraisons-tbody').innerHTML = list.length ? list.map(l => {
     const cl = getClient(l.clientId);
+    const aFact = blEstAFacturer(l);
+    const factCell = aFact
+      ? '<span class="badge badge-amber">Non facturé</span>'
+      : (l.refDoc ? '<span class="badge badge-green">' + ic('receipt') + ' ' + l.refDoc + '</span>' : '—');
     return `<tr>
       <td class="td-mono td-bold">${l.num}</td>
-      <td class="td-mono">${l.refDoc || '—'}</td>
+      <td>${factCell}</td>
       <td>${cl.nom || '—'}</td>
       <td>${fmtDate(l.date)}</td>
       <td>${l.objet || '—'}</td>
+      <td>${fmtMAD(l.ttc || 0)}</td>
       <td>${badgeForStatut(l.statut)}</td>
       <td class="actions">
         <button class="action-btn blue" onclick="previewDoc('${l.id}','livraison')">PDF</button>
-        <button class="action-btn" onclick="updateBLStatut('${l.id}')">Marquer livré</button>
-        <button class="action-btn red" onclick="deleteDoc('${l.id}','livraison')">Suppr.</button>
+        ${aFact ? `<button class="action-btn" style="color:var(--green);border-color:#A7F3D0" onclick="ouvrirFacturerBL('${l.clientId}','${l.id}')">${ic('receipt')} Facturer</button>` : ''}
+        ${aFact ? `<button class="action-btn" onclick="editDoc('${l.id}','livraison')">Modifier</button>` : ''}
+        ${l.statut !== 'Livré' ? `<button class="action-btn" onclick="updateBLStatut('${l.id}')">Marquer livré</button>` : ''}
+        ${l.factureId ? '' : `<button class="action-btn red" onclick="deleteDoc('${l.id}','livraison')">Suppr.</button>`}
       </td>
     </tr>`;
-  }).join('') : '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="truck"></i></div><div class="empty-state-title">Aucun bon de livraison</div></div></td></tr>';
+  }).join('') : '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon"><i data-lucide="truck"></i></div><div class="empty-state-title">Aucun bon de livraison</div></div></td></tr>';
 }
 
 // ============================================================
@@ -4786,12 +4816,18 @@ function saveDoc() {
     docData.statut = statut;
     let stockResult = null;
     if (id) {
-      // Modification d'une facture existante : annuler ancienne déduction puis re-déduire
-      reapprovisionnerStockDoc(id, 'facture');
       const idx = state.factures.findIndex(f => f.id === id);
-      if (idx >= 0) state.factures[idx] = { ...state.factures[idx], ...docData };
-      const factureMaj = state.factures[idx];
-      stockResult = deduireStockDoc(factureMaj, 'facture');
+      const issueDeBL = idx >= 0 && Array.isArray(state.factures[idx].blIds) && state.factures[idx].blIds.length > 0;
+      if (issueDeBL) {
+        // Facture regroupant des BL : le stock a déjà été retiré par les BL
+        state.factures[idx] = { ...state.factures[idx], ...docData };
+      } else {
+        // Modification d'une facture existante : annuler ancienne déduction puis re-déduire
+        reapprovisionnerStockDoc(id, 'facture');
+        if (idx >= 0) state.factures[idx] = { ...state.factures[idx], ...docData };
+        const factureMaj = state.factures[idx];
+        stockResult = deduireStockDoc(factureMaj, 'facture');
+      }
     } else {
       // Nouvelle facture : déduction du stock
       const newId = uid();
@@ -4803,13 +4839,24 @@ function saveDoc() {
     if (stockResult) setTimeout(() => notifyStockResult(stockResult, 'Facture validée'), 100);
   } else if (type === 'livraison') {
     docData.statut = 'En cours';
+    let stockResult = null;
     if (id) {
       const idx = state.livraisons.findIndex(l => l.id === id);
-      if (idx >= 0) state.livraisons[idx] = { ...state.livraisons[idx], ...docData };
+      if (idx >= 0) {
+        if (state.livraisons[idx].factureId) { notify('Ce BL est déjà facturé : supprimez d\'abord sa facture pour le modifier', 'red'); return; }
+        // Annule l'ancienne sortie de stock de ce BL (s'il en avait une) puis applique la nouvelle
+        reapprovisionnerStockDoc(id, 'livraison');
+        state.livraisons[idx] = { ...state.livraisons[idx], ...docData };
+        if (state.livraisons[idx].aFacturer) stockResult = deduireStockDoc(state.livraisons[idx], 'livraison');
+      }
     } else {
-      state.livraisons.push({ id: uid(), refDoc: '', ...docData });
+      // Nouveau BL (livraison partielle) : le stock sort maintenant, la facture viendra plus tard
+      const nouveauBL = { id: uid(), refDoc: '', aFacturer: true, factureId: '', ...docData };
+      state.livraisons.push(nouveauBL);
       state.settings.numBL++;
+      stockResult = deduireStockDoc(nouveauBL, 'livraison');
     }
+    if (stockResult) setTimeout(() => notifyStockResult(stockResult, 'BL validé'), 100);
   }
 
   save(); closeModal('modal-doc');
@@ -4822,6 +4869,10 @@ function saveDoc() {
 function editDoc(id, cat) {
   const labelCat = cat === 'devis' ? 'devis' : cat === 'facture' ? 'facture' : 'bon de livraison';
   // 🔒 Code de sécurité requis pour modifier un document
+  if (cat === 'livraison') {
+    const bl = state.livraisons.find(l => l.id === id);
+    if (bl && bl.factureId) { alert('Ce BL est inclus dans la facture ' + (bl.refDoc || '') + '.\n\nSupprimez d\'abord la facture pour pouvoir le modifier.'); return; }
+  }
   if (!askSecurityCode('Modifier ce ' + labelCat)) return;
   let doc;
   if (cat === 'devis') doc = state.devis.find(d => d.id === id);
@@ -4832,7 +4883,15 @@ function editDoc(id, cat) {
 
 function deleteDoc(id, cat) {
   const labelCat = cat === 'devis' ? 'devis' : cat === 'facture' ? 'facture' : 'bon de livraison';
-  if (!confirm('Supprimer ce ' + labelCat + ' ?\n\n' + (cat === 'facture' ? 'Les quantités déduites du stock seront restaurées.' : ''))) return;
+  if (cat === 'livraison') {
+    const bl = state.livraisons.find(l => l.id === id);
+    if (bl && bl.factureId) { alert('Ce BL est inclus dans la facture ' + (bl.refDoc || '') + '.\n\nSupprimez d\'abord la facture : le BL repassera en « Non facturé ».'); return; }
+  }
+  const factureBL = cat === 'facture' ? state.factures.find(f => f.id === id) : null;
+  const msgStock = cat === 'facture'
+    ? (factureBL && factureBL.blIds && factureBL.blIds.length ? 'Les BL inclus repasseront en « Non facturé » (le stock reste sorti avec les BL).' : 'Les quantités déduites du stock seront restaurées.')
+    : (cat === 'livraison' ? 'Les quantités sorties du stock par ce BL seront restaurées.' : '');
+  if (!confirm('Supprimer ce ' + labelCat + ' ?\n\n' + msgStock)) return;
   if (!askSecurityCode('Supprimer ce ' + labelCat)) return;
   let stockRestaure = 0;
   let devisDebloque = 0; // Compteur pour message notification
@@ -4848,8 +4907,13 @@ function deleteDoc(id, cat) {
         devisDebloque++;
       }
     }
+    // Les BL regroupés dans cette facture redeviennent « Non facturé »
+    state.livraisons.forEach(l => { if (l.factureId === id) { l.factureId = ''; l.refDoc = ''; } });
     state.factures = state.factures.filter(f => f.id !== id);
-  } else state.livraisons = state.livraisons.filter(l => l.id !== id);
+  } else {
+    stockRestaure = reapprovisionnerStockDoc(id, 'livraison');
+    state.livraisons = state.livraisons.filter(l => l.id !== id);
+  }
   save();
   if (cat === 'devis') renderDevis();
   else if (cat === 'facture') renderFactures();
@@ -4897,7 +4961,7 @@ function convertToFacture(id) {
     id: newFactId, num, clientId: d.clientId, date: today(), echeance: plusDays(today(), 30),
     objet: d.objet, notes: d.notes, lines: d.lines,
     ht: d.ht, tva: d.tva, ttc: d.ttc,
-    remiseGlob: d.remiseGlob || 0, // <i data-lucide="star"></i> Correction : préserver la remise globale du devis
+    remiseGlob: d.remiseGlob || 0, // Correction : préserver la remise globale du devis
     statut: 'Impayée', paye: 0, modeReglement: 'Virement bancaire',
     refDevis: d.num || '' // Traçabilité : sait de quel devis vient la facture
   };
@@ -4921,13 +4985,125 @@ function createBL(factureId) {
     id: uid(), num, clientId: f.clientId, date: today(), echeance: '',
     objet: f.objet, notes: f.notes, lines: f.lines,
     ht: f.ht, tva: f.tva, ttc: f.ttc,
-    remiseGlob: f.remiseGlob || 0, // <i data-lucide="star"></i> Cohérence : préserver la remise globale
+    remiseGlob: f.remiseGlob || 0, // Cohérence : préserver la remise globale
     statut: 'En cours', refDoc: f.num
   });
   state.settings.numBL++;
   save(); notify('Bon de livraison créé', 'green');
   goPage('livraisons', document.querySelector('[onclick*="livraisons"]'));
   renderLivraisons();
+}
+
+// ============================================================
+//  FACTURATION GROUPÉE DES BL (livraisons partielles)
+// ============================================================
+// Un BL est « à facturer » s'il n'est rattaché à aucune facture
+function blEstAFacturer(l) { return !l.factureId && !l.refDoc; }
+function escHtml(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+function ouvrirFacturerBL(clientId, blId) {
+  const aFacturer = state.livraisons.filter(blEstAFacturer);
+  if (!aFacturer.length) { notify('Aucun BL à facturer', 'red'); return; }
+  const clientIds = [...new Set(aFacturer.map(l => l.clientId))];
+  const sel = document.getElementById('fbl-client');
+  sel.innerHTML = clientIds.map(cid => {
+    const n = aFacturer.filter(l => l.clientId === cid).length;
+    return `<option value="${cid}">${escHtml(getClient(cid).nom || '—')} — ${n} BL non facturé${n > 1 ? 's' : ''}</option>`;
+  }).join('');
+  sel.value = clientId && clientIds.includes(clientId) ? clientId : clientIds[0];
+  window.__fblPreselect = blId || null;
+  renderFacturerBL();
+  openModal('modal-facturer-bl');
+}
+
+function renderFacturerBL() {
+  const cid = document.getElementById('fbl-client').value;
+  const bls = state.livraisons.filter(l => blEstAFacturer(l) && l.clientId === cid)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  const pre = window.__fblPreselect;
+  window.__fblPreselect = null;
+  document.getElementById('fbl-liste').innerHTML = `
+    <div class="table-card"><div class="table-wrap"><table>
+      <thead><tr><th style="width:36px"><input type="checkbox" id="fbl-all" ${pre ? '' : 'checked'} onchange="document.querySelectorAll('.fbl-chk').forEach(c => c.checked = this.checked); majTotalFacturerBL()"></th><th>BL</th><th>Date</th><th>Articles</th><th style="text-align:right">Montant TTC</th></tr></thead>
+      <tbody>${bls.map(l => `<tr>
+        <td><input type="checkbox" class="fbl-chk" value="${l.id}" ${!pre || pre === l.id ? 'checked' : ''} onchange="majTotalFacturerBL()"></td>
+        <td class="td-mono td-bold">${l.num}</td>
+        <td>${fmtDate(l.date)}</td>
+        <td>${(l.lines || []).length} ligne(s)</td>
+        <td style="text-align:right">${fmtMAD(l.ttc || 0)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:12px 16px;background:var(--surface2);border-radius:var(--radius-sm);font-weight:700">
+      <span id="fbl-nb">—</span><span id="fbl-total" style="font-size:17px;color:var(--accent)">—</span>
+    </div>`;
+  majTotalFacturerBL();
+}
+
+function majTotalFacturerBL() {
+  const ids = [...document.querySelectorAll('.fbl-chk:checked')].map(c => c.value);
+  const total = state.livraisons.filter(l => ids.includes(l.id)).reduce((s, l) => s + (l.ttc || 0), 0);
+  document.getElementById('fbl-nb').textContent = ids.length + ' BL sélectionné' + (ids.length > 1 ? 's' : '');
+  document.getElementById('fbl-total').textContent = 'Total TTC : ' + fmtMAD(total);
+  const btn = document.getElementById('fbl-btn');
+  btn.disabled = ids.length === 0;
+  btn.style.opacity = ids.length ? '' : '0.5';
+}
+
+function facturerBLSelectionnes() {
+  const ids = [...document.querySelectorAll('.fbl-chk:checked')].map(c => c.value);
+  const bls = state.livraisons.filter(l => ids.includes(l.id) && blEstAFacturer(l))
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  if (!bls.length) { notify('Sélectionnez au moins un BL', 'red'); return; }
+  const nums = bls.map(l => l.num).join(', ');
+  if (!confirm('Créer une facture pour ' + bls.length + ' BL ?\n\n' + nums + '\n\nLe stock ne sera pas retiré une deuxième fois.')) return;
+
+  // Anciens BL créés sans facture : leur stock n'était jamais sorti → on le sort maintenant, rattaché au BL
+  bls.forEach(l => {
+    const dejaSorti = state.mouvements.some(m => m.docId === l.id && m.docType === 'livraison');
+    if (!dejaSorti) deduireStockDoc(l, 'livraison');
+  });
+
+  // Fusion des lignes : même référence + même prix + même remise effective → quantités additionnées
+  const lignes = [];
+  bls.forEach(l => {
+    const rg = parseFloat(l.remiseGlob) || 0;
+    (l.lines || []).forEach(li => {
+      const rl = parseFloat(li.remise) || 0;
+      const remise = Math.round((1 - (1 - rl / 100) * (1 - rg / 100)) * 10000) / 100; // remise du BL intégrée à la ligne
+      const pu = parseFloat(li.pu) || 0;
+      const qty = parseFloat(li.qty) || 0;
+      const cle = (li.ref || '').trim().toLowerCase() + '|' + (li.desc || '').trim().toLowerCase() + '|' + pu + '|' + remise;
+      const ex = lignes.find(x => x._cle === cle);
+      if (ex) ex.qty += qty;
+      else lignes.push({ _cle: cle, ref: li.ref || '', desc: li.desc || '', qty, pu, remise });
+    });
+  });
+  lignes.forEach(x => { delete x._cle; x.total = x.qty * x.pu * (1 - x.remise / 100); });
+
+  const ht = lignes.reduce((s, x) => s + x.total, 0);
+  const tva = ht * 0.2;
+  const yr = new Date().getFullYear();
+  const facture = {
+    id: uid(),
+    num: 'F-' + yr + '-' + String(state.settings.numFacture).padStart(3, '0'),
+    clientId: bls[0].clientId, date: today(), echeance: plusDays(today(), 30),
+    objet: 'Livraisons : ' + nums, notes: '',
+    lines: lignes, remiseGlob: 0, ht, tva, ttc: ht + tva,
+    statut: 'Impayée', paye: 0, modeReglement: 'Virement bancaire',
+    blIds: bls.map(l => l.id), refBLs: bls.map(l => l.num)
+  };
+  state.factures.push(facture);
+  state.settings.numFacture++;
+  bls.forEach(l => { l.factureId = facture.id; l.refDoc = facture.num; });
+
+  save();
+  closeModal('modal-facturer-bl');
+  renderLivraisons();
+  if (typeof renderStocks === 'function') renderStocks();
+  if (typeof renderMouvements === 'function') renderMouvements();
+  notify('Facture ' + facture.num + ' créée à partir de ' + bls.length + ' BL', 'green');
+  goPage('factures', document.querySelector('[onclick*="factures"]'));
+  openDocModal('facture', facture);
 }
 
 function updateBLStatut(id) {
