@@ -355,6 +355,31 @@
   .notif.green { background: #15803D; }
   .notif.red { background: #B91C1C; }
 
+  /* ═══ VENTE COMPTOIR ═══ */
+  .ico.nav-icon { width: 16px; height: 16px; vertical-align: middle; }
+  .vc-row { display: grid; grid-template-columns: 1.6fr 0.7fr 1fr 1fr 34px; gap: 8px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .vc-row > * { min-width: 0; }
+  .vc-row .form-input { width: 100%; min-width: 0; box-sizing: border-box; }
+  .vc-head { font-size: 10.5px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; padding: 0 0 6px; border-bottom: 1px solid var(--border); }
+  .vc-info { font-size: 11.5px; color: var(--text3); margin-top: 4px; line-height: 1.35; }
+  .vc-info.ok { color: var(--green); }
+  .vc-info.err { color: var(--red); }
+  .vc-total-line { font-weight: 700; font-size: 14px; padding-top: 9px; text-align: right; white-space: nowrap; }
+  .vc-grand { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding: 16px 18px; border-radius: var(--radius); background: var(--accent-light); }
+  .vc-grand-label { font-size: 12px; color: var(--text2); font-weight: 600; }
+  .vc-grand-val { font-size: 26px; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
+  @media (max-width: 640px) {
+    .vc-head { display: none; }
+    .vc-row { grid-template-columns: 1fr 1fr 34px; grid-template-areas: "ref ref ref" "qty pu del" "tot tot tot"; }
+    .vc-row > :nth-child(1) { grid-area: ref; }
+    .vc-row > :nth-child(2) { grid-area: qty; }
+    .vc-row > :nth-child(3) { grid-area: pu; }
+    .vc-row > :nth-child(4) { grid-area: tot; }
+    .vc-row > :nth-child(5) { grid-area: del; align-self: center; }
+    .vc-total-line { text-align: right; padding-top: 0; }
+    .vc-grand-val { font-size: 22px; }
+  }
+
   /* ═══ RESPONSIVE MOBILE ═══ */
   .menu-toggle, .sidebar-close { display: none; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 9px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; flex-shrink: 0; padding: 0; }
   .menu-toggle .ico, .sidebar-close .ico { width: 20px; height: 20px; vertical-align: middle; }
@@ -534,6 +559,10 @@
         <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="1.5" width="13" height="13" rx="1.5" stroke="currentColor" stroke-width="1.3"/><line x1="4" y1="5.5" x2="12" y2="5.5" stroke="currentColor" stroke-width="1.3"/><line x1="4" y1="8" x2="12" y2="8" stroke="currentColor" stroke-width="1.3"/><line x1="4" y1="10.5" x2="8" y2="10.5" stroke="currentColor" stroke-width="1.3"/></svg>
         Factures
       </div>
+      <div class="nav-item" onclick="ouvrirVenteComptoir()">
+        <i data-lucide="shopping-cart" class="nav-icon"></i>
+        Vente comptoir
+      </div>
       <div class="nav-item" onclick="goPage('livraisons',this)">
         <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="5" width="9" height="8" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M10 7h3.5l1.5 3v3H10V7z" stroke="currentColor" stroke-width="1.3"/><circle cx="3.5" cy="14" r="1.5" fill="currentColor"/><circle cx="12.5" cy="14" r="1.5" fill="currentColor"/></svg>
         Bons de livraison
@@ -643,7 +672,8 @@
           </div>
           <div class="dash-hero-actions">
             <button class="hero-btn" onclick="openDocModal('devis')"><i data-lucide="file-text"></i> Nouveau devis</button>
-            <button class="hero-btn primary" onclick="openDocModal('facture')"><i data-lucide="wallet"></i> Nouvelle facture</button>
+            <button class="hero-btn" onclick="ouvrirVenteComptoir()"><i data-lucide="shopping-cart"></i> Vente comptoir</button>
+        <button class="hero-btn primary" onclick="openDocModal('facture')"><i data-lucide="wallet"></i> Nouvelle facture</button>
           </div>
         </div>
 
@@ -1318,6 +1348,48 @@
 <!-- ======== MODALS ======== -->
 
 <!-- Nouveau document -->
+<div class="modal-overlay" id="modal-vente-comptoir" style="display:none" onclick="if(event.target===this)closeModal('modal-vente-comptoir')">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-header">
+      <span class="modal-title"><i data-lucide="shopping-cart"></i> Vente comptoir</span>
+      <button class="modal-close" onclick="closeModal('modal-vente-comptoir')"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12.5px;color:var(--text2);background:var(--accent-light);padding:10px 14px;border-radius:var(--radius-sm);margin-bottom:16px;line-height:1.6">
+        <i data-lucide="lightbulb"></i> Vente rapide déclarée : une <strong>facture payée</strong> est créée au nom du client (ou « Client comptant »), le <strong>stock est retiré</strong> et le paiement est enregistré.
+      </div>
+      <div class="vc-row vc-head"><span>Référence</span><span>Qté</span><span>Prix unit. TTC</span><span style="text-align:right">Total TTC</span><span></span></div>
+      <div id="vc-lignes"></div>
+      <datalist id="dl-vc-refs"></datalist>
+      <button type="button" class="btn btn-sm" style="margin-top:10px" onclick="vcAjouterLigne()"><i data-lucide="plus"></i> Ajouter un article</button>
+      <div class="form-grid" style="margin-top:18px">
+        <div class="form-group">
+          <label class="form-label">Paiement</label>
+          <select class="form-input" id="vc-mode">
+            <option value="Espèces">Espèces</option>
+            <option value="Carte bancaire">Carte bancaire</option>
+            <option value="Chèque">Chèque</option>
+            <option value="Virement bancaire">Virement bancaire</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nom du client (facultatif)</label>
+          <input class="form-input" id="vc-client-nom" placeholder="Client comptant">
+        </div>
+      </div>
+      <div class="vc-grand">
+        <div><div class="vc-grand-label">TOTAL À ENCAISSER</div><div style="font-size:11.5px;color:var(--text3)" id="vc-ht-tva">HT 0,00 · TVA 0,00</div></div>
+        <div class="vc-grand-val" id="vc-total">0,00 MAD</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-vente-comptoir')">Annuler</button>
+      <button class="btn" onclick="vcEncaisser(true)"><i data-lucide="printer"></i> Encaisser + imprimer</button>
+      <button class="btn btn-primary" onclick="vcEncaisser(false)"><i data-lucide="circle-check"></i> Encaisser</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-facturer-bl" style="display:none" onclick="if(event.target===this)closeModal('modal-facturer-bl')">
   <div class="modal" style="max-width:720px">
     <div class="modal-header">
@@ -2558,7 +2630,7 @@ function icEl(name) {
 function ic(name) { return '<i data-lucide="' + name + '"></i>'; }
 function hydrateIcons(root) {
   const list = root.matches && root.matches('i[data-lucide]') ? [root] : root.querySelectorAll('i[data-lucide]');
-  list.forEach(el => { const svg = icEl(el.getAttribute('data-lucide')); if (svg) el.replaceWith(svg); });
+  list.forEach(el => { const svg = icEl(el.getAttribute('data-lucide')); if (svg) { if (el.classList.length) svg.classList.add(...el.classList); el.replaceWith(svg); } });
 }
 hydrateIcons(document);
 new MutationObserver(muts => {
@@ -2816,7 +2888,7 @@ function load() {
 const pageTitles = { dashboard:'Tableau de bord', devis:'Devis', factures:'Factures', livraisons:'Bons de livraison', clients:'Clients', parametres:'Paramètres', produits:'Produits & Catalogue', entrepots:'Entrepôts', stocks:'État des stocks', mouvements:'Mouvements de stock' };
 
 const topbarActions = {
-  dashboard:   `<button class="btn btn-primary" onclick="showNewDocModal()">+ Nouveau document</button>`,
+  dashboard:   `<button class="btn" onclick="ouvrirVenteComptoir()"><i data-lucide="shopping-cart"></i> Vente comptoir</button><button class="btn btn-primary" onclick="showNewDocModal()">+ Nouveau document</button>`,
   devis:       `<button class="btn btn-primary" onclick="openDocModal('devis')">+ Nouveau devis</button>`,
   factures:    `<button class="btn btn-primary" onclick="openDocModal('facture')">+ Nouvelle facture</button>`,
   livraisons:  `<button class="btn" onclick="ouvrirFacturerBL()" style="border-color:var(--green);color:var(--green)"><i data-lucide="receipt"></i> Facturer des BL</button><button class="btn btn-primary" onclick="openDocModal('livraison')">+ Nouveau BL</button>`,
@@ -4992,6 +5064,127 @@ function createBL(factureId) {
   save(); notify('Bon de livraison créé', 'green');
   goPage('livraisons', document.querySelector('[onclick*="livraisons"]'));
   renderLivraisons();
+}
+
+// ============================================================
+//  VENTE COMPTOIR — vente rapide payée, facturée et déstockée
+// ============================================================
+const VC_TVA = 0.2;
+function vcProduit(ref) {
+  const r = (ref || '').trim().toLowerCase();
+  return r ? state.produits.find(p => (p.ref || '').toLowerCase() === r) : null;
+}
+function vcStockTotal(p) {
+  return (state.entrepots || []).reduce((s, e) => s + (getQtyStock(p.id, e.id) || 0), 0);
+}
+function ouvrirVenteComptoir() {
+  document.getElementById('dl-vc-refs').innerHTML = state.produits
+    .map(p => `<option value="${escHtml(p.ref)}">${escHtml(p.nom || '')}</option>`).join('');
+  document.getElementById('vc-lignes').innerHTML = '';
+  document.getElementById('vc-mode').value = 'Espèces';
+  document.getElementById('vc-client-nom').value = '';
+  vcAjouterLigne();
+  vcRecalculer();
+  openModal('modal-vente-comptoir');
+  setTimeout(() => { const f = document.querySelector('#vc-lignes .vc-ref'); if (f) f.focus(); }, 150);
+}
+function vcAjouterLigne() {
+  const row = document.createElement('div');
+  row.className = 'vc-row';
+  row.innerHTML = `
+    <div><input class="form-input vc-ref" list="dl-vc-refs" placeholder="Réf. (ex: V-001)" autocomplete="off" oninput="vcRefChange(this)"><div class="vc-info"></div></div>
+    <input class="form-input vc-qty" type="number" min="0" step="any" value="1" oninput="vcRecalculer()">
+    <input class="form-input vc-pu" type="number" min="0" step="0.01" placeholder="0,00" oninput="vcRecalculer()">
+    <div class="vc-total-line">0,00 MAD</div>
+    <button type="button" class="del-btn" title="Retirer" onclick="this.closest('.vc-row').remove(); vcRecalculer()">${ic('x')}</button>`;
+  document.getElementById('vc-lignes').appendChild(row);
+  return row;
+}
+function vcRefChange(input) {
+  const row = input.closest('.vc-row');
+  const info = row.querySelector('.vc-info');
+  const p = vcProduit(input.value);
+  if (p) {
+    const dispo = vcStockTotal(p);
+    info.className = 'vc-info ' + (dispo > 0 ? 'ok' : 'err');
+    info.textContent = (p.nom || '') + (p.couleur ? ' — ' + p.couleur : '') + ' · stock : ' + dispo;
+    const pu = row.querySelector('.vc-pu');
+    if (!pu.value && p.prixVente) pu.value = (Math.round(p.prixVente * (1 + VC_TVA) * 100) / 100);
+  } else {
+    info.className = 'vc-info' + (input.value.trim() ? ' err' : '');
+    info.textContent = input.value.trim() ? 'Référence inconnue' : '';
+  }
+  vcRecalculer();
+}
+function vcLignes() {
+  return [...document.querySelectorAll('#vc-lignes .vc-row')].map(row => ({
+    row,
+    ref: row.querySelector('.vc-ref').value.trim(),
+    qty: parseFloat(row.querySelector('.vc-qty').value) || 0,
+    puTTC: parseFloat(row.querySelector('.vc-pu').value) || 0
+  }));
+}
+function vcRecalculer() {
+  let ttc = 0;
+  vcLignes().forEach(l => {
+    const t = l.qty * l.puTTC;
+    ttc += t;
+    l.row.querySelector('.vc-total-line').textContent = fmtMAD(t);
+  });
+  const ht = ttc / (1 + VC_TVA);
+  document.getElementById('vc-total').textContent = fmtMAD(ttc);
+  document.getElementById('vc-ht-tva').textContent = 'HT ' + fmtMAD(ht) + ' · TVA ' + fmtMAD(ttc - ht);
+}
+function vcClientComptant() {
+  let c = state.clients.find(x => x.comptoir) || state.clients.find(x => (x.nom || '').trim().toLowerCase() === 'client comptant');
+  if (!c) {
+    c = { id: uid(), nom: 'Client comptant', comptoir: true, ville: '', tel: '', email: '', ice: '' };
+    state.clients.push(c);
+  }
+  return c;
+}
+function vcEncaisser(imprimer) {
+  const lignes = vcLignes().filter(l => l.ref || l.qty || l.puTTC);
+  if (!lignes.length) { notify('Ajoutez au moins un article', 'red'); return; }
+  for (const l of lignes) {
+    if (!vcProduit(l.ref)) { notify('Référence inconnue : « ' + (l.ref || 'vide') + ' »', 'red'); l.row.querySelector('.vc-ref').focus(); return; }
+    if (l.qty <= 0) { notify('Quantité invalide pour ' + l.ref, 'red'); l.row.querySelector('.vc-qty').focus(); return; }
+    if (l.puTTC <= 0) { notify('Prix manquant pour ' + l.ref, 'red'); l.row.querySelector('.vc-pu').focus(); return; }
+  }
+  const lines = lignes.map(l => {
+    const p = vcProduit(l.ref);
+    const pu = Math.round(l.puTTC / (1 + VC_TVA) * 10000) / 10000; // prix HT
+    return { ref: p.ref, desc: (p.nom || '') + (p.couleur ? ' — ' + p.couleur : ''), qty: l.qty, pu, remise: 0, total: l.qty * pu };
+  });
+  const ttc = Math.round(lignes.reduce((s, l) => s + l.qty * l.puTTC, 0) * 100) / 100;
+  const ht = Math.round(ttc / (1 + VC_TVA) * 100) / 100;
+  const tva = Math.round((ttc - ht) * 100) / 100;
+  const mode = document.getElementById('vc-mode').value;
+  const nomClient = document.getElementById('vc-client-nom').value.trim();
+  const client = vcClientComptant();
+  const yr = new Date().getFullYear();
+  const facture = {
+    id: uid(),
+    num: 'F-' + yr + '-' + String(state.settings.numFacture).padStart(3, '0'),
+    clientId: client.id, date: today(), echeance: today(),
+    objet: 'Vente comptoir' + (nomClient ? ' — ' + nomClient : ''), notes: '',
+    lines, remiseGlob: 0, ht, tva, ttc,
+    statut: 'Payée', paye: ttc, modeReglement: mode, comptoir: true,
+    reglements: [{ id: uid(), date: today(), montant: ttc, mode, reference: '', echeance: '', notes: 'Vente comptoir' }]
+  };
+  state.factures.push(facture);
+  state.settings.numFacture++;
+  const stockResult = deduireStockDoc(facture, 'facture');
+  save();
+  closeModal('modal-vente-comptoir');
+  if (typeof renderFactures === 'function') renderFactures();
+  if (typeof renderStocks === 'function') renderStocks();
+  if (typeof renderMouvements === 'function') renderMouvements();
+  if (typeof renderProduits === 'function') renderProduits();
+  if (typeof renderDashboard === 'function' && document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
+  notify('Vente ' + facture.num + ' encaissée : ' + fmtMAD(ttc), 'green');
+  if (stockResult && stockResult.manquants && stockResult.manquants.length) setTimeout(() => notifyStockResult(stockResult, 'Vente comptoir'), 100);
+  if (imprimer) previewDoc(facture.id, 'facture');
 }
 
 // ============================================================
