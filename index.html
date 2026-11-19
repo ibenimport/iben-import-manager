@@ -6453,28 +6453,48 @@ function deduireStockDoc(doc, docType) {
     if (!prod) { sansProduit++; return; } // ligne libre, pas dans le catalogue
     const qty = parseFloat(line.qty) || 0;
     if (qty <= 0) return;
-    // Entrepôt : par défaut du produit, sinon premier entrepôt disponible
-    let entrepotId = prod.entrepotId;
-    if (!entrepotId && state.entrepots.length > 0) entrepotId = state.entrepots[0].id;
-    if (!entrepotId) { sansEntrepot++; return; }
-    const currentQty = getQtyStock(prod.id, entrepotId);
-    if (currentQty < qty) {
-      manquants.push({ ref: prod.ref, nom: prod.nom, dispo: currentQty, demande: qty });
+    // Entrepôt principal : celui du produit, sinon le premier entrepôt
+    let entrepotDefaut = prod.entrepotId && state.entrepots.some(e => e.id === prod.entrepotId) ? prod.entrepotId : '';
+    if (!entrepotDefaut && state.entrepots.length > 0) entrepotDefaut = state.entrepots[0].id;
+    if (!entrepotDefaut) { sansEntrepot++; return; }
+    // On prend le stock là où il se trouve : d'abord l'entrepôt principal, puis les autres (les plus fournis en premier)
+    const dispoTotal = getQtyStock(prod.id);
+    if (dispoTotal < qty) {
+      manquants.push({ ref: prod.ref, nom: prod.nom, dispo: dispoTotal, demande: qty });
     }
-    const newQty = currentQty - qty;
-    setQtyStock(prod.id, entrepotId, newQty);
-    state.mouvements.push({
-      id: uid(),
-      type: 'sortie',
-      produitId: prod.id,
-      entrepotId: entrepotId,
-      qty: qty,
-      motif: 'Vente ' + (docType === 'facture' ? 'Facture' : docType === 'livraison' ? 'BL' : docType) + ' ' + (doc.num || ''),
-      date: doc.date || today(),
-      prixUnit: parseFloat(line.pu) || prod.prixVente || 0,
-      stockApres: newQty,
-      docId: doc.id,
-      docType: docType
+    const ordre = [entrepotDefaut, ...state.entrepots.map(e => e.id).filter(id => id !== entrepotDefaut)
+      .sort((a, b) => getQtyStock(prod.id, b) - getQtyStock(prod.id, a))];
+    const prelevements = [];
+    let reste = qty;
+    ordre.forEach(eid => {
+      if (reste <= 0) return;
+      const dispo = getQtyStock(prod.id, eid);
+      if (dispo <= 0) return;
+      const pris = Math.min(dispo, reste);
+      prelevements.push({ eid, qty: pris });
+      reste -= pris;
+    });
+    // Stock insuffisant : le reste sort de l'entrepôt principal (qui passe en négatif)
+    if (reste > 0) {
+      const ex = prelevements.find(p => p.eid === entrepotDefaut);
+      if (ex) ex.qty += reste; else prelevements.push({ eid: entrepotDefaut, qty: reste });
+    }
+    prelevements.forEach(p => {
+      const newQty = getQtyStock(prod.id, p.eid) - p.qty;
+      setQtyStock(prod.id, p.eid, newQty);
+      state.mouvements.push({
+        id: uid(),
+        type: 'sortie',
+        produitId: prod.id,
+        entrepotId: p.eid,
+        qty: p.qty,
+        motif: 'Vente ' + (docType === 'facture' ? 'Facture' : docType === 'livraison' ? 'BL' : docType) + ' ' + (doc.num || ''),
+        date: doc.date || today(),
+        prixUnit: parseFloat(line.pu) || prod.prixVente || 0,
+        stockApres: newQty,
+        docId: doc.id,
+        docType: docType
+      });
     });
     count++;
   });
